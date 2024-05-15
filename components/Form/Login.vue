@@ -1,9 +1,18 @@
 <script setup>
+  const form$ = ref(null)
+
+  onMounted(() => {
+    const config = useRuntimeConfig()
+    form$.value.update({
+      username: config.public.TEST_USERNAME,
+      password: config.public.TEST_PASSWORD
+    })
+  });
+
   const handleResponse = (response, form$) => {
     const toast = useToast()
     const router = useRouter()
     const tokenStore = useAccessTokenStore()
-    
     
     if (response.status == 200) {
       tokenStore.set(response.data.access_token)
@@ -20,7 +29,8 @@
 </script>
 
 <template>
-  <Vueform
+  <Vueform  
+    ref="form$"
     size="md"
     :display-errors="false"
     method="POST"
