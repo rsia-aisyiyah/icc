@@ -20,7 +20,8 @@
 
       <!-- tanggal masuk - keluar -->
       <UPopover :popper="{ placement: 'bottom-start' }">
-        <UButton icon="i-heroicons-calendar-days-20-solid" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'" >
+        <UButton icon="i-heroicons-calendar-days-20-solid" :disabled="masukKeluar == '-'"
+          :color="masukKeluar == '-' ? 'gray' : 'primary'">
           <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
           <span v-else-if="typeof date === 'object'">
             {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
@@ -41,7 +42,7 @@
     </div>
 
     <!-- Table -->
-    <UTable :rows="pasienRanap?.data" :columns="columns" :loading="pending">
+    <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="pending">
       <template #no_rawat-data="{ row }">
         <UBadge color="sky" variant="soft">
           <div class="flex gap-2 items-center justify-center pl-1">
@@ -77,8 +78,8 @@
 
       <template #reg_periksa?.tgl_registrasi-data="{ row }">
         {{ new Date(row.reg_periksa?.tgl_registrasi).toLocaleDateString('id-ID', {
-          weekday: 'long', year: 'numeric',
-          month: 'long', day: 'numeric'
+          weekday: 'short', year: 'numeric',
+          month: 'short', day: 'numeric'
         }) }} <br />
         {{ row.reg_periksa?.jam_reg }}
       </template>
@@ -86,10 +87,10 @@
       <template #tgl_keluar-data="{ row }">
         <template v-if="row.tgl_keluar && row.tgl_keluar != '0000-00-00'">
           {{ new Date(row.tgl_keluar).toLocaleDateString('id-ID', {
-            weekday: 'long', year: 'numeric', month: 'long',
+            weekday: 'short', year: 'numeric', month: 'short',
             day: 'numeric'
           }) }} <br />
-          {{ row.tgl_keluar }}
+          {{ row.jam_keluar }}
         </template>
 
         <template v-else>
@@ -101,8 +102,8 @@
       <!-- ---------- COST DATA -->
       <template #real_cost-data="{ row }">
         <span class="text-primary">
-          <USkeleton class="h-4 w-[120px]" v-if="realCostPending" />
-          <span v-if="!realCostPending">
+          <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
+          <span v-if="!pendingFetchCost">
             {{ rc?.[row.no_rawat] ? new Intl.NumberFormat('id-ID', {
               style: 'currency',
               currency: 'IDR',
@@ -114,13 +115,28 @@
 
       <template #mining_tarif-data="{ row }">
         <span class="text-indigo-400">
-          <USkeleton class="h-4 w-[120px]" />
+          <USkeleton class="h-4 w-[100px]" />
         </span>
       </template>
 
       <template #groupping_tarif-data="{ row }">
         <span class="text-violet-400">
-          <USkeleton class="h-4 w-[120px]" />
+          <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
+          <span v-if="!pendingFetchCost">
+            <span v-if="row.sep">
+              {{
+                gc?.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif
+                  ? new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                  }).format(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif)
+                  : '-'
+              }}
+            </span>
+
+            <span v-else>-</span>
+          </span>
         </span>
       </template>
 
@@ -162,24 +178,14 @@
 
 <script lang="ts" setup>
 import type { ResourcePagination } from '~/types/apiResponse'
-import type { BiayaRanapResponse, BiayaByNoRawat } from '~/types/biaya'
+import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
 
 const toast = useToast()
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
-
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
-watch(copied, (val) => {
-  val && toast.add({
-    icon: 'i-uil-check-circle',
-    title: 'Copied!',
-    description: 'Text copied to clipboard',
-    color: 'lime',
-    timeout: 2000
-  })
-})
 
 const methods = [
   { value: '-', label: 'Belum Pulang' },
@@ -187,17 +193,21 @@ const methods = [
   { value: 'keluar', label: 'Tanggal Keluar' }
 ]
 
-const rc = ref<BiayaByNoRawat>()
+const rc = ref<any>()
+const gc = ref<any>()
+const pendingFetchCost = ref(false)
 const showedNoRawat = ref<any[]>([])
+const showedNoSep = ref<any[]>([])
 const currentPage = ref(1)
 const masukKeluar = ref('-')
-const date = ref<any>({
+const date = ref({
   start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
 })
 const bodyReqs = ref<any>({
   filters: [
-    { field: 'stts_pulang', operator: '=', value: '-' }
+    { field: 'stts_pulang', operator: '=', value: '-' },
+    { field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] }
   ],
   sort: [
     { field: 'no_rawat', direction: 'desc' }
@@ -206,87 +216,113 @@ const bodyReqs = ref<any>({
     { type: "sum", relation: "lamaInap", field: "lama" }
   ],
   search: { value: '' },
-});
+})
 
-// watch date and masukKeluar
-watch([date, masukKeluar], () => {
+function updateFilters() {
   bodyReqs.value.filters = []
 
-  if (masukKeluar.value === 'masuk') {
-    bodyReqs.value.filters.push({ field: 'regPeriksa.tgl_registrasi', operator: '>=', value: date.value.start })
-    bodyReqs.value.filters.push({ field: 'regPeriksa.tgl_registrasi', operator: '<=', value: date.value.end })
-  } else if (masukKeluar.value === 'keluar') {
-    bodyReqs.value.filters.push({ field: 'tgl_keluar', operator: '>=', value: date.value.start })
-    bodyReqs.value.filters.push({ field: 'tgl_keluar', operator: '<=', value: date.value.end })
+  // Jika search.value tidak kosong, tambahkan filter yang spesifik dan atur currentPage menjadi 1
+  if (bodyReqs.value.search.value !== '') {
+    bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' });
+    currentPage.value = 1;
+    return; // Keluar dari fungsi updateFilters karena filter yang lain tidak perlu ditambahkan
   }
 
-  if (masukKeluar.value === '-') {
+  if (masukKeluar.value === 'masuk') {
+    bodyReqs.value.filters.push({ field: 'regPeriksa.tgl_registrasi', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') })
+    bodyReqs.value.filters.push({ field: 'regPeriksa.tgl_registrasi', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') })
+  } else if (masukKeluar.value === 'keluar') {
+    bodyReqs.value.filters.push({ field: 'tgl_keluar', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') })
+    bodyReqs.value.filters.push({ field: 'tgl_keluar', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') })
+  }
+
+  if (bodyReqs.value.search.value == '' && masukKeluar.value === '-') {
     bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '=', value: '-' })
   } else {
     bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: '-' })
     bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' })
   }
 
+  bodyReqs.value.filters.push({ field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] })
   currentPage.value = 1
-})
-
-const columns = [
-  { label: "No Rawat", key: "no_rawat" },
-  { label: "No SEP", key: "sep.no_sep" },
-  { label: "Nama Pasien", key: "pasien.nm_pasien" },
-  { label: "Diagnosa Awal", key: "sep.diagawal" },
-  { label: "Tanggal Masuk", key: "reg_periksa?.tgl_registrasi" },
-  { label: "Tanggal Keluar", key: "tgl_keluar" },
-  { label: "Real Cost", key: "real_cost" },
-  { label: "Groupping tarif", key: "groupping_tarif" },
-  { label: "Mining tarif", key: "mining_tarif" },
-  { label: "Action", key: "action" },
-];
+}
 
 const { data: pasienRanap, pending, status } = await useAsyncData<ResourcePagination>(
   'pasien/ranap',
-  () => $fetch(`${config.public.API_V2_URL}/pasien/ranap/search?page=${currentPage.value}&include=sep,regPeriksa`, {
+  () => $fetch(`${config.public.API_V2_URL}/pasien/ranap/search?page=${currentPage.value}`, {
     method: 'POST',
     body: JSON.stringify(bodyReqs.value),
     headers: {
       Authorization: `Bearer ${tokenStore.accessToken}`
     }
   }), {
-  watch: [currentPage, bodyReqs.value],
-});
+  watch: [currentPage, bodyReqs, bodyReqs.value]
+})
+
+function updateShowedData() {
+  showedNoRawat.value = pasienRanap.value?.data.map((item: any) => item.no_rawat) ?? []
+  showedNoSep.value = pasienRanap.value?.data.map((item: any) => {
+    if (item.sep) {
+      return item.sep.no_sep
+    }
+  }).filter((noSep) => noSep !== undefined) ?? []
+}
+
+async function fetchData() {
+  pendingFetchCost.value = true
+
+  const realCostPromise = $fetch(`${config.public.API_V2_URL}/pasien/ranap/real-cost`, {
+    method: 'POST',
+    body: { filters: [{ field: 'no_rawat', operator: 'in', value: showedNoRawat.value }] },
+    headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
+  })
+
+  const groupingCostPromise = $fetch(`${config.public.API_V2_URL}/pasien/ranap/grouping-cost`, {
+    method: 'POST',
+    body: { filters: [{ field: 'no_Sep', operator: 'in', value: showedNoSep.value }] },
+    headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
+  })
+
+  const [realCostResponse, groupingCostResponse] = await Promise.all<any>([realCostPromise, groupingCostPromise])
+
+  if (realCostResponse.error) {
+    console.error('Error fetching real cost:', realCostResponse.error)
+  } else {
+    rc.value = realCostResponse.data || []
+  }
+
+  if (groupingCostResponse.error) {
+    console.error('Error fetching grouping cost:', groupingCostResponse.error)
+  } else {
+    gc.value = groupingCostResponse.data || []
+  }
+
+  pendingFetchCost.value = false
+}
 
 onMounted(() => {
-  showedNoRawat.value = pasienRanap.value?.data.map((item: any) => item.no_rawat) ?? []
+  updateShowedData()
 })
 
-// pluck all no_rawat from pasienRanap
-watch(pasienRanap, () => {
-  showedNoRawat.value = pasienRanap.value?.data.map((item: any) => item.no_rawat) ?? []
+// Watch showedNoRawat and showedNoSep for changes
+watch([showedNoRawat, showedNoSep], fetchData, { immediate: true })
 
-  console.log(pasienRanap.value)
-})
+// Watch pasienRanap for changes
+watch(pasienRanap, updateShowedData)
 
-// fetch realcost
-const { data: realCost, pending: realCostPending, error: realCostError, refresh: realCostRefresh, status: realCostStatus } = await useAsyncData<BiayaRanapResponse>(
-  'realcost',
-  () => $fetch(`${config.public.API_V2_URL}/pasien/ranap/tarif`, {
-    method: 'POST',
-    body: {
-      "filters" : [
-        { "field" : "no_rawat", "operator" : "in", "value" : showedNoRawat.value }
-      ]
-    },
-    headers: {
-      Authorization: `Bearer ${tokenStore.accessToken}`
-    }
-  }), {
-  watch: [showedNoRawat]
-});
+// Watch date, masukKeluar, and search for changes
+watch([date, masukKeluar, bodyReqs.value.search], useDebounceFn(updateFilters, 800), { deep: true })
 
-watch(realCost, () => {
-  rc.value = <any>[];
-  if (realCost.value) {
-    rc.value = realCost.value.data
+// Watch copied for changes
+watch(copied, (val) => {
+  if (val) {
+    toast.add({
+      icon: 'i-uil-check-circle',
+      title: 'Copied!',
+      description: 'Text copied to clipboard',
+      color: 'lime',
+      timeout: 2000
+    })
   }
 })
 </script>

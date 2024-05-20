@@ -1,4 +1,5 @@
-export type DetailBiayaRanap = {
+// ==================== REAL COST RAWAT INAP 
+export type RealCostRawatInap = {
   detail_pemberian_obat: number;
   kamar_inap: number;
   operasi: number;
@@ -11,13 +12,25 @@ export type DetailBiayaRanap = {
   rawat_jalan_pr: number;
   rawat_jalan_dr: number;
   total: number;
-  gabung?: Partial<DetailBiayaRanap>;
+  gabung?: Partial<RealCostRawatInap>;
 };
 
-export type BiayaByNoRawat = {
-  [key: string]: DetailBiayaRanap;
+export type RealCostByNoRawat = {
+  [key: string]: RealCostRawatInap;
 };
 
-export type BiayaRanapResponse = {
-  data: BiayaByNoRawat;
+export type RealCostRawatInapResponse = {
+  data: RealCostByNoRawat;
+};
+
+// ==================== GROUPING RAWAT INAP 
+export type GroupingCostRawatInap = {
+  no_sep: string;
+  code_cbg: string;
+  deskripsi: string;
+  tarif: number;
+};
+
+export type GroupingCostRawatInapResponse = {
+  data: GroupingCostRawatInap[];
 };
