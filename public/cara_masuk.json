@@ -1,0 +1,46 @@
+[
+  {
+    "value": "gp",
+    "label": "Rujukan FKTP"
+  },
+  {
+    "value": "hosp-trans",
+    "label": "Rujukan FKRTL"
+  },
+  {
+    "value": "mp",
+    "label": "Rujukan Dokter Spesialis"
+  },
+  {
+    "value": "outp",
+    "label": "Dari Rawat Jalan"
+  },
+  {
+    "value": "inp",
+    "label": "Dari Rawat Inap"
+  },
+  {
+    "value": "emd",
+    "label": "Dari Rawat Darurat"
+  },
+  {
+    "value": "born",
+    "label": "Lahir di Rumah Sakit"
+  },
+  {
+    "value": "nursing",
+    "label": "Rujukan dari Panti Jompo"
+  },
+  {
+    "value": "psych",
+    "label": "Rujukan dari Rumah Sakit Jiwa"
+  },
+  {
+    "value": "rehab",
+    "label": "Rujukan dari Fasilitas Rehabilitasi"
+  },
+  {
+    "value": "other",
+    "label": "Lain-lain"
+  }
+]

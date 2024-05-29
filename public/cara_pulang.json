@@ -1,0 +1,22 @@
+[
+  {
+    "value": "home",
+    "label": "Atas Persetujuan Dokter"
+  },
+  {
+    "value": "transfe",
+    "label": "Dirujuk"
+  },
+  {
+    "value": "refuse",
+    "label": "Atas Permintaan Sendiri"
+  },
+  {
+    "value": "deceased",
+    "label": "Meninggal"
+  },
+  {
+    "value": "other",
+    "label": "Lain-Lain"
+  }
+]

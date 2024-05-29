@@ -1,0 +1,282 @@
+[
+  {
+    "value": "0001",
+    "label": "MANDIRI INHEALTH",
+    "enabled": true
+  },
+  {
+    "value": "0005",
+    "label": "ASURANSI SINAR MAS",
+    "enabled": true
+  },
+  {
+    "value": "0006",
+    "label": "ASURANSI TUGU MANDIRI",
+    "enabled": true
+  },
+  {
+    "value": "0007",
+    "label": "ASURANSI MITRA MAPARYA",
+    "enabled": true
+  },
+  {
+    "value": "0008",
+    "label": "ASURANSI AXA MANDIRI FINANSIAL SERVICE",
+    "enabled": true
+  },
+  {
+    "value": "0009",
+    "label": "ASURANSI AXA FINANSIAL INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0010",
+    "label": "LIPPO GENERAL INSURANCE",
+    "enabled": true
+  },
+  {
+    "value": "0011",
+    "label": "ARTHAGRAHA GENERAL INSURANSE",
+    "enabled": true
+  },
+  {
+    "value": "0012",
+    "label": "TUGU PRATAMA INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0013",
+    "label": "ASURANSI BINA DANA ARTA",
+    "enabled": true
+  },
+  {
+    "value": "0014",
+    "label": "ASURANSI JIWA SINAR MAS MSIG",
+    "enabled": true
+  },
+  {
+    "value": "0015",
+    "label": "AVRIST ASSURANCE",
+    "enabled": true
+  },
+  {
+    "value": "0016",
+    "label": "ASURANSI JIWA SRAYA",
+    "enabled": true
+  },
+  {
+    "value": "0017",
+    "label": "ASURANSI JIWA CENTRAL ASIA RAYA",
+    "enabled": true
+  },
+  {
+    "value": "0018",
+    "label": "ASURANSI TAKAFUL KELUARGA",
+    "enabled": true
+  },
+  {
+    "value": "0019",
+    "label": "ASURANSI JIWA GENERALI INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0020",
+    "label": "ASURANSI ASTRA BUANA",
+    "enabled": true
+  },
+  {
+    "value": "0021",
+    "label": "ASURANSI UMUM MEGA",
+    "enabled": true
+  },
+  {
+    "value": "0022",
+    "label": "ASURANSI MULTI ARTHA GUNA",
+    "enabled": true
+  },
+  {
+    "value": "0023",
+    "label": "ASURANSI AIA INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0024",
+    "label": "ASURANSI JIWA EQUITY LIFE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0025",
+    "label": "ASURANSI JIWA RECAPITAL",
+    "enabled": true
+  },
+  {
+    "value": "0026",
+    "label": "GREAT EASTERN LIFE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0027",
+    "label": "ASURANSI ADISARANA WANAARTHA",
+    "enabled": true
+  },
+  {
+    "value": "0028",
+    "label": "ASURANSI JIWA BRINGIN JIWA SEJAHTERA",
+    "enabled": true
+  },
+  {
+    "value": "0029",
+    "label": "BOSOWA ASURANSI",
+    "enabled": true
+  },
+  {
+    "value": "0030",
+    "label": "MNC LIFE ASSURANCE",
+    "enabled": true
+  },
+  {
+    "value": "0031",
+    "label": "ASURANSI AVIVA INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0032",
+    "label": "ASURANSI CENTRAL ASIA RAYA",
+    "enabled": true
+  },
+  {
+    "value": "0033",
+    "label": "ASURANSI ALLIANZ LIFE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0034",
+    "label": "ASURANSI BINTANG",
+    "enabled": true
+  },
+  {
+    "value": "0035",
+    "label": "TOKIO MARINE LIFE INSURANCE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0036",
+    "label": "MALACCA TRUST WUWUNGAN",
+    "enabled": true
+  },
+  {
+    "value": "0037",
+    "label": "ASURANSI JASA INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0038",
+    "label": "ASURANSI JIWA MANULIFE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0039",
+    "label": "ASURANSI BANGUN ASKRIDA",
+    "enabled": true
+  },
+  {
+    "value": "0040",
+    "label": "ASURANSI JIWA SEQUIS FINANCIAL",
+    "enabled": true
+  },
+  {
+    "value": "0041",
+    "label": "ASURANSI AXA INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0042",
+    "label": "BNI LIFE",
+    "enabled": true
+  },
+  {
+    "value": "0043",
+    "label": "ACE LIFE INSURANCE",
+    "enabled": true
+  },
+  {
+    "value": "0044",
+    "label": "CITRA INTERNATIONAL UNDERWRITERS",
+    "enabled": true
+  },
+  {
+    "value": "0045",
+    "label": "ASURANSI RELIANCE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0046",
+    "label": "HANWHA LIFE INSURANCE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0047",
+    "label": "ASURANSI DAYIN MITRA",
+    "enabled": true
+  },
+  {
+    "value": "0048",
+    "label": "ASURANSI ADIRA DINAMIKA",
+    "enabled": true
+  },
+  {
+    "value": "0049",
+    "label": "PAN PASIFIC INSURANCE",
+    "enabled": true
+  },
+  {
+    "value": "0050",
+    "label": "ASURANSI SAMSUNG TUGU",
+    "enabled": true
+  },
+  {
+    "value": "0051",
+    "label": "ASURANSI UMUM BUMI PUTERA MUDA 1967",
+    "enabled": true
+  },
+  {
+    "value": "0052",
+    "label": "ASURANSI JIWA KRESNA",
+    "enabled": true
+  },
+  {
+    "value": "0053",
+    "label": "ASURANSI RAMAYANA",
+    "enabled": true
+  },
+  {
+    "value": "0054",
+    "label": "VICTORIA INSURANCE",
+    "enabled": true
+  },
+  {
+    "value": "0055",
+    "label": "ASURANSI JIWA BERSAMA BUMIPUTERA 1912",
+    "enabled": true
+  },
+  {
+    "value": "0056",
+    "label": "FWD LIFE INDONESIA",
+    "enabled": true
+  },
+  {
+    "value": "0057",
+    "label": "ASURANSI TAKAFUL KELUARGA",
+    "enabled": true
+  },
+  {
+    "value": "0058",
+    "label": "ASURANSI TUGU KRESNA PRATAMA",
+    "enabled": true
+  },
+  {
+    "value": "0059",
+    "label": "SOMPO INSURANCE",
+    "enabled": true
+  }
+]
