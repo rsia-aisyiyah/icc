@@ -1,9 +1,9 @@
 :root, :before, :after, * {
-  --vf-primary: #07bf9b;
-  --vf-primary-darker: #06ac8b;
+  --vf-primary: rgb(var(--color-primary-500));
+  --vf-primary-darker: rgb(var(--color-primary-600));
   --vf-danger: #ef4444;
   --vf-danger-lighter: #fee2e2;
-  --vf-success: #10b981;
+  --vf-success: rgb(var(--color-primary-500));
   --vf-success-lighter: #d1fae5;
 
   --vf-gray-50: #f9fafb;
@@ -28,7 +28,7 @@
   --vf-dark-800: #1f2937;
   --vf-dark-900: #111827;
 
-  --vf-ring-color: #07bf9b66;
+  --vf-ring-color: rgb(var(--color-primary-700));
   --vf-ring-width: 2px;
 
   --vf-link-color: var(--vf-primary);
