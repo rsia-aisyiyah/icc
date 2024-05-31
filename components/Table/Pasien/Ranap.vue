@@ -43,6 +43,24 @@
 
     <!-- Table -->
     <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="pending">
+      <!-- Action -->
+      <template #action-data="{ row }">
+        <UButton
+          :disabled="!row.sep?.no_sep"
+          :to="buildUrl(row.no_rawat)"
+          icon="i-uil-external-link-alt" 
+          :variant="!row.sep?.no_sep ? 'solid' : 'soft'" 
+          :color="!row.sep?.no_sep ? 'gray' : 'primary'" 
+          target="_blank" 
+          size="xs"
+          square
+        >
+          Data Kalim
+        </UButton>
+      </template>
+
+      
+      <!-- Data -->
       <template #no_rawat-data="{ row }">
         <UBadge color="sky" variant="soft">
           <div class="flex gap-2 items-center justify-center pl-1">
@@ -181,6 +199,8 @@ import type { ResourcePagination } from '~/types/apiResponse'
 import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
+
+const buildUrl = (noRawat: string) => `/ranap/${btoa(noRawat)}`
 
 const toast = useToast()
 const config = useRuntimeConfig()
