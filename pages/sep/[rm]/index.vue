@@ -8,7 +8,7 @@ const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
 const currentPage = ref(1)
-const no_rawat = ref(atob(route.params.no_rawat));
+const rm = ref(atob(route.params.rm as string));
 
 const { data, pending, error, refresh } = await useFetch(`${config.public.API_V2_URL}/sep/search`, {
   method: 'POST',
@@ -17,13 +17,10 @@ const { data, pending, error, refresh } = await useFetch(`${config.public.API_V2
   },
   body: JSON.stringify({
     "sort": [
-      {
-        "field": "no_rawat",
-        "direction": "desc"
-      }
+      { "field": "no_rawat", "direction": "desc" }
     ],
     "filters": [
-      { "field": "no_rawat", "operator": "=", "value": no_rawat }
+      { "field": "nomr", "operator": "=", "value": rm },
     ]
   })
 })

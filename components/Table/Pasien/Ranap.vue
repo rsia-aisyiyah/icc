@@ -47,15 +47,15 @@
       <template #action-data="{ row }">
         <UButton
           :disabled="!row.sep?.no_sep"
-          :to="buildUrl(row.no_rawat)"
+          :to="buildUrl(row.pasien.no_rkm_medis)"
           icon="i-uil-external-link-alt" 
           :variant="!row.sep?.no_sep ? 'solid' : 'soft'" 
-          :color="!row.sep?.no_sep ? 'gray' : 'primary'" 
+          :color="!row.sep?.no_sep ? 'gray' : 'lime'" 
           target="_blank" 
           size="xs"
           square
         >
-          Data Kalim
+          Data Klaim
         </UButton>
       </template>
 
@@ -200,7 +200,7 @@ import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
 
-const buildUrl = (noRawat: string) => `/ranap/${btoa(noRawat)}`
+const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
 
 const toast = useToast()
 const config = useRuntimeConfig()
@@ -242,7 +242,7 @@ function updateFilters() {
   bodyReqs.value.filters = []
 
   // Jika search.value tidak kosong, tambahkan filter yang spesifik dan atur currentPage menjadi 1
-  if (bodyReqs.value.search.value !== '') {
+  if (bodyReqs.value.search.value != '') {
     bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' });
     currentPage.value = 1;
     return; // Keluar dari fungsi updateFilters karena filter yang lain tidak perlu ditambahkan
