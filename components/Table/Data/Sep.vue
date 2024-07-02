@@ -2,16 +2,24 @@
   <UCard>
     <!-- Header -->
     <template #header>
-      <div class="flex items-start gap-4">
-        <UButton icon="i-uil-dialpad-alt" variant="soft" square />
-        <div>
-          <h3 class="text-lg font-semibold">Data SEP</h3>
-          <p class="text-sm text-gray-500">Daftar data SEP pasien</p>
+      <div class="flex items-center justify-between">
+        <div class="flex items-start gap-4">
+          <UButton icon="i-uil-dialpad-alt" variant="soft" color="lime" square />
+          <div>
+            <h3 class="text-lg font-semibold">Data SEP</h3>
+            <p class="text-sm text-gray-500">Daftar data SEP pasien</p>
+          </div>
+        </div>
+
+        <!-- guide color orange and sky if orange is rawat inap and sky os rawat jalan -->
+        <div class="flex gap-2 items-center">
+          <UBadge color="orange" class="uppercase">◉ Rawat Inap</UBadge>
+          <UBadge color="sky" class="uppercase">◉ Rawat Jalan</UBadge>
         </div>
       </div>
     </template>
 
-    <UTable :rows="props.data.data" :columns="dataSepColumns">
+    <UTable :rows="(props.data as any).data" :columns="dataSepColumns">
       <!-- Action -->
       <template #action-data="{ row }">
         <UButton :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-uil-edit"
@@ -20,12 +28,21 @@
         </UButton>
       </template>
 
+      <template #nama_pasien-data="{ row }">
+        <div class="flex flex-col gap-1">
+          <strong>{{ row.nama_pasien ?? "-" }}</strong>
+          <div class="flex gap-2 items-center">
+            <UBadge class="text-xs text-gray-500" color="gray" size="xs">{{ row.nomr ?? "-" }}</UBadge>
+          </div>
+        </div>
+      </template>
+
       <template #no_rawat-data="{ row }">
-        <UBadge color="sky" variant="soft">
+        <UBadge :color="row.jnspelayanan == 1 ? 'orange' : 'sky'" variant="soft">
           <div class="flex gap-2 items-center justify-center pl-1">
             {{ row.no_rawat ?? "-" }}
             <template v-if="row.no_rawat">
-              <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs"
+              <UButton icon="i-tabler-copy" :color="row.jnspelayanan == 1 ? '' : 'sky'" variant="soft" size="2xs"
                 @click="isSupported && copy(row.no_rawat)" />
             </template>
           </div>
@@ -72,10 +89,11 @@
       </template>
 
       <template #tglpulang-data="{ row }">
-        {{ new Date(row.tglpulang).toLocaleDateString('id-ID', {
-          weekday: 'short', year: 'numeric',
-          month: 'short', day: 'numeric'
-        }) }}
+        {{ row.tglpulang && !row.tglpulang.includes('0000-00-00') ? new Date(row.tglpulang).toLocaleDateString('id-ID',
+          {
+            weekday: 'long', year: 'numeric',
+            month: 'short', day: 'numeric'
+          }) : '-' }}
       </template>
     </UTable>
   </UCard>
@@ -96,8 +114,8 @@ const toast = useToast()
 const isOpen = ref(false)
 const props = defineProps({
   data: {
-    type: Array as PropType<Record<string, any>[]>,
-    required: true
+    required: true,
+    type: Object as PropType<any>
   }
 })
 
