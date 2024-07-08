@@ -34,3 +34,26 @@ export type GroupingCostRawatInap = {
 export type GroupingCostRawatInapResponse = {
   data: GroupingCostRawatInap[];
 };
+
+
+// ==================== BILLING PASIEN
+export type BillingPasien = {
+  prosedur_non_bedah: number;
+  prosedur_bedah: number;
+  konsultasi: number;
+  tenaga_ahli: number;
+  keperawatan: number;
+  radiologi: number;
+  laboratorium: number;
+  kamar: number;
+  obat: number;
+  obat_kronis: number;
+  obat_kemoterapi: number;
+  bmhp: number;
+  sewa_alat: number;
+  rehabilitasi: number;
+}
+
+export type BillingPasienResponse = {
+  data: BillingPasien;
+};
