@@ -215,23 +215,13 @@ onMounted(async () => {
     ]" />
     <GroupElement name="container_4">
       <GroupElement name="container_4_1" label="<b>LOS</b>">
-        <GroupElement name="column1" :columns="{
-          default: { container: 4 },
-          lg: { container: 6 },
-        }">
-          <TextElement name="los_hari" input-type="number" :rules="['nullable', 'min:0', 'numeric']" autocomplete="off"
-            label="Hari" info="LOS Dalam hari" description="Readonly" :readonly="true" :addons="{ after: 'Hari' }" />
+        <GroupElement name="column1" :columns="{ default: { container: 4 }, lg: { container: 6 },}">
+          <TextElement name="los_hari" input-type="number" :rules="['nullable', 'min:0', 'numeric']" autocomplete="off" label="Hari" info="LOS Dalam hari" description="Readonly" :readonly="true" :addons="{ after: 'Hari' }" />
         </GroupElement>
-        <GroupElement name="column2" :columns="{
-          default: { container: 4 },
-          lg: { container: 3 },
-        }">
+        <GroupElement name="column2" :columns="{ default: { container: 4 }, lg: { container: 3 }, }">
           <TextElement name="los_jam" label="JAM" description="Readonly" :readonly="true" :addons="{ after: 'Jam' }" />
         </GroupElement>
-        <GroupElement name="column2_1" :columns="{
-          default: { container: 4 },
-          lg: { container: 3 },
-        }">
+        <GroupElement name="column2_1" :columns="{ default: { container: 4 }, lg: { container: 3 }, }">
           <TextElement name="berat_lahir" input-type="number" :rules="['nullable', 'min:0', 'numeric']"
             autocomplete="off" label="Berat lahir" info="Berat lahir dalam gram" description="Readonly" :readonly="true"
             :addons="{ after: 'gram' }" />
@@ -296,68 +286,68 @@ onMounted(async () => {
     <CheckboxElement name="checkbox" text="Menyatakan benar bahwa data tarif yang tersebut di atas adalah benar sesuai dengan kondisi yang sesungguhnya." :default="true" :rules="['accepted',]" :disabled="true" />
     <GroupElement class="mb-3" name="container3_5">
       <GroupElement name="column1_6" :columns="{ container: 4 }">
-        <TextElement name="prosedur_non_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Non Bedah" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="prosedur_non_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Non Bedah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column2_7" :columns="{ container: 4 }">
-        <TextElement name="prosedur_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Bedah" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="prosedur_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Bedah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column3_5" :columns="{ container: 4 }">
-        <TextElement name="konsultasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Konsultasi" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="konsultasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Konsultasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
     </GroupElement>
     <GroupElement class="mb-3" name="container3">
       <GroupElement name="column1_7" :columns="{ container: 4 }">
-        <TextElement name="tenaga_ahli" input-type="text" :rules="['nullable',]" autocomplete="off" label="Tenaga Ahli" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="tenaga_ahli" input-type="text" :rules="['nullable',]" autocomplete="off" label="Tenaga Ahli" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column2_8" :columns="{ container: 4 }">
-        <TextElement name="keperawatan" input-type="text" :rules="['nullable',]" autocomplete="off" label="Keperawatan" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="keperawatan" input-type="text" :rules="['nullable',]" autocomplete="off" label="Keperawatan" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column3_6" :columns="{ container: 4 }">
-        <TextElement name="penunjang" input-type="text" :rules="['nullable',]" autocomplete="off" label="Penunjang" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="penunjang" input-type="text" :rules="['nullable',]" autocomplete="off" label="Penunjang" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
     </GroupElement>
     <GroupElement class="mb-3" name="container3_4">
       <GroupElement name="column1_5" :columns="{ container: 4 }">
-        <TextElement name="radiologi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Radiologi" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="radiologi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Radiologi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column2_6" :columns="{ container: 4 }">
-        <TextElement name="laboratorium" input-type="text" :rules="['nullable',]" autocomplete="off" label="Laboratorium" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="laboratorium" input-type="text" :rules="['nullable',]" autocomplete="off" label="Laboratorium" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column3_4" :columns="{ container: 4 }">
-        <TextElement name="pelayanan_darah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Pelayanan Darah" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="pelayanan_darah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Pelayanan Darah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
     </GroupElement>
     <GroupElement class="mb-3" name="container3_3">
       <GroupElement name="column1_4" :columns="{ container: 4 }">
-        <TextElement name="rehabilitasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rehabilitasi" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="rehabilitasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rehabilitasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column2_5" :columns="{ container: 4 }">
-        <TextElement name="kamar" input-type="text" :rules="['nullable',]" autocomplete="off" label="Kamar / Akomodasi" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="kamar" input-type="text" :rules="['nullable',]" autocomplete="off" label="Kamar / Akomodasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column3_3" :columns="{ container: 4 }">
-        <TextElement name="rawat_intensif" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rawat Intensif" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="rawat_intensif" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rawat Intensif" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
     </GroupElement>
     <GroupElement class="mb-3" name="container3_2">
       <GroupElement name="column1_3" :columns="{ container: 4 }">
-        <TextElement name="obat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="obat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column2_4" :columns="{ container: 4 }">
-        <TextElement name="obat_kronis" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kronis" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="obat_kronis" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kronis" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column3_2" :columns="{ container: 4 }">
-        <TextElement name="obat_kemoterapi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kemoterapi" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="obat_kemoterapi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kemoterapi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
     </GroupElement>
     <GroupElement class="mb-3" name="container3_1">
       <GroupElement name="column1_2" :columns="{ container: 4 }">
-        <TextElement name="alkes" input-type="text" :rules="['nullable',]" autocomplete="off" label="Alkes" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="alkes" input-type="text" :rules="['nullable',]" autocomplete="off" label="Alkes" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column2_3" :columns="{ container: 4 }">
-        <TextElement name="bmhp" input-type="text" :rules="['nullable',]" autocomplete="off" label="BMHP" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="bmhp" input-type="text" :rules="['nullable',]" autocomplete="off" label="BMHP" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
       <GroupElement name="column3_1" :columns="{ container: 4 }">
-        <TextElement name="sewa_alat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Sewa Alat" :default="0" :addons="{ before: 'Rp' }" />
+        <TextElement name="sewa_alat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Sewa Alat" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
       </GroupElement>
     </GroupElement>
     <StaticElement name="divider_7" tag="hr" top="1" bottom="1" :conditions="[['container_1.jaminan.cara_bayar', 'in', ['00076',],],]" />
