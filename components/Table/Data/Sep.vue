@@ -4,10 +4,10 @@
     <template #header>
       <div class="flex items-center justify-between">
         <div class="flex items-start gap-4">
-          <UButton icon="i-uil-dialpad-alt" variant="soft" color="lime" square />
+          <UButton icon="i-uil-dialpad-alt" variant="soft" color="sky" square />
           <div>
-            <h3 class="text-lg font-semibold">Data SEP</h3>
-            <p class="text-sm text-gray-500">Daftar data SEP pasien</p>
+            <h3 class="text-lg text-sky-500 font-semibold">Data SEP</h3>
+            <p class="text-sm text-cool-500">Daftar data SEP pasien</p>
           </div>
         </div>
 
@@ -62,8 +62,8 @@
       </template>
 
       <template #diagawal-data="{ row }">
-        <UBadge color="lime" variant="soft">
-          <div class="flex gap-2 items-center justify-center pl-1">
+        <UBadge color="sky" variant="soft">
+          <div class="flex gap-2 items-center justify-center">
             {{ row.diagawal ?? "-" }}
           </div>
         </UBadge>
@@ -125,7 +125,7 @@ watch(copied, (val) => {
       icon: 'i-uil-check-circle',
       title: 'Copied!',
       description: 'Text copied to clipboard',
-      color: 'lime',
+      color: 'sky',
       timeout: 2000
     })
   }

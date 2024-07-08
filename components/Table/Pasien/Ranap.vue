@@ -1,12 +1,12 @@
 <template>
-  <UCard>
+  <UCard class="bg-white dark:bg-gray-800 shadow-md">
     <!-- Header -->
     <template #header>
       <div class="flex items-start gap-4">
-        <UButton icon="i-healthicons-inpatient" variant="soft" square />
+        <UButton icon="i-healthicons-inpatient" variant="soft" color="primary" square />
         <div>
-          <h3 class="text-lg font-semibold">Pasien Rawat Inap</h3>
-          <p class="text-sm text-gray-500">Daftar pasien rawat inap yang belum pulang</p>
+          <h3 class="text-lg text-primary font-semibold">Pasien Rawat Inap</h3>
+          <p class="text-sm text-cool-500">Daftar pasien rawat inap yang belum pulang</p>
         </div>
       </div>
     </template>
@@ -14,7 +14,7 @@
     <!-- Filter and search -->
     <div class="mb-4 flex gap-4 justify-end items-center">
       <!-- Pulang / Belum Pulang -->
-      <div class="p-1.5 px-3 rounded-2xl border border-gray-700 flex gap-4">
+      <div class="p-1.5 px-3 rounded-2xl border border-cool-200 dark:border-cool-700 flex gap-4">
         <URadio v-for="method of methods" :key="method.value" v-model="masukKeluar" v-bind="method" />
       </div>
 
@@ -45,21 +45,14 @@
     <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="pending">
       <!-- Action -->
       <template #action-data="{ row }">
-        <UButton
-          :disabled="!row.sep?.no_sep"
-          :to="buildUrl(row.pasien.no_rkm_medis)"
-          icon="i-uil-external-link-alt" 
-          :variant="!row.sep?.no_sep ? 'solid' : 'soft'" 
-          :color="!row.sep?.no_sep ? 'gray' : 'lime'" 
-          target="_blank" 
-          size="xs"
-          square
-        >
+        <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-uil-external-link-alt"
+          :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'" target="_blank"
+          size="xs" square>
           Data Klaim
         </UButton>
       </template>
 
-      
+
       <!-- Data -->
       <template #no_rawat-data="{ row }">
         <UBadge color="sky" variant="soft">
@@ -86,7 +79,7 @@
       </template>
 
       <template #pasien.nm_pasien-data="{ row }">
-        <span class="font-bold">{{ row.pasien?.nm_pasien ?? "-" }}</span> <br />
+        <span class="font-bold text-cool-600">{{ row.pasien?.nm_pasien ?? "-" }}</span>
         <div class="flex gap-1 mt-1">
           <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
           <span class="text-gray-500 font-semibold text-sm px-1">|</span>
@@ -95,20 +88,20 @@
       </template>
 
       <template #reg_periksa?.tgl_registrasi-data="{ row }">
-        {{ new Date(row.reg_periksa?.tgl_registrasi).toLocaleDateString('id-ID', {
+        <div class="font-semibold">{{ new Date(row.reg_periksa?.tgl_registrasi).toLocaleDateString('id-ID', {
           weekday: 'short', year: 'numeric',
           month: 'short', day: 'numeric'
-        }) }} <br />
-        {{ row.reg_periksa?.jam_reg }}
+        }) }}</div>
+        <div>{{ row.reg_periksa?.jam_reg }}</div>
       </template>
 
       <template #tgl_keluar-data="{ row }">
         <template v-if="row.tgl_keluar && row.tgl_keluar != '0000-00-00'">
-          {{ new Date(row.tgl_keluar).toLocaleDateString('id-ID', {
+          <div class="font-semibold">{{ new Date(row.tgl_keluar).toLocaleDateString('id-ID', {
             weekday: 'short', year: 'numeric', month: 'short',
             day: 'numeric'
-          }) }} <br />
-          {{ row.jam_keluar }}
+          }) }}</div>
+          <div>{{ row.jam_keluar }}</div>
         </template>
 
         <template v-else>
@@ -116,10 +109,9 @@
         </template>
       </template>
 
-
       <!-- ---------- COST DATA -->
       <template #real_cost-data="{ row }">
-        <span class="text-primary">
+        <span class="text-teal-500 font-semibold">
           <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
           <span v-if="!pendingFetchCost">
             {{ rc?.[row.no_rawat] ? new Intl.NumberFormat('id-ID', {
@@ -161,19 +153,19 @@
 
       <!-- ---------- TABLE HEADER -->
       <template #real_cost-header="{ column }">
-        <span class="text-primary">
+        <span class="text-teal-500 bg-teal-100/70 rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
 
       <template #mining_tarif-header="{ column }">
-        <span class="text-indigo-400">
+        <span class="text-indigo-500 bg-indigo-100/70 rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
 
       <template #groupping_tarif-header="{ column }">
-        <span class="text-violet-400">
+        <span class="text-violet-500 bg-violet-100/70 rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
