@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     "@pinia-plugin-persistedstate/nuxt",
     "@vueform/nuxt"
   ],
-
+  
   build: {
     transpile: ['pinia-plugin-persistedstate'],
   },

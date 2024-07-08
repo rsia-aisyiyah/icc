@@ -6,8 +6,8 @@
         <div class="flex items-start gap-4">
           <UButton icon="i-uil-dialpad-alt" variant="soft" color="sky" square />
           <div>
-            <h3 class="text-lg text-sky-500 font-semibold">Data SEP</h3>
-            <p class="text-sm text-cool-500">Daftar data SEP pasien</p>
+            <h3 class="text-lg text-sky-500 font-semibold">Data Surat Eligibilitas Peserta (SEP)</h3>
+            <p class="text-sm text-cool-500">Daftar data Surat Eligibilitas Peserta</p>
           </div>
         </div>
 
@@ -62,7 +62,7 @@
       </template>
 
       <template #diagawal-data="{ row }">
-        <UBadge color="sky" variant="soft">
+        <UBadge color="red" variant="soft">
           <div class="flex gap-2 items-center justify-center">
             {{ row.diagawal ?? "-" }}
           </div>
@@ -91,7 +91,7 @@
       <template #tglpulang-data="{ row }">
         {{ row.tglpulang && !row.tglpulang.includes('0000-00-00') ? new Date(row.tglpulang).toLocaleDateString('id-ID',
           {
-            weekday: 'long', year: 'numeric',
+            weekday: 'short', year: 'numeric',
             month: 'short', day: 'numeric'
           }) : '-' }}
       </template>

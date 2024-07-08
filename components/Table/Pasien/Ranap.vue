@@ -20,8 +20,7 @@
 
       <!-- tanggal masuk - keluar -->
       <UPopover :popper="{ placement: 'bottom-start' }">
-        <UButton icon="i-heroicons-calendar-days-20-solid" :disabled="masukKeluar == '-'"
-          :color="masukKeluar == '-' ? 'gray' : 'primary'">
+        <UButton icon="i-heroicons-calendar-days-20-solid" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
           <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
           <span v-else-if="typeof date === 'object'">
             {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
@@ -67,8 +66,8 @@
       </template>
 
       <template #sep.no_sep-data="{ row }">
-        <UBadge :color="row.sep?.no_sep ? 'primary' : 'red'" variant="soft">
-          <div class="flex gap-2 items-center justify-center pl-1">
+        <UBadge :color="row.sep?.no_sep ? 'primary' : 'primary'" variant="soft">
+          <div class="flex gap-2 items-center justify-center" :class="row.sep?.no_sep ? 'pl-1' : ''">
             {{ row.sep?.no_sep ?? "-" }}
             <template v-if="row.sep?.no_sep">
               <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs"
@@ -78,8 +77,16 @@
         </UBadge>
       </template>
 
+      <template #sep.diagawal-data="{ row }">
+        <UBadge color="red" variant="soft">
+          <div class="flex gap-2 items-center justify-center">
+            {{ row.sep ? row.sep.diagawal : "-" }}
+          </div>
+        </UBadge>
+      </template>
+
       <template #pasien.nm_pasien-data="{ row }">
-        <span class="font-bold text-cool-600">{{ row.pasien?.nm_pasien ?? "-" }}</span>
+        <span class="font-bold">{{ row.pasien?.nm_pasien ?? "-" }}</span>
         <div class="flex gap-1 mt-1">
           <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
           <span class="text-gray-500 font-semibold text-sm px-1">|</span>
