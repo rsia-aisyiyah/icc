@@ -17,7 +17,7 @@ const handleResponse = (response, form$) => {
 
   if (response.status == 200) {
     tokenStore.set(response.data.access_token)
-    router.push('/')
+    router.push('/ranap')
   } else {
     toast.add({
       title: 'Login failed',
