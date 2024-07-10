@@ -24,4 +24,8 @@ const { data, pending, error, refresh } = await useFetch(`${config.public.API_V2
     ]
   })
 })
+
+if (error) {
+  console.error('Error fetching data:', error.value)
+}
 </script>

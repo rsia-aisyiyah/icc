@@ -1,13 +1,15 @@
 <template>
   <UContainer>
     <UCard>
-      <FormKlaim 
-        :sep="bridgingSep?.data" 
-        :regPeriksa="allData.regPeriksa?.data" 
-        :kamarInap="allData.kamarInap?.data"
-        :billing="allData.billing?.data" 
-        :diagnosa="allData.diagnosa?.data"
-      />
+      <ClientOnly>
+        <FormKlaim 
+          :sep="bridgingSep?.data" 
+          :regPeriksa="allData.regPeriksa?.data" 
+          :kamarInap="allData.kamarInap?.data"
+          :billing="allData.billing?.data" 
+          :diagnosa="allData.diagnosa?.data"
+        />
+      </ClientOnly>
     </UCard>
   </UContainer>
 </template>
@@ -72,6 +74,8 @@ if (!bridgingSepPending.value && !bridgingSepError.value) {
           "sort": [ { "field": "prioritas", "direction": "asc" } ]
         })
       }),
+
+      // TODO : sistole & diastole diambil dari tabel pemeriksaan ranap
     ])
 
     return { regPeriksa, kamarInap, billing, diagnosa }
