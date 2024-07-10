@@ -9,9 +9,19 @@ export const getDiff = (masuk: string | null, keluar: string | null) => {
   }
 
   // Convert masuk and keluar to Date with locale id-ID
-  const dateMasuk = parse(masuk, 'yyyy-MM-dd HH:mm:ss', new Date());
-  const dateKeluar = parse(keluar, 'yyyy-MM-dd HH:mm:ss', new Date());
+  const dateMasuk = parse(masuk.replaceAll('.', ':'), 'yyyy-MM-dd HH:mm:ss', new Date());
+  const dateKeluar = parse(keluar.replaceAll('.', ':'), 'yyyy-MM-dd HH:mm:ss', new Date()); 
 
+  // count days from dateMasuk to dateKeluar
+  const countDays = (dateMasuk: Date, dateKeluar: Date) => {
+    dateMasuk.setHours(0,0,0,0);
+    dateKeluar.setHours(0,0,0,0);
+
+    const diffTime = dateKeluar.getTime() - dateMasuk.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  }
+  
   // Adjust the dates to the 'Asia/Jakarta' timezone
   const adjustedDateMasuk = new Date(dateMasuk.getTime() + timeZoneOffset * 60 * 1000);
   const adjustedDateKeluar = new Date(dateKeluar.getTime() + timeZoneOffset * 60 * 1000);
@@ -19,7 +29,7 @@ export const getDiff = (masuk: string | null, keluar: string | null) => {
   // Calculate total difference in minutes
   const totalMinutes = differenceInMinutes(adjustedDateKeluar, adjustedDateMasuk);
 
-  const diffDays = Math.floor(totalMinutes / (60 * 24)) + 1;
+  const diffDays = countDays(dateMasuk, dateKeluar) + 1;
   const diffHours = Math.floor(totalMinutes / 60);
   const diffMinutes = (totalMinutes % 60);
 

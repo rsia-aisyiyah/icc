@@ -5,8 +5,7 @@ import type { SepData } from '~/types/sep'
 import type { BillingPasien } from '~/types/biaya';
 import type { Diagnosa } from '~/types/diagnosa';
 import { getDiff } from '~/common/helpers/timeHelpers';
-import { parse } from 'date-fns';
-import { getDpjp, formatCurrency } from '~/common/helpers/dataHelpers';
+import { getDpjp, formatCurrency, getTanggalKeluar, parseCaraPulang } from '~/common/helpers/dataHelpers';
 
 // TODO : ketika pasien masih dirawat dan belum pulang, tgl_keluar di set menjadi apa ? kosong atau set default hari ini
 const form$ = ref({} as any)
@@ -19,34 +18,17 @@ const { sep, regPeriksa, kamarInap, billing, diagnosa } = defineProps<{
   diagnosa?: Diagnosa[]
 }>();
 
-console.log(sep);
-console.log(regPeriksa);
-console.log(kamarInap);
-console.log(billing);
-console.log(diagnosa);
+// console.log(sep);
+// console.log(regPeriksa);
+// console.log(kamarInap);
+// console.log(billing);
+// console.log(diagnosa);
 
-const parseCaraPulang = (label: string) => {
-  switch (label.toLowerCase()) {
-    case 'atas persetujuan dokter':
-      return 'home'
-    case 'dirujuk':
-      return 'transfer'
-    case 'atas permintaan sendiri':
-      return 'refuse'
-    case 'meninggal':
-      return 'deceased'
-    case 'lain-lain':
-      return 'other'
-    default:
-      return ''
-  }
-}
-
-let updateLos = (masuk: any, keluar: any) => {
+const updateLos = (masuk: any, keluar: any) => {
   if (masuk && keluar) {
-    const keluarChecked = !String(keluar).includes('0000-00-00') ? keluar : parse(new Date().toISOString(), 'yyyy-MM-dd HH:mm:ss', new Date()).toISOString();  
-        
-    let { days, hours, minutes } = getDiff(masuk, keluarChecked);
+    const keluarChecked = !String(keluar).includes('0000-00-00') ? keluar : new Date().toISOString().split('T')[0] + ' ' + new Date().toLocaleTimeString();
+
+    const { days, hours, minutes } = getDiff(masuk, keluarChecked);
     form$.value.update({
       los_hari: days,
       los_jam: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
@@ -61,7 +43,10 @@ let updateLos = (masuk: any, keluar: any) => {
 
 onMounted(async () => {
   const dpjpData = await getDpjp(sep?.nmdpdjp?.toUpperCase());
+
   if (regPeriksa && kamarInap && kamarInap.detail.length > 0) {
+    const tgl_keluar = computed(() => getTanggalKeluar(kamarInap));
+
     form$.value.update({
       cara_bayar: '00003',
       no_sep: sep?.no_sep,
@@ -69,8 +54,7 @@ onMounted(async () => {
       jenis_rawat: sep?.jnspelayanan,
       kelas_hak: sep?.klsrawat,
       tgl_masuk: regPeriksa.tgl_registrasi + ' ' + regPeriksa.jam_reg,
-      tgl_keluar: kamarInap.detail[0].tgl_keluar + ' ' + kamarInap.detail[0].jam_keluar,
-
+      tgl_keluar: tgl_keluar.value,
       los_hari: kamarInap.lama_inap,
       los_jam: kamarInap.lama_jam,
 
@@ -166,21 +150,15 @@ onMounted(async () => {
     </GroupElement>
     <GroupElement name="container_3" class="mt-3" label="<b>Tanggal Rawat</b>">
       <GroupElement name="column1" :columns="{ container: 4 }">
-        <DateElement name="tgl_masuk" label="Masuk" :time="true" :seconds="true" display-format="DD MMM YYYY HH:mm:ss"
-          :addons="{ before: '📆' }"
-          v-on:change="(masuk: any) => { tglRawat.masuk = masuk; updateLos(masuk, tglRawat.keluar) }" />
+        <DateElement name="tgl_masuk" label="Masuk" :time="true" :seconds="true" display-format="DD MMM YYYY HH:mm:ss" :addons="{ before: '📆' }" v-on:change="(masuk: any) => { tglRawat.masuk = masuk; updateLos(masuk, tglRawat.keluar) }" />
       </GroupElement>
       <GroupElement name="column2" :columns="{ container: 4 }">
-        <DateElement name="tgl_keluar" label="Keluar" :time="true" :seconds="true" display-format="DD MMM YYYY HH:mm:ss"
-          :conditions="[['container_2.column1.jenis_rawat', 'in', ['1',],],]" :addons="{ before: '📆' }"
-          :readonly="kamarInap?.detail[0].stts_pulang == '-'"v-on:change="(keluar: any) => { tglRawat.keluar = keluar; updateLos(tglRawat.masuk, keluar) }" />
+        <DateElement name="tgl_keluar" label="Keluar" :time="true" :seconds="true" display-format="DD MMM YYYY HH:mm:ss" :conditions="[['container_2.column1.jenis_rawat', 'in', ['1',],],]" :addons="{ before: '📆' }" :readonly="kamarInap?.detail[0].stts_pulang == '-'"v-on:change="(keluar: any) => { tglRawat.keluar = keluar; updateLos(tglRawat.masuk, keluar) }" />
       </GroupElement>
       <GroupElement name="column3" :columns="{ container: 4 }">
         <TextElement name="umur" autocomplete="off" label="Umur" description="Readonly" :readonly="true" />
       </GroupElement>
-      <SelectElement name="cara_masuk" items="/cara_masuk.json" :search="true" :native="false"
-        class="mt-3" label="Cara Masuk" input-type="search" autocomplete="off" :default="0"
-        :columns="{ container: 6 }" />
+      <SelectElement name="cara_masuk" items="/cara_masuk.json" :search="true" :native="false" class="mt-3" label="Cara Masuk" input-type="search" autocomplete="off" :default="0" :columns="{ container: 6 }" />
     </GroupElement>
     <StaticElement name="divider_1" tag="hr" top="1" bottom="1" />
     <RadiogroupElement name="kelas_pelayanan" view="tabs" label="Kelas Pelayanan" :items="[
@@ -222,9 +200,7 @@ onMounted(async () => {
           <TextElement name="los_jam" label="JAM" description="Readonly" :readonly="true" :addons="{ after: 'Jam' }" />
         </GroupElement>
         <GroupElement name="column2_1" :columns="{ default: { container: 4 }, lg: { container: 3 }, }">
-          <TextElement name="berat_lahir" input-type="number" :rules="['nullable', 'min:0', 'numeric']"
-            autocomplete="off" label="Berat lahir" info="Berat lahir dalam gram" description="Readonly" :readonly="true"
-            :addons="{ after: 'gram' }" />
+          <TextElement name="berat_lahir" input-type="number" :rules="['nullable', 'min:0', 'numeric']" autocomplete="off" label="Berat lahir" info="Berat lahir dalam gram" description="Readonly" :readonly="true" :addons="{ after: 'gram' }" />
         </GroupElement>
       </GroupElement>
       <GroupElement name="container_4_2">
@@ -369,11 +345,43 @@ onMounted(async () => {
       { value: 'INA', label: 'Coding INA Grouper' },
     ]" default="UNU" />
     <GroupElement name="container_5">
-      <GroupElement name="unu_container" :conditions="[['unu_ina', 'in', ['UNU',],],]">
-        <StaticElement name="h4" tag="h4" content="UNU Grouper" description="Grouper casemix yang dikembangkan oleh United Nations University (UNU)." />
+      <GroupElement name="unu_container" :conditions="[['unu_ina', 'in', ['UNU',],],]" class="p-6 bg-cool-100 rounded-sm shadow">
+        <StaticElement name="h4" tag="h4" class="mb-4" content="UNU Grouper" description="Grouper casemix yang dikembangkan oleh United Nations University (UNU)." />
+        <GroupElement name="column1" :columns="{ container: 2 }">
+          <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosia Pasien" />
+        </GroupElement>
+        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 p-6 rounded">
+          <ListElement
+            name="list_unu"
+            :sort="true"
+            :initial="1"
+            :object="{
+              schema: {
+                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 2 },
+                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 10 }
+              },
+            }"
+          />
+        </GroupElement>
       </GroupElement>
-      <GroupElement name="ina_container" :conditions="[['unu_ina', 'in', ['INA',],],]">
-        <StaticElement name="h4_1" tag="h4" content="INA Grouper" description="Sistem pengelompokan baru untuk diagnosis dan penyakit yang disesuaikan dengan kondisi di Indonesia." />
+      <GroupElement name="ina_container" :conditions="[['unu_ina', 'in', ['INA',],],]" class="p-6 bg-cool-100 rounded-sm shadow">
+        <StaticElement name="h4_1" tag="h4" class="mb-4" content="INA Grouper" description="Sistem pengelompokan baru untuk diagnosis dan penyakit yang disesuaikan dengan kondisi di Indonesia." />
+        <GroupElement name="column1" :columns="{ container: 2 }">
+          <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosia Pasien" />
+        </GroupElement>
+        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 p-6 rounded">
+          <ListElement
+            name="list_ina"
+            :sort="true"
+            :initial="1"
+            :object="{
+              schema: {
+                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 2 },
+                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 10 }
+              },
+            }"
+          />
+        </GroupElement>
       </GroupElement>
     </GroupElement>
     <StaticElement name="divider_5" tag="hr" bottom="1" top="1" />

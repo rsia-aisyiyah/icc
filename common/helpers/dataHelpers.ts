@@ -1,3 +1,5 @@
+import type { KamarInap } from "~/types/kamarInap";
+
 export interface DPJPData {
   value: string;
   label: string;
@@ -31,3 +33,28 @@ export const formatCurrency = (value: number): string => {
 export const currencyToInt = (value: string): number => {
   return parseInt(value.replace(/\D/g, ''));
 };
+
+export const getTanggalKeluar = (kamarInap: KamarInap) => {
+  if (kamarInap.detail[0].tgl_keluar == "0000-00-00") {
+    return new Date().toISOString().split('T')[0] + ' ' + new Date().toLocaleTimeString();
+  }
+
+  return kamarInap.detail[0].tgl_keluar + ' ' + kamarInap.detail[0].jam_keluar;
+}
+
+export const parseCaraPulang = (label: string) => {
+  switch (label.toLowerCase()) {
+    case 'atas persetujuan dokter':
+      return 'home'
+    case 'dirujuk':
+      return 'transfer'
+    case 'atas permintaan sendiri':
+      return 'refuse'
+    case 'meninggal':
+      return 'deceased'
+    case 'lain-lain':
+      return 'other'
+    default:
+      return ''
+  }
+}
