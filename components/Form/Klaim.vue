@@ -1,21 +1,22 @@
 <script lang="ts" setup>
-import type { RegPeriksa } from '~/types/regPeriksa';
-import type { KamarInap } from '~/types/kamarInap';
 import type { SepData } from '~/types/sep'
-import type { BillingPasien } from '~/types/biaya';
+import type { TensiData } from '~/types/tensi'
 import type { Diagnosa } from '~/types/diagnosa';
+import type { KamarInap } from '~/types/kamarInap';
+import type { BillingPasien } from '~/types/biaya';
+import type { RegPeriksa } from '~/types/regPeriksa';
 import { getDiff } from '~/common/helpers/timeHelpers';
 import { getDpjp, formatCurrency, getTanggalKeluar, parseCaraPulang } from '~/common/helpers/dataHelpers';
 
-// TODO : ketika pasien masih dirawat dan belum pulang, tgl_keluar di set menjadi apa ? kosong atau set default hari ini
 const form$ = ref({} as any)
 const tglRawat = ref({ masuk: null, keluar: null } as { masuk: string | null, keluar: string | null })
-const { sep, regPeriksa, kamarInap, billing, diagnosa } = defineProps<{
+const { sep, regPeriksa, kamarInap, billing, diagnosa, tensi } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa
   kamarInap?: KamarInap
   billing?: BillingPasien
   diagnosa?: Diagnosa[]
+  tensi?: TensiData
 }>();
 
 // console.log(sep);
@@ -43,6 +44,16 @@ const updateLos = (masuk: any, keluar: any) => {
 
 onMounted(async () => {
   const dpjpData = await getDpjp(sep?.nmdpdjp?.toUpperCase());
+  let [sistole, diastole] = [0, 0];
+  
+  if (tensi) {
+    [sistole, diastole] = tensi.tensi.split('/');
+
+    form$.value.update({
+      sistole: sistole,
+      diastole: diastole,
+    })
+  }
 
   if (regPeriksa && kamarInap && kamarInap.detail.length > 0) {
     const tgl_keluar = computed(() => getTanggalKeluar(kamarInap));
@@ -64,10 +75,11 @@ onMounted(async () => {
       cara_pulang: parseCaraPulang(kamarInap.detail[0].stts_pulang || ''),
       dpjp: dpjpData ? dpjpData.value : '',
 
+      
       jenis_tarif: "CS",
 
+      // INFO : variable dibawah ini sudah disesuaikan dengan ketentuan name pada dokumentasi ws
 
-      // Billing [x] INFO : input form name sudah sesuai dengan dokumentasi API WS
       prosedur_non_bedah: formatCurrency(billing?.prosedur_non_bedah || 0),
       prosedur_bedah: formatCurrency(billing?.prosedur_bedah || 0),
       konsultasi: formatCurrency(billing?.konsultasi || 0),
@@ -118,20 +130,20 @@ onMounted(async () => {
           ]" />
       </GroupElement>
       <GroupElement name="column2" :columns="{ container: 6 }">
-        <CheckboxgroupElement name="jenis_rawat_1" view="tabs" label="Jenis Rawat" :items="[
+        <CheckboxgroupElement name="jenis_rawat_child_1" view="tabs" label="Jenis Rawat" :items="[
           { value: '0', label: 'Naik / Turun Kelas' },
           { value: '1', label: 'Ada Rawat Intensif' },
         ]" :conditions="[
           ['container_2.column1.jenis_rawat', 'in', ['1',],],
           ['container_1.jaminan.cara_bayar', 'not_in', ['00076',],],
         ]" />
-        <CheckboxgroupElement name="jenis_rawat_3" view="tabs" label="Jenis Rawat" :items="[
+        <CheckboxgroupElement name="jenis_rawat_child_3" view="tabs" label="Jenis Rawat" :items="[
           { value: '1', label: 'Ada Rawat Intensif' },
         ]" :conditions="[
           ['container_2.column1.jenis_rawat', 'in', ['1',],],
           ['container_1.jaminan.cara_bayar', 'in', ['00076',],],
         ]" :columns="{ container: 6 }" />
-        <CheckboxgroupElement name="jenis_rawat_2" view="tabs" label="Jenis Rawat" :conditions="[
+        <CheckboxgroupElement name="jenis_rawat_child_2" view="tabs" label="Jenis Rawat" :conditions="[
           ['container_2.column1.jenis_rawat', 'in', ['2',],],
           ['container_1.jaminan.cara_bayar', 'not_in', ['00076',],],
         ]" :items="[
@@ -167,10 +179,10 @@ onMounted(async () => {
       { value: '1', label: 'Kelas 1' },
       { value: '0', label: 'Diatas Kelas 1' },
     ]" :conditions="[
-      ['container_2.column2.jenis_rawat_1', 'in', ['0',],],
+      ['container_2.column2.jenis_rawat_child_1', 'in', ['0',],],
     ]" />
     <GroupElement name="container3_6" :conditions="[
-      ['container_2.column2.jenis_rawat_1', 'in', ['1',],],
+      ['container_2.column2.jenis_rawat_child_1', 'in', ['1',],],
     ]">
       <GroupElement name="column1" :columns="{ container: 2 }">
         <CheckboxgroupElement name="ventilator" view="tabs" label="Ventilator" :items="[
@@ -180,16 +192,16 @@ onMounted(async () => {
       <GroupElement name="column2" :columns="{ container: 5 }" :conditions="[
         ['container3_6.column1.ventilator', 'in', ['1',],],
       ]">
-        <DateElement name="intubasi" label="Intubasi" :time="true" :addons="{ before: '📆' }" />
+        <DateElement name="intubasi" label="Intubasi" :time="true" display-format="DD MMM YYYY HH:mm:ss" :addons="{ before: '📆' }" />
       </GroupElement>
       <GroupElement name="column3" :columns="{ container: 5 }" :conditions="[
         ['container3_6.column1.ventilator', 'in', ['1',],],
       ]">
-        <DateElement name="ekstubasi " label="Ekstubasi " :time="true" :addons="{ before: '📆' }" />
+        <DateElement name="ekstubasi " label="Ekstubasi " :time="true" display-format="DD MMM YYYY HH:mm:ss" :addons="{ before: '📆' }" />
       </GroupElement>
     </GroupElement>
     <StaticElement name="divider_3" tag="hr" top="1" bottom="1" :conditions="[
-      ['container_2.column2.jenis_rawat_1', 'in', ['0', '1',],],
+      ['container_2.column2.jenis_rawat_child_1', 'in', ['0', '1',],],
     ]" />
     <GroupElement name="container_4">
       <GroupElement name="container_4_1" label="<b>LOS</b>">
@@ -254,78 +266,86 @@ onMounted(async () => {
         </GroupElement>
       </GroupElement>
     </GroupElement>
-    <GroupElement name="container" :conditions="[['container_2.column2.jenis_rawat_2', 'in', ['0',],], ]">
+    <GroupElement name="container" :conditions="[['container_2.column2.jenis_rawat_child_2', 'in', ['0',],], ]">
       <TextElement name="Tarif Poli Eks" input-type="number" :rules="['nullable', 'min:0', 'numeric',]" autocomplete="off" label="Tarif Poli Eks." :default="0" :addons="{ before: 'Rp' }" />
     </GroupElement>
+
     <StaticElement name="divider_2" tag="hr" bottom="1" top="1" />
-    <StaticElement name="h3_1" tag="h3" content="Tarif Rumah Sakit" />
-    <CheckboxElement name="checkbox" text="Menyatakan benar bahwa data tarif yang tersebut di atas adalah benar sesuai dengan kondisi yang sesungguhnya." :default="true" :rules="['accepted',]" :disabled="true" />
-    <GroupElement class="mb-3" name="container3_5">
-      <GroupElement name="column1_6" :columns="{ container: 4 }">
-        <TextElement name="prosedur_non_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Non Bedah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+
+    <!-- Tarif Rumah Sakit -->
+    <GroupElement class="p-6 bg-cool-100 shadow-inner rounded-lg" name="tarif_rs_wrapper">
+      <StaticElement name="h3_1" tag="h3" content="Tarif Rumah Sakit" />
+      <CheckboxElement name="checkbox" text="Menyatakan benar bahwa data tarif yang tersebut di atas adalah benar sesuai dengan kondisi yang sesungguhnya." :default="true" :rules="['accepted',]" :disabled="true" />
+      
+      <GroupElement class="mb-1.5 mt-2" name="container3_5">
+        <GroupElement name="column1_6" :columns="{ container: 4 }">
+          <TextElement name="prosedur_non_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Non Bedah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column2_7" :columns="{ container: 4 }">
+          <TextElement name="prosedur_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Bedah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column3_5" :columns="{ container: 4 }">
+          <TextElement name="konsultasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Konsultasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
       </GroupElement>
-      <GroupElement name="column2_7" :columns="{ container: 4 }">
-        <TextElement name="prosedur_bedah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Prosedur Bedah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+      <GroupElement class="mb-1.5" name="container3">
+        <GroupElement name="column1_7" :columns="{ container: 4 }">
+          <TextElement name="tenaga_ahli" input-type="text" :rules="['nullable',]" autocomplete="off" label="Tenaga Ahli" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column2_8" :columns="{ container: 4 }">
+          <TextElement name="keperawatan" input-type="text" :rules="['nullable',]" autocomplete="off" label="Keperawatan" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column3_6" :columns="{ container: 4 }">
+          <TextElement name="penunjang" input-type="text" :rules="['nullable',]" autocomplete="off" label="Penunjang" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
       </GroupElement>
-      <GroupElement name="column3_5" :columns="{ container: 4 }">
-        <TextElement name="konsultasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Konsultasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+      <GroupElement class="mb-1.5" name="container3_4">
+        <GroupElement name="column1_5" :columns="{ container: 4 }">
+          <TextElement name="radiologi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Radiologi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column2_6" :columns="{ container: 4 }">
+          <TextElement name="laboratorium" input-type="text" :rules="['nullable',]" autocomplete="off" label="Laboratorium" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column3_4" :columns="{ container: 4 }">
+          <TextElement name="pelayanan_darah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Pelayanan Darah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+      </GroupElement>
+      <GroupElement class="mb-1.5" name="container3_3">
+        <GroupElement name="column1_4" :columns="{ container: 4 }">
+          <TextElement name="rehabilitasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rehabilitasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column2_5" :columns="{ container: 4 }">
+          <TextElement name="kamar" input-type="text" :rules="['nullable',]" autocomplete="off" label="Kamar / Akomodasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column3_3" :columns="{ container: 4 }">
+          <TextElement name="rawat_intensif" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rawat Intensif" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+      </GroupElement>
+      <GroupElement class="mb-1.5" name="container3_2">
+        <GroupElement name="column1_3" :columns="{ container: 4 }">
+          <TextElement name="obat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column2_4" :columns="{ container: 4 }">
+          <TextElement name="obat_kronis" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kronis" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column3_2" :columns="{ container: 4 }">
+          <TextElement name="obat_kemoterapi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kemoterapi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+      </GroupElement>
+      <GroupElement name="container3_1">
+        <GroupElement name="column1_2" :columns="{ container: 4 }">
+          <TextElement name="alkes" input-type="text" :rules="['nullable',]" autocomplete="off" label="Alkes" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column2_3" :columns="{ container: 4 }">
+          <TextElement name="bmhp" input-type="text" :rules="['nullable',]" autocomplete="off" label="BMHP" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
+        <GroupElement name="column3_1" :columns="{ container: 4 }">
+          <TextElement name="sewa_alat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Sewa Alat" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
+        </GroupElement>
       </GroupElement>
     </GroupElement>
-    <GroupElement class="mb-3" name="container3">
-      <GroupElement name="column1_7" :columns="{ container: 4 }">
-        <TextElement name="tenaga_ahli" input-type="text" :rules="['nullable',]" autocomplete="off" label="Tenaga Ahli" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column2_8" :columns="{ container: 4 }">
-        <TextElement name="keperawatan" input-type="text" :rules="['nullable',]" autocomplete="off" label="Keperawatan" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column3_6" :columns="{ container: 4 }">
-        <TextElement name="penunjang" input-type="text" :rules="['nullable',]" autocomplete="off" label="Penunjang" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-    </GroupElement>
-    <GroupElement class="mb-3" name="container3_4">
-      <GroupElement name="column1_5" :columns="{ container: 4 }">
-        <TextElement name="radiologi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Radiologi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column2_6" :columns="{ container: 4 }">
-        <TextElement name="laboratorium" input-type="text" :rules="['nullable',]" autocomplete="off" label="Laboratorium" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column3_4" :columns="{ container: 4 }">
-        <TextElement name="pelayanan_darah" input-type="text" :rules="['nullable',]" autocomplete="off" label="Pelayanan Darah" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-    </GroupElement>
-    <GroupElement class="mb-3" name="container3_3">
-      <GroupElement name="column1_4" :columns="{ container: 4 }">
-        <TextElement name="rehabilitasi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rehabilitasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column2_5" :columns="{ container: 4 }">
-        <TextElement name="kamar" input-type="text" :rules="['nullable',]" autocomplete="off" label="Kamar / Akomodasi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column3_3" :columns="{ container: 4 }">
-        <TextElement name="rawat_intensif" input-type="text" :rules="['nullable',]" autocomplete="off" label="Rawat Intensif" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-    </GroupElement>
-    <GroupElement class="mb-3" name="container3_2">
-      <GroupElement name="column1_3" :columns="{ container: 4 }">
-        <TextElement name="obat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column2_4" :columns="{ container: 4 }">
-        <TextElement name="obat_kronis" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kronis" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column3_2" :columns="{ container: 4 }">
-        <TextElement name="obat_kemoterapi" input-type="text" :rules="['nullable',]" autocomplete="off" label="Obat Kemoterapi" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-    </GroupElement>
-    <GroupElement class="mb-3" name="container3_1">
-      <GroupElement name="column1_2" :columns="{ container: 4 }">
-        <TextElement name="alkes" input-type="text" :rules="['nullable',]" autocomplete="off" label="Alkes" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column2_3" :columns="{ container: 4 }">
-        <TextElement name="bmhp" input-type="text" :rules="['nullable',]" autocomplete="off" label="BMHP" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-      <GroupElement name="column3_1" :columns="{ container: 4 }">
-        <TextElement name="sewa_alat" input-type="text" :rules="['nullable',]" autocomplete="off" label="Sewa Alat" :readonly="true" description="Readonly" :default="0" :addons="{ before: 'Rp' }" />
-      </GroupElement>
-    </GroupElement>
+    <!-- / Tarif Rumah Sakit -->
+
     <StaticElement name="divider_7" tag="hr" top="1" bottom="1" :conditions="[['container_1.jaminan.cara_bayar', 'in', ['00076',],],]" />
     <GroupElement name="container_6" :conditions="[['container_1.jaminan.cara_bayar', 'in', ['00076',],],]">
       <MultifileElement name=" Resume Medis" label="Resume Medis" :urls="{}" />
@@ -345,39 +365,39 @@ onMounted(async () => {
       { value: 'INA', label: 'Coding INA Grouper' },
     ]" default="UNU" />
     <GroupElement name="container_5">
-      <GroupElement name="unu_container" :conditions="[['unu_ina', 'in', ['UNU',],],]" class="p-6 bg-cool-100 rounded-sm shadow">
+      <GroupElement name="unu_container" :conditions="[['unu_ina', 'in', ['UNU',],],]" class="p-6 bg-cool-100 shadow-inner rounded-lg">
         <StaticElement name="h4" tag="h4" class="mb-4" content="UNU Grouper" description="Grouper casemix yang dikembangkan oleh United Nations University (UNU)." />
         <GroupElement name="column1" :columns="{ container: 2 }">
-          <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosia Pasien" />
+          <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosa Pasien" />
         </GroupElement>
-        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 p-6 rounded">
+        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 shadow rounded-lg p-6">
           <ListElement
             name="list_unu"
             :sort="true"
             :initial="1"
             :object="{
               schema: {
-                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 2 },
-                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 10 }
+                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 3 },
+                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 9, readonly: true }
               },
             }"
           />
         </GroupElement>
       </GroupElement>
-      <GroupElement name="ina_container" :conditions="[['unu_ina', 'in', ['INA',],],]" class="p-6 bg-cool-100 rounded-sm shadow">
+      <GroupElement name="ina_container" :conditions="[['unu_ina', 'in', ['INA',],],]" class="p-6 bg-cool-100 shadow-inner rounded-lg">
         <StaticElement name="h4_1" tag="h4" class="mb-4" content="INA Grouper" description="Sistem pengelompokan baru untuk diagnosis dan penyakit yang disesuaikan dengan kondisi di Indonesia." />
         <GroupElement name="column1" :columns="{ container: 2 }">
-          <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosia Pasien" />
+          <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosa Pasien" />
         </GroupElement>
-        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 p-6 rounded">
+        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 shadow rounded-lg p-6">
           <ListElement
             name="list_ina"
             :sort="true"
             :initial="1"
             :object="{
               schema: {
-                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 2 },
-                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 10 }
+                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 3 },
+                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 9, readonly: true }
               },
             }"
           />
@@ -388,10 +408,10 @@ onMounted(async () => {
     <StaticElement name="h3_3" tag="h3" content="Data Klinis" description="Tekanan Darah (mmHg):" />
     <GroupElement name="container2_4">
       <GroupElement name="column1" :columns="{ container: 6 }">
-        <TextElement name="Sistole" input-type="number" :rules="['nullable', 'numeric']" autocomplete="off" label="Sistole" default="0" />
+        <TextElement name="sistole" input-type="number" :rules="['nullable', 'numeric']" autocomplete="off" label="Sistole" :readonly="true" description="Readonly" default="0" />
       </GroupElement>
       <GroupElement name="column2" :columns="{ container: 6 }">
-        <TextElement name="Diastole" input-type="number" :rules="['nullable', 'numeric']" autocomplete="off" label="Diastole" default="0" />
+        <TextElement name="diastole" input-type="number" :rules="['nullable', 'numeric']" autocomplete="off" label="Diastole" :readonly="true" description="Readonly" default="0" />
       </GroupElement>
     </GroupElement>
     <GroupElement name="container_7" :conditions="[['container_1.jaminan.cara_bayar', 'in', ['00076',],],]">

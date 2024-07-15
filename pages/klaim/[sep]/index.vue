@@ -8,6 +8,7 @@
           :kamarInap="allData.kamarInap?.data"
           :billing="allData.billing?.data" 
           :diagnosa="allData.diagnosa?.data"
+          :tensi="allData.sisDiastole?.data"
         />
       </ClientOnly>
     </UCard>
@@ -16,6 +17,7 @@
 
 <script lang="ts" setup>
 import type { ResponseSepData } from '~/types/sep'
+import type { ResponseTensi } from '~/types/tensi'
 import type { ResponseRegPeriksa } from '~/types/regPeriksa'
 import type { KamarInapResponse } from '~/types/kamarInap';
 import type { BillingPasienResponse } from '~/types/biaya';
@@ -27,7 +29,16 @@ const tokenStore = useAccessTokenStore()
 
 const no_sep = ref(route.params.sep);
 
-const allData = ref<{ regPeriksa: ResponseRegPeriksa | null, kamarInap: KamarInapResponse | null, billing: BillingPasienResponse | null, diagnosa: ResourcePagination | null }>({
+const buildUrlTensi = (noRm: string, noRawat: string, status: string) => {  
+  if (status != '1' && status != '2') {
+    return '';
+  } 
+  
+  let stts = status == '1' ? 'ranap' : 'ralan';
+  return `${config.public.API_V2_URL}/pasien/${noRm}/riwayat/${noRawat}/${stts}/get-tensi`;
+}
+
+const allData = ref<{ regPeriksa: ResponseRegPeriksa | null, kamarInap: KamarInapResponse | null, billing: BillingPasienResponse | null, diagnosa: ResourcePagination | null, sisDiastole: ResponseTensi | null }>({
   regPeriksa: null,
   kamarInap: null,
   billing: null,
@@ -46,9 +57,13 @@ if (bridgingSepError.value) {
 // if bridgingSepPending.value = false && bridgingSepError.value = null then fetch regPeriksa using multiple fetch
 if (!bridgingSepPending.value && !bridgingSepError.value) {
   const noRawat = bridgingSep?.value?.data.no_rawat || ''
+  const noRm = bridgingSep?.value?.data.nomr || ''
+  let statusPasien = bridgingSep?.value?.data.jnspelayanan || '0'
 
   const { data, pending, error, refresh, status } = await useAsyncData(`data-klaim-pasien-${btoa(noRawat)}`, async () => {
-    const [regPeriksa, kamarInap, billing, diagnosa] = await Promise.all([
+    let u = buildUrlTensi(noRm, noRawat, statusPasien);    
+    
+    const [regPeriksa, kamarInap, billing, diagnosa, sisDiastole] = await Promise.all([
       // Fetch Reg Periksa
       $fetch<ResponseRegPeriksa>(`${config.public.API_V2_URL}/registrasi/periksa/${btoa(noRawat)}`, {
         query: { include: 'pasienBayi' },
@@ -74,11 +89,14 @@ if (!bridgingSepPending.value && !bridgingSepError.value) {
           "sort": [ { "field": "prioritas", "direction": "asc" } ]
         })
       }),
-
+      
       // TODO : sistole & diastole diambil dari tabel pemeriksaan ranap
+      $fetch<ResponseTensi>(buildUrlTensi(noRm, btoa(noRawat), statusPasien), {
+        headers: { Authorization: `Bearer ${tokenStore.accessToken}` },
+      }),
     ])
 
-    return { regPeriksa, kamarInap, billing, diagnosa }
+    return { regPeriksa, kamarInap, billing, diagnosa, sisDiastole }
   })
 
   if (status.value == 'error') {
