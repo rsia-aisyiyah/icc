@@ -43,6 +43,7 @@ const allData = ref<{ regPeriksa: ResponseRegPeriksa | null, kamarInap: KamarIna
   kamarInap: null,
   billing: null,
   diagnosa: null,
+  sisDiastole: null,
 })
 
 const { data: bridgingSep, pending: bridgingSepPending, error: bridgingSepError, refresh: bridgingSepRefresh } = await useFetch<ResponseSepData>(`${config.public.API_V2_URL}/sep/${no_sep.value}`, {

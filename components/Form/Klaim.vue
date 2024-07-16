@@ -14,9 +14,6 @@ const tokenStore = useAccessTokenStore()
 const unuItems = ref([] as any)
 const inaItems = ref([] as any)
 
-const unuSelected = ref(null)
-const inaSelected = ref(null)
-
 const form$ = ref({} as any)
 const tglRawat = ref({ masuk: null, keluar: null } as { masuk: string | null, keluar: string | null })
 const { sep, regPeriksa, kamarInap, billing, diagnosa, tensi } = defineProps<{
@@ -53,8 +50,8 @@ const updateLos = (masuk: any, keluar: any) => {
 
 onMounted(async () => {
   const dpjpData = await getDpjp(sep?.nmdpdjp?.toUpperCase());
-  let [sistole, diastole] = [0, 0];
-  
+  let [sistole, diastole] = ["0", "0"];
+
   if (tensi) {
     [sistole, diastole] = tensi.tensi.split('/');
 
@@ -84,7 +81,7 @@ onMounted(async () => {
       cara_pulang: parseCaraPulang(kamarInap.detail[0].stts_pulang || ''),
       dpjp: dpjpData ? dpjpData.value : '',
 
-      
+
       jenis_tarif: "CS",
 
       // INFO : variable dibawah ini sudah disesuaikan dengan ketentuan name pada dokumentasi ws
