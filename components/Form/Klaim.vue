@@ -7,6 +7,15 @@ import type { BillingPasien } from '~/types/biaya';
 import type { RegPeriksa } from '~/types/regPeriksa';
 import { getDiff } from '~/common/helpers/timeHelpers';
 import { getDpjp, formatCurrency, getTanggalKeluar, parseCaraPulang } from '~/common/helpers/dataHelpers';
+import { useDebounceFn } from '@vueuse/core'
+
+const tokenStore = useAccessTokenStore()
+
+const unuItems = ref([] as any)
+const inaItems = ref([] as any)
+
+const unuSelected = ref(null)
+const inaSelected = ref(null)
 
 const form$ = ref({} as any)
 const tglRawat = ref({ masuk: null, keluar: null } as { masuk: string | null, keluar: string | null })
@@ -97,6 +106,46 @@ onMounted(async () => {
     })
   }
 })
+
+const debounceFetchDiagnosis = useDebounceFn(fetchDiagnosis, 1200);
+async function fetchDiagnosis(query: string, method: string) {
+  if (query === '') {
+    unuItems.value = [];
+    inaItems.value = [];
+    return;
+  }
+
+  if (query.length >= 3) {
+    const { data, pending, error, refresh } = await useFetch('http://172.24.19.22/rsia/api/v2/bridging/e-klaim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tokenStore.accessToken },
+      body: JSON.stringify({
+        metadata: { method: method },
+        data: { keyword: query }
+      }),
+    });
+
+    const d = data.value as any;
+    if (d.response.count > 0) {
+      const mapped = d.response.data.map((item: any) => {
+        if (method === "search_diagnosis") {
+          return { value: item[1], label: item[0] };
+        } else if (method === "search_diagnosis_inagrouper") {
+          return { value: item.code, label: item.description };
+        }
+      });
+
+      method === "search_diagnosis" ? unuItems.value = mapped : (method === "search_diagnosis_inagrouper" ? inaItems.value = mapped : [])
+    } else {
+      console.log("no data");
+      return;
+    }
+  } else {
+    unuItems.value = [];
+    inaItems.value = [];
+    return;
+  }
+}
 </script>
 
 
@@ -273,7 +322,7 @@ onMounted(async () => {
     <StaticElement name="divider_2" tag="hr" bottom="1" top="1" />
 
     <!-- Tarif Rumah Sakit -->
-    <GroupElement class="p-6 bg-cool-100 shadow-inner rounded-lg" name="tarif_rs_wrapper">
+    <GroupElement class="p-6 bg-cool-100 dark:bg-cool-700 shadow-inner rounded-lg" name="tarif_rs_wrapper">
       <StaticElement name="h3_1" tag="h3" content="Tarif Rumah Sakit" />
       <CheckboxElement name="checkbox" text="Menyatakan benar bahwa data tarif yang tersebut di atas adalah benar sesuai dengan kondisi yang sesungguhnya." :default="true" :rules="['accepted',]" :disabled="true" />
       
@@ -365,42 +414,69 @@ onMounted(async () => {
       { value: 'INA', label: 'Coding INA Grouper' },
     ]" default="UNU" />
     <GroupElement name="container_5">
-      <GroupElement name="unu_container" :conditions="[['unu_ina', 'in', ['UNU',],],]" class="p-6 bg-cool-100 shadow-inner rounded-lg">
-        <StaticElement name="h4" tag="h4" class="mb-4" content="UNU Grouper" description="Grouper casemix yang dikembangkan oleh United Nations University (UNU)." />
+      <!-- unu grouper container -->
+      <GroupElement name="unu_container" :conditions="[['unu_ina', 'in', ['UNU',],],]" class="p-6 bg-cool-100 dark:bg-cool-700 shadow-inner rounded-lg">
+        <!-- ina diagnosa heading & search -->
+        <GroupElement name="column_unu_heading" :columns="{ container: 8 }">
+          <StaticElement name="h4" tag="h4" class="mb-4" content="UNU Grouper" description="Grouper casemix yang dikembangkan oleh United Nations University (UNU)." />
+        </GroupElement> 
+        <GroupElement name="column_unu_search" :columns="{ container: 4 }">
+          <SelectElement name="select_unu" placeholder="cari diagnosa" :search="true" :items="unuItems" :track-by="['value', 'label']" 
+            @search-change="async  (query: string, el$: any) => { await debounceFetchDiagnosis(query, 'search_diagnosis'); }"
+            @change="(selected: any, el$: any) => { console.log(selected); }">
+            <template v-slot:option="{ option }">
+              <div class="flex w-full justify-between">
+                <span>{{ option.label }}</span>
+                <span>{{ option.value }}</span>
+              </div>
+            </template>
+          </SelectElement>
+        </GroupElement> 
+        
+        <!-- diagnosa list -->
         <GroupElement name="column1" :columns="{ container: 2 }">
           <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosa Pasien" />
         </GroupElement>
-        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 shadow rounded-lg p-6">
-          <ListElement
-            name="list_unu"
-            :sort="true"
-            :initial="1"
-            :object="{
-              schema: {
-                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 3 },
-                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 9, readonly: true }
-              },
-            }"
-          />
+        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 dark:bg-cool-900 shadow rounded-lg p-6">
+          <ListElement name="list_unu" :sort="true" :initial="1" :object="{
+            schema: {
+              kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 3 },
+              nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 9, readonly: true }
+            },
+          }" />
         </GroupElement>
       </GroupElement>
-      <GroupElement name="ina_container" :conditions="[['unu_ina', 'in', ['INA',],],]" class="p-6 bg-cool-100 shadow-inner rounded-lg">
-        <StaticElement name="h4_1" tag="h4" class="mb-4" content="INA Grouper" description="Sistem pengelompokan baru untuk diagnosis dan penyakit yang disesuaikan dengan kondisi di Indonesia." />
+      
+      <!-- ina grouper container -->
+      <GroupElement name="ina_container" :conditions="[['unu_ina', 'in', ['INA',],],]" class="p-6 bg-cool-100 dark:bg-cool-700 shadow-inner rounded-lg">
+        <!-- ina diagnosa heading & search -->
+        <GroupElement name="column_ina_heading" :columns="{ container: 8 }">
+          <StaticElement name="h4_1" tag="h4" class="mb-4" content="INA Grouper" description="Sistem pengelompokan baru untuk diagnosis dan penyakit yang disesuaikan dengan kondisi di Indonesia." />
+        </GroupElement> 
+        <GroupElement name="column_ina_search" :columns="{ container: 4 }">
+          <SelectElement name="select_ina" placeholder="cari diagnosa" :search="true" :items="inaItems" :track-by="['value', 'label']" 
+            @search-change="async  (query: string, el$: any) => { await debounceFetchDiagnosis(query, 'search_diagnosis_inagrouper'); }"
+            @change="(selected: any, el$: any) => { console.log(selected); }">
+            <template v-slot:option="{ option }">
+              <div class="flex w-full justify-between">
+                <span>{{ option.label }}</span>
+                <span>{{ option.value }}</span>
+              </div>
+            </template>
+          </SelectElement>
+        </GroupElement> 
+        
+        <!-- diagnosa list -->
         <GroupElement name="column1" :columns="{ container: 2 }">
           <StaticElement name="h5_1" tag="h5" class="font-bold" content="Diagnosa Pasien" />
         </GroupElement>
-        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 shadow rounded-lg p-6">
-          <ListElement
-            name="list_ina"
-            :sort="true"
-            :initial="1"
-            :object="{
-              schema: {
-                kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 3 },
-                nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 9, readonly: true }
-              },
-            }"
-          />
+        <GroupElement name="column2" :columns="{ container: 10 }" class="bg-cool-200 dark:bg-cool-900 shadow rounded-lg p-6">
+          <ListElement name="list_ina" :sort="true" :initial="1" :object="{
+            schema: {
+              kode: { type: 'text', placeholder: 'Kode', rules: ['required', 'min:5', 'max:5', 'regex:/^[A-Z0-9]+$/'], columns: 3 },
+              nama: { type: 'text', placeholder: 'Nama', rules: ['required', 'min:5', 'max:255'], columns: 9, readonly: true }
+            },
+          }" />
         </GroupElement>
       </GroupElement>
     </GroupElement>
