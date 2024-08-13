@@ -19,6 +19,8 @@
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
+    "@iconify-json/healthicons": "^1.1.22",
+    "@iconify-json/tabler": "^1.1.120",
     "@nuxt/ui": "^2.16.0",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
     "@pinia/nuxt": "^0.5.1",
