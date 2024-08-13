@@ -20,7 +20,7 @@
 
       <!-- tanggal masuk - keluar -->
       <UPopover :popper="{ placement: 'bottom-start' }">
-        <UButton icon="i-heroicons-calendar-days-20-solid" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
+        <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
           <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
           <span v-else-if="typeof date === 'object'">
             {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
@@ -44,7 +44,7 @@
     <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="pending">
       <!-- Action -->
       <template #action-data="{ row }">
-        <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-uil-external-link-alt"
+        <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
           :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'" target="_blank"
           size="xs" square>
           Data Klaim
@@ -336,7 +336,7 @@ watch([date, masukKeluar, bodyReqs.value.search], useDebounceFn(updateFilters, 8
 watch(copied, (val) => {
   if (val) {
     toast.add({
-      icon: 'i-uil-check-circle',
+      icon: 'i-tabler-circle-check',
       title: 'Copied!',
       description: 'Text copied to clipboard',
       color: 'lime',

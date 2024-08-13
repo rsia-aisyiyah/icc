@@ -4,7 +4,7 @@
     <template #header>
       <div class="flex items-center justify-between">
         <div class="flex items-start gap-4">
-          <UButton icon="i-uil-dialpad-alt" variant="soft" color="sky" square />
+          <UButton icon="i-tabler-dialpad" variant="soft" color="sky" square />
           <div>
             <h3 class="text-lg text-sky-500 font-semibold">Data Surat Eligibilitas Peserta (SEP)</h3>
             <p class="text-sm text-cool-500">Daftar data Surat Eligibilitas Peserta</p>
@@ -22,8 +22,7 @@
     <UTable :rows="(props.data as any).data" :columns="dataSepColumns">
       <!-- Action -->
       <template #action-data="{ row }">
-        <UButton :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-uil-edit"
-          :color="!row.no_rawat ? 'gray' : 'primary'" size="xs">
+        <UButton :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-tabler-edit-circle" :color="!row.no_rawat ? 'gray' : 'primary'" size="xs">
           Form Kalim
         </UButton>
       </template>
@@ -122,7 +121,7 @@ const props = defineProps({
 watch(copied, (val) => {
   if (val) {
     toast.add({
-      icon: 'i-uil-check-circle',
+      icon: 'i-tabler-circle-check',
       title: 'Copied!',
       description: 'Text copied to clipboard',
       color: 'sky',
