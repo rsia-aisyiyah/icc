@@ -10,12 +10,9 @@
 
 <script lang="ts" setup>
 import { logEvent } from '~/utils/firebase'
-
 import { useRouter } from 'vue-router'
-import { useNuxtApp } from '#app'
 
 const router = useRouter()
-const nuxtApp = useNuxtApp()
 
 router.afterEach((to, from) => {
   logEvent('page_view', {
