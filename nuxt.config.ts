@@ -40,4 +40,6 @@ export default defineNuxtConfig({
   css: [
     '~/assets/style/custom.css',
   ],
+
+  compatibilityDate: "2024-08-13",
 })
