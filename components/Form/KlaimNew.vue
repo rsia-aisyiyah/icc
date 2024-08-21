@@ -2,12 +2,15 @@
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { reactive, onMounted } from 'vue'
-import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 
+import type { MaskInputOptions } from 'maska'
 import type { FormSubmitEvent } from '#ui/types'
 import type { BillingPasien, Diagnosa, DiagnosaData, KamarInap, RegPeriksa, SepData, TensiData } from '~/types';
+
+import { tarifFields } from '~/data/tarifFields'
 import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
 import { PrepareKlaimData } from '~/common/helpers/PrepareKlaimData'
+import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 
 const isLoading = ref(false)
 const toast = useToast()
@@ -121,24 +124,24 @@ const state = reactive<Schema>({
   icu_los             : undefined,
   tarif_poli_eks      : 0,
 
-  prosedur_non_bedah  : 0,
-  prosedur_bedah      : 0,
-  konsultasi          : 0,
-  tenaga_ahli         : 0,
-  keperawatan         : 0,
-  penunjang           : 0,
-  radiologi           : 0,
-  laboratorium        : 0,
-  pelayanan_darah     : 0,
-  rehabilitasi        : 0,
-  kamar               : 0,
-  rawat_intensif      : 0,
-  obat                : 0,
-  obat_kronis         : 0,
-  obat_kemoterapi     : 0,
-  alkes               : 0,
-  bmhp                : 0,
-  sewa_alat           : 0,
+  prosedur_non_bedah  : billing?.prosedur_non_bedah ?? 0,
+  prosedur_bedah      : billing?.prosedur_bedah ?? 0,
+  konsultasi          : billing?.konsultasi ?? 0,
+  tenaga_ahli         : billing?.tenaga_ahli ?? 0,
+  keperawatan         : billing?.keperawatan ?? 0,
+  penunjang           : billing?.penunjang ?? 0,
+  radiologi           : billing?.radiologi ?? 0,
+  laboratorium        : billing?.laboratorium ?? 0,
+  pelayanan_darah     : billing?.pelayanan_darah ?? 0,
+  rehabilitasi        : billing?.rehabilitasi ?? 0,
+  kamar               : billing?.kamar ?? 0,
+  rawat_intensif      : billing?.rawat_intensif ?? 0,
+  obat                : billing?.obat ?? 0,
+  obat_kronis         : billing?.obat_kronis ?? 0,
+  obat_kemoterapi     : billing?.obat_kemoterapi ?? 0,
+  alkes               : billing?.alkes ?? 0,
+  bmhp                : billing?.bmhp ?? 0,
+  sewa_alat           : billing?.sewa_alat ?? 0,
 })
 
 // watch state.tgl_masuk and tgl_
@@ -226,6 +229,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
   isLoading.value = false
 }
+
+const moneyMask = reactive<MaskInputOptions>({
+  mask: 'money',
+  number: {
+    fraction: 0,
+    locale: 'id-ID',
+    unsigned: true
+  },
+})
 </script>
 
 <template>
@@ -451,64 +463,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       
       <div class="p-3 lg:p-6 rounded bg-cool-800 shadow-inner">
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
-          <UFormGroup label="prosedur_non_bedah" name="prosedur_non_bedah">
-            <UInput v-model="state.prosedur_non_bedah" placeholder="prosedur_non_bedah" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="prosedur_bedah" name="prosedur_bedah">
-            <UInput v-model="state.prosedur_bedah" placeholder="prosedur_bedah" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="konsultasi" name="konsultasi">
-            <UInput v-model="state.konsultasi" placeholder="konsultasi" type="number"/>
-          </UFormGroup>
-          
-          <UFormGroup label="tenaga_ahli" name="tenaga_ahli">
-            <UInput v-model="state.tenaga_ahli" placeholder="tenaga_ahli" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="keperawatan" name="keperawatan">
-            <UInput v-model="state.keperawatan" placeholder="keperawatan" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="penunjang" name="penunjang">
-            <UInput v-model="state.penunjang" placeholder="penunjang" type="number"/>
-          </UFormGroup>
-
-          <UFormGroup label="radiologi" name="radiologi">
-            <UInput v-model="state.radiologi" placeholder="radiologi" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="laboratorium" name="laboratorium">
-            <UInput v-model="state.laboratorium" placeholder="laboratorium" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="pelayanan_darah" name="pelayanan_darah">
-            <UInput v-model="state.pelayanan_darah" placeholder="pelayanan_darah" type="number"/>
-          </UFormGroup>
-
-          <UFormGroup label="rehabilitasi" name="rehabilitasi">
-            <UInput v-model="state.rehabilitasi" placeholder="rehabilitasi" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="kamar" name="kamar">
-            <UInput v-model="state.kamar" placeholder="kamar" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="rawat_intensif" name="rawat_intensif">
-            <UInput v-model="state.rawat_intensif" placeholder="rawat_intensif" type="number"/>
-          </UFormGroup>
-
-          <UFormGroup label="obat" name="obat">
-            <UInput v-model="state.obat" placeholder="obat" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="obat_kronis" name="obat_kronis">
-            <UInput v-model="state.obat_kronis" placeholder="obat_kronis" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="obat_kemoterapi" name="obat_kemoterapi">
-            <UInput v-model="state.obat_kemoterapi" placeholder="obat_kemoterapi" type="number"/>
-          </UFormGroup>
-
-          <UFormGroup label="alkes" name="alkes">
-            <UInput v-model="state.alkes" placeholder="alkes" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="bmhp" name="bmhp">
-            <UInput v-model="state.bmhp" placeholder="bmhp" type="number"/>
-          </UFormGroup>
-          <UFormGroup label="sewa_alat" name="sewa_alat">
-            <UInput v-model="state.sewa_alat" placeholder="sewa_alat" type="number"/>
+          <UFormGroup v-for="(field, index) in tarifFields" :key="index" :label="field.label" :name="field.name">
+            <UInput v-model="(state as any)[field.name]" :placeholder="field.name" type="text" v-maska="moneyMask" inputmode="numeric">
+              <template #leading>
+                <span class="text-gray-500 dark:text-gray-400 text-xs">Rp</span>
+              </template>
+            </UInput>
           </UFormGroup>
         </div>
       </div>
