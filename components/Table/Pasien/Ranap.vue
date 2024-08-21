@@ -194,7 +194,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { ResourcePagination } from '~/types/apiResponse'
+import type { ResourcePagination } from '~/types'
 import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
