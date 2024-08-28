@@ -1,3 +1,5 @@
+import { tarifFields } from "~/data/tarifFields";
+
 export const PrepareKlaimData = (data: object) => {
   // Remove undefined, empty string, and convert boolean to number
   const r = Object.fromEntries(
@@ -11,6 +13,14 @@ export const PrepareKlaimData = (data: object) => {
   // Format specific date fields
   ['tgl_masuk', 'tgl_pulang', 'start_dttm', 'stop_dttm'].forEach((key) => {
     if (r[key]) r[key] = formatDateTime(r[key]);
+  });
+
+  // Loop through tarifFields to process numeric values
+  tarifFields.forEach(({ name }) => {
+    const value = r[name];
+
+    // Ensure value is processed if not undefined or empty, otherwise set to 0
+    r[name] = value !== undefined && value !== '' ? Number(value.replace(/\.|,/g, '')) : 0;
   });
 
   // Return the result
