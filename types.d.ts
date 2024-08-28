@@ -130,6 +130,19 @@ export type KamarInapResponse = {
 }
 
 // ==============================
+export type Prosedur = {
+  'no_rawat': string;
+  'kode': string;
+  'status': "Ranap" | "Ralan";
+  'prioritas': number;
+  'penyakit'?: {
+    'kode': string;
+    'deskripsi_panjang': string;
+    'deskripsi_pendek': string;
+  }
+}
+
+// ==============================
 export type Diagnosa = {
   'no_rawat': string;
   'kd_penyakit': string;
@@ -196,15 +209,19 @@ export type BillingPasien = {
   konsultasi: number;
   tenaga_ahli: number;
   keperawatan: number;
+  penunjang: number;
   radiologi: number;
   laboratorium: number;
+  pelayanan_darah: number;
+  rehabilitasi: number;
   kamar: number;
+  rawat_intensif: number;
   obat: number;
   obat_kronis: number;
   obat_kemoterapi: number;
+  alkes: number;
   bmhp: number;
   sewa_alat: number;
-  rehabilitasi: number;
 }
 
 export type BillingPasienResponse = {

@@ -7,7 +7,8 @@
           :regPeriksa="allData.regPeriksa?.data"
           :kamarInap="allData.kamarInap?.data"
           :billing="allData.billing?.data" 
-          :diagnosa="allData.diagnosa?.data" 
+          :diagnosa="allData.diagnosa?.data"
+          :prosedur="allData.prosedur?.data"
           :tensi="allData.sisDiastole?.data"
         />
         <!-- <FormKlaim :sep="bridgingSep?.data" :regPeriksa="allData.regPeriksa?.data" :kamarInap="allData.kamarInap?.data"
@@ -35,11 +36,19 @@ const buildUrlTensi = (noRm: string, noRawat: string, status: number) => {
   return `${config.public.API_V2_URL}/pasien/${noRm}/riwayat/${noRawat}/${stts}/get-tensi`;
 }
 
-const allData = ref<{ regPeriksa: ResponseRegPeriksa | null, kamarInap: KamarInapResponse | null, billing: BillingPasienResponse | null, diagnosa: ResourcePagination | null, sisDiastole: ResponseTensi | null }>({
+const allData = ref<{ 
+  regPeriksa: ResponseRegPeriksa | null, 
+  kamarInap: KamarInapResponse | null, 
+  billing: BillingPasienResponse | null, 
+  diagnosa: ResourcePagination | null, 
+  prosedur: ResourcePagination | null, 
+  sisDiastole: ResponseTensi | null 
+}>({
   regPeriksa: null,
   kamarInap: null,
   billing: null,
   diagnosa: null,
+  prosedur: null,
   sisDiastole: null,
 })
 
@@ -58,7 +67,7 @@ if (bridgingSepError.value) {
 
   try {
     // Parallel fetching
-    const [regPeriksa, kamarInap, billing, diagnosa, sisDiastole] = await Promise.all([
+    const [regPeriksa, kamarInap, billing, diagnosa, prosedur, sisDiastole] = await Promise.all([
       $fetch<ResponseRegPeriksa>(`${config.public.API_V2_URL}/registrasi/periksa/${btoa(noRawat)}`, {
         query: { include: 'pasienBayi' },
         headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
@@ -81,13 +90,22 @@ if (bridgingSepError.value) {
         })
       }),
 
+      $fetch<ResourcePagination>(`${config.public.API_V2_URL}/pasien/prosedur/search`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${tokenStore.accessToken}` },
+        body: JSON.stringify({
+          filters: [{ field: 'no_rawat', operator: '=', value: noRawat }],
+          sort: [{ field: 'prioritas', direction: 'asc' }]
+        })
+      }),
+
       $fetch<ResponseTensi>(buildUrlTensi(noRm, btoa(noRawat), statusPasien), {
         headers: { Authorization: `Bearer ${tokenStore.accessToken}` },
       }),
     ])
 
     // Assign hasil fetch ke state allData
-    allData.value = { regPeriksa, kamarInap, billing, diagnosa, sisDiastole }
+    allData.value = { regPeriksa, kamarInap, billing, diagnosa, prosedur, sisDiastole }
   } catch (error) {
     console.error('Error during parallel fetching:', error)
   }
