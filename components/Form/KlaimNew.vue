@@ -2,27 +2,44 @@
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { reactive, onMounted } from 'vue'
+import { Sortable } from "sortablejs-vue3"
 
 import type { MaskInputOptions } from 'maska'
-import type { FormSubmitEvent } from '#ui/types'
-import type { BillingPasien, Diagnosa, DiagnosaData, KamarInap, RegPeriksa, SepData, TensiData } from '~/types';
+import type { FormSubmitEvent, NotificationColor } from '#ui/types'
+import type { BillingPasien, Diagnosa, KamarInap, Prosedur, RegPeriksa, SepData, TensiData } from '~/types';
 
 import { tarifFields } from '~/data/tarifFields'
 import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
 import { PrepareKlaimData } from '~/common/helpers/PrepareKlaimData'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 
-const isLoading = ref(false)
 const toast = useToast()
+const optionLoading = ref(false)
+const isLoading = ref(false)
 const tokenStore = useAccessTokenStore()
-const { sep, regPeriksa, kamarInap, billing, diagnosa, tensi } = defineProps<{
+const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa,
   kamarInap?: KamarInap,
   billing?: BillingPasien,
   diagnosa?: Diagnosa[],
+  prosedur?: Prosedur[],
   tensi?: TensiData,
 }>();
+
+const addToaster = (title: string, description: string, color: NotificationColor, icon: string) => {
+  toast.add({ 
+    title: title,
+    description: description,
+    color: color,
+    icon: icon
+   })
+}
+
+const moveItemInArray = (arr: any[], from: number, to: number) => {
+  const item = arr.splice(from, 1)[0]
+  arr.splice(to, 0, item)
+}
 
 // Initialize an array to hold the options
 const caraPulangOptions = reactive<{ label: string; value: string }[]>([])
@@ -67,29 +84,41 @@ const schema = z.object({
   icu_los: z.number().int().min(0).optional(),
   tarif_poli_eks: z.number().int().min(0),
 
-  prosedur_non_bedah: z.number().int().min(0).optional(),
-  prosedur_bedah: z.number().int().min(0).optional(),
-  konsultasi: z.number().int().min(0).optional(),
-  tenaga_ahli: z.number().int().min(0).optional(),
-  keperawatan: z.number().int().min(0).optional(),
-  penunjang: z.number().int().min(0).optional(),
-  radiologi: z.number().int().min(0).optional(),
-  laboratorium: z.number().int().min(0).optional(),
-  pelayanan_darah: z.number().int().min(0).optional(),
-  rehabilitasi: z.number().int().min(0).optional(),
-  kamar: z.number().int().min(0).optional(),
-  rawat_intensif: z.number().int().min(0).optional(),
-  obat: z.number().int().min(0).optional(),
-  obat_kronis: z.number().int().min(0).optional(),
-  obat_kemoterapi: z.number().int().min(0).optional(),
-  alkes: z.number().int().min(0).optional(),
-  bmhp: z.number().int().min(0).optional(),
-  sewa_alat: z.number().int().min(0).optional(),
+  prosedur_non_bedah: z.string().min(0).optional(),
+  prosedur_bedah: z.string().min(0).optional(),
+  konsultasi: z.string().min(0).optional(),
+  tenaga_ahli: z.string().min(0).optional(),
+  keperawatan: z.string().min(0).optional(),
+  penunjang: z.string().min(0).optional(),
+  radiologi: z.string().min(0).optional(),
+  laboratorium: z.string().min(0).optional(),
+  pelayanan_darah: z.string().min(0).optional(),
+  rehabilitasi: z.string().min(0).optional(),
+  kamar: z.string().min(0).optional(),
+  rawat_intensif: z.string().min(0).optional(),
+  obat: z.string().min(0).optional(),
+  obat_kronis: z.string().min(0).optional(),
+  obat_kemoterapi: z.string().min(0).optional(),
+  alkes: z.string().min(0).optional(),
+  bmhp: z.string().min(0).optional(),
+  sewa_alat: z.string().min(0).optional(),
+
+  sistole: z.string().min(0).optional(),
+  diastole: z.string().min(0).optional(),
+
+  diagnosa_inagrouper: z.array(z.string().refine(value => value.length > 0, { message: 'Diagnosa harus dipilih' })).optional(),
+  procedure_inagrouper: z.array(z.string().refine(value => value.length > 0, { message: 'Diagnosa harus dipilih' })).optional(),
+
+  usia_kehamilan: z.number().int().min(0).optional(),
+  gravida: z.number().int().min(0).optional(),
+  partus: z.number().int().min(0).optional(),
+  abortus: z.number().int().min(0).optional(),
+  onset_kontraksi: z.enum(['spontan', 'induksi', 'non_spontan_non_induksi']).optional(),
 })
 
 type Schema = z.output<typeof schema>
 
-// Define the reactive state for the form
+  // Define the reactive state for the form
 const state = reactive<Schema>({
   payor_label         : '',
   payor_id            : '',
@@ -124,30 +153,35 @@ const state = reactive<Schema>({
   icu_los             : undefined,
   tarif_poli_eks      : 0,
 
-  prosedur_non_bedah  : billing?.prosedur_non_bedah ?? 0,
-  prosedur_bedah      : billing?.prosedur_bedah ?? 0,
-  konsultasi          : billing?.konsultasi ?? 0,
-  tenaga_ahli         : billing?.tenaga_ahli ?? 0,
-  keperawatan         : billing?.keperawatan ?? 0,
-  penunjang           : billing?.penunjang ?? 0,
-  radiologi           : billing?.radiologi ?? 0,
-  laboratorium        : billing?.laboratorium ?? 0,
-  pelayanan_darah     : billing?.pelayanan_darah ?? 0,
-  rehabilitasi        : billing?.rehabilitasi ?? 0,
-  kamar               : billing?.kamar ?? 0,
-  rawat_intensif      : billing?.rawat_intensif ?? 0,
-  obat                : billing?.obat ?? 0,
-  obat_kronis         : billing?.obat_kronis ?? 0,
-  obat_kemoterapi     : billing?.obat_kemoterapi ?? 0,
-  alkes               : billing?.alkes ?? 0,
-  bmhp                : billing?.bmhp ?? 0,
-  sewa_alat           : billing?.sewa_alat ?? 0,
+  prosedur_non_bedah  : `${billing?.prosedur_non_bedah ?? "0"}`,
+  prosedur_bedah      : `${billing?.prosedur_bedah ?? "0"}`,
+  konsultasi          : `${billing?.konsultasi ?? "0"}`,
+  tenaga_ahli         : `${billing?.tenaga_ahli ?? "0"}`,
+  keperawatan         : `${billing?.keperawatan ?? "0"}`,
+  penunjang           : `${billing?.penunjang ?? "0"}`,
+  radiologi           : `${billing?.radiologi ?? "0"}`,
+  laboratorium        : `${billing?.laboratorium ?? "0"}`,
+  pelayanan_darah     : `${billing?.pelayanan_darah ?? "0"}`,
+  rehabilitasi        : `${billing?.rehabilitasi ?? "0"}`,
+  kamar               : `${billing?.kamar ?? "0"}`,
+  rawat_intensif      : `${billing?.rawat_intensif ?? "0"}`,
+  obat                : `${billing?.obat ?? "0"}`,
+  obat_kronis         : `${billing?.obat_kronis ?? "0"}`,
+  obat_kemoterapi     : `${billing?.obat_kemoterapi ?? "0"}`,
+  alkes               : `${billing?.alkes ?? "0"}`,
+  bmhp                : `${billing?.bmhp ?? "0"}`,
+  sewa_alat           : `${billing?.sewa_alat ?? "0"}`,
+
+  sistole             : tensi?.tensi ? tensi?.tensi.split('/')[0] : '',
+  diastole            : tensi?.tensi ? tensi?.tensi.split('/')[1] : '',
+
+  diagnosa_inagrouper : [],
+  procedure_inagrouper: [],
 })
 
-// watch state.tgl_masuk and tgl_
-
 // Fetch the COB data on component mount
-onMounted(async () => {
+onMounted(() => {
+  optionLoading.value = true
   let tgl_keluar = ref('')
   if (kamarInap && kamarInap?.detail?.length > 0) {
     tgl_keluar = computed(() => getTanggalKeluar(kamarInap));
@@ -155,23 +189,33 @@ onMounted(async () => {
 
   state.tgl_pulang = new Date(tgl_keluar.value)
 
-  try {
-    const cob = await getEnabledCobData()
-    const cbo = await getCaraBayarData()
-    const cms = await getCaraMasukData()
-    const cpo = await getCaraPulangData()
-    const jto = await getJenisTarifData()
-    const dpjpo = await getDpjpData()
+  setTimeout(async () => {
+    try {
+      const [cob, cbo, cms, cpo, jto, dpjpo] = await Promise.all([
+        getEnabledCobData(),
+        getCaraBayarData(),
+        getCaraMasukData(),
+        getCaraPulangData(),
+        getJenisTarifData(),
+        getDpjpData()
+      ]);
 
-    cobOptions.push(...cob)
-    carabayarOptions.push(...cbo)
-    caraMasukOptions.push(...cms)
-    caraPulangOptions.push(...cpo)
-    jenisTarifOptions.push(...jto)
-    dpjpOptions.push(...dpjpo)
-  } catch (error) {
-    console.error('Failed to load COB options:', error)
-  }
+      state.payor_label = cbo[0].label
+      state.payor_id = cbo[0].value
+      state.payor_cd = cbo[0].label
+
+      cobOptions.push(...cob);
+      carabayarOptions.push(...cbo);
+      caraMasukOptions.push(...cms);
+      caraPulangOptions.push(...cpo);
+      jenisTarifOptions.push(...jto);
+      dpjpOptions.push(...dpjpo);
+    } catch (error) {
+      console.error('Failed to load COB options:', error)
+    }
+
+    optionLoading.value = false
+  }, 1200)
 })
 
 const onChangePayorCd = (payor: CarabayarData) => {
@@ -185,23 +229,18 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   isLoading.value = true
 
   if (sep?.no_sep == '' || sep?.no_sep == undefined) {
-    toast.add({ 
-      title: 'Nomor SEP tidak ada',
-      description: "Nomor SEP tidak ada, silahkan cek kembali data pasien",
-      color: 'red'
-    })
+    addToaster('Nomor SEP tidak ada', 'Nomor SEP tidak ada, silahkan cek kembali data pasien', 'red', 'i-heroicons-information-circle')
 
     isLoading.value = false
   }
 
   // map the data and remove the undefined values from data
-  const mappedData = PrepareKlaimData(event.data)
+  const mappedData = PrepareKlaimData(event.data)  
 
-  // add this json to mappedData { diagnosa: "#", procedure: "#" }
-  mappedData.diagnosa = ["O41.0", "O83.9", "Z37.0"]
-  mappedData.procedure = ["73.4"]
-  mappedData.diagnosa_inagrouper = ["O41.0", "O83.9", "Z37.0"]
-  mappedData.procedure_inagrouper = ["73.4"]
+  mappedData.diagnosa             = diagnosa?.map(d => d.kd_penyakit) ?? ["#"]
+  mappedData.procedure            = prosedur?.map(p => p.kode) ?? ["#"]
+  mappedData.diagnosa_inagrouper  = []
+  mappedData.procedure_inagrouper = []
 
   const { data, error, refresh, status } = await useFetch(`http://172.24.19.22/rsia/api/v2/eklaim/${sep?.no_sep}`,{
     method: 'POST',
@@ -209,22 +248,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   })
 
   if (error.value) {
-    toast.add({
-      title: 'Failed to submit',
-      description: `${error.value.message}, please check the logs for more details`,
-      color: 'red'
-    })
-
+    addToaster('Failed to submit', `${error.value.message}, please check the logs for more details`, 'red', 'i-heroicons-information-circle')
     isLoading.value = false
     return
   }
 
   if (status.value == 'success') {
-    toast.add({
-      title: 'Success',
-      description: 'Data berhasil disimpan & di grouping',
-      color: 'green'
-    })
+    addToaster('Success', 'Data berhasil disimpan & di grouping', 'green', 'i-heroicons-check-badge')
   }
 
   isLoading.value = false
@@ -245,7 +275,7 @@ const moneyMask = reactive<MaskInputOptions>({
     <UForm :schema="schema" :state="state" class="flex flex-col gap-6" @submit="onSubmit">
       <div class="flex flex-col lg:flex-row gap-4">
         <UFormGroup label="Jaminan / Cara Bayar" name="payor_label" class="w-full">
-          <USelectMenu v-model="state.payor_label" :options="carabayarOptions" placeholder="jaminan / cara bayar" :onChange="onChangePayorCd" searchable/>
+          <USelectMenu v-model="state.payor_label" :loading="optionLoading" :options="carabayarOptions" placeholder="jaminan / cara bayar" :onChange="onChangePayorCd" searchable/>
         </UFormGroup>
         <UFormGroup label="No. Peserta" name="nomor_kartu" class="w-full">
           <UInput placeholder="nomor peserta" v-model="state.nomor_kartu" :readonly="true" />
@@ -254,7 +284,7 @@ const moneyMask = reactive<MaskInputOptions>({
           <UInput placeholder="nomor sep" v-model="state.nomor_sep" :readonly="true" />
         </UFormGroup>
         <UFormGroup label="COB" name="cob_cd" class="w-full">
-          <USelectMenu v-model="state.cob_cd" :options="cobOptions" placeholder="cob" option-attribute="label" value-attribute="value" searchable />
+          <USelectMenu v-model="state.cob_cd" :loading="optionLoading" value-attribute="value" :options="cobOptions" placeholder="cob" searchable />
         </UFormGroup>
       </div>
 
@@ -262,7 +292,7 @@ const moneyMask = reactive<MaskInputOptions>({
 
       <div class="flex flex-col lg:flex-row gap-4 justify-between">
         <UFormGroup label="Jenis Rawat" name="jenis_rawat">
-          <URadioGroup v-model="state.jenis_rawat" :options="[{ value: 2, label: 'Rawat Jalan' }, { value: 1, label: 'Rawat Inap' }]" />
+          <URadioGroup v-model="state.jenis_rawat" :loading="optionLoading" value-attribute="value" :options="[{ value: 2, label: 'Rawat Jalan' }, { value: 1, label: 'Rawat Inap' }]" :ui="{fieldset: 'flex flex-row gap-4'}" />
         </UFormGroup>
         <div class="flex gap-3">
           <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1 && state.payor_cd != 'JPS'">
@@ -278,7 +308,7 @@ const moneyMask = reactive<MaskInputOptions>({
 
         <div v-if="state.jenis_rawat == 1">
           <UFormGroup label="Kelas Hak" name="tariff_class" class="min-w-[250px]">
-            <URadioGroup v-model="state.tariff_class" :options="[{ value: 3, label: 'Kelas 3' }, { value: 2, label: 'Kelas 2' }, { value: 1, label: 'Kelas 1' }]" disabled />
+            <URadioGroup v-model="state.tariff_class" :loading="optionLoading" value-attribute="value" :options="[{ value: 3, label: 'Kelas 3' }, { value: 2, label: 'Kelas 2' }, { value: 1, label: 'Kelas 1' }]" :ui="{fieldset: 'flex flex-row gap-4'}" disabled />
           </UFormGroup>
         </div>
         <div v-else="">
@@ -324,12 +354,12 @@ const moneyMask = reactive<MaskInputOptions>({
 
       <div class="flex flex-col lg:flex-row gap-4 justify-between">
         <UFormGroup label="Cara Masuk" name="cara_masuk" class="w-full md:w-min md:min-w-[26.6em]">
-          <USelectMenu v-model="state.cara_masuk" :options="caraMasukOptions" value-attribute="value" option-attribute="label" placeholder="cara masuk pasien" searchable />
+          <USelectMenu v-model="state.cara_masuk" :loading="optionLoading" value-attribute="value" :options="caraMasukOptions" placeholder="cara masuk pasien" searchable />
         </UFormGroup>
       </div>
 
       <div v-if="state.upgrade_class_ind" class="flex flex-col md:flex-row gap-4 justify-between">
-        <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :options="[{ value: 'kelas_3', label: 'Kelas 3' }, { value: 'kelas_2', label: 'Kelas 2' }, { value: 'kelas_1', label: 'Kelas 1' }, { value: 'vip', label: 'Diatas kelas 1' }]" />
+        <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :loading="optionLoading" value-attribute="value" :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.tariff_class && state.tariff_class <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.tariff_class && state.tariff_class <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.tariff_class && state.tariff_class <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]" :ui="{fieldset: 'flex flex-row gap-4'}" />
         <UFormGroup label="Rawat Intensif" name="icu_los">
           <UInput placeholder="Lama upgrade kelas" v-model="state.upgrade_class_los">
             <template #trailing>
@@ -396,7 +426,7 @@ const moneyMask = reactive<MaskInputOptions>({
         </div>
 
         <UFormGroup label="Berat Lahir" name="birth_weight">
-          <UInput placeholder="Berat Lahir" v-model="state.birth_weight" :readonly="true" class="w-full md:w-max min-w-[18.4em]">
+          <UInput placeholder="Berat Lahir" v-model="state.birth_weight" :readonly="true" class="w-full md:w-max min-w-[18.3em]">
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400 text-xs">gram</span>
             </template>
@@ -408,26 +438,26 @@ const moneyMask = reactive<MaskInputOptions>({
 
       <div class="flex flex-col lg:flex-row gap-4 justify-between">
         <div class="flex gap-4">
-          <UFormGroup label="Sub Acute" name="adl_sub_acute" class="w-full lg:w-min lg:min-w-[18.4em]">
+          <UFormGroup label="Sub Acute" name="adl_sub_acute" class="w-full lg:w-min lg:min-w-[18.3em]">
             <UInput placeholder="adl score sub acute" v-model="state.adl_sub_acute" />
           </UFormGroup>
-          <UFormGroup label="Chronic" name="adl_chronic" class="w-full lg:w-min lg:min-w-[18.4em]">
+          <UFormGroup label="Chronic" name="adl_chronic" class="w-full lg:w-min lg:min-w-[18.3em]">
             <UInput placeholder="adl score cronic" v-model="state.adl_chronic" />
           </UFormGroup>
         </div>
 
         <UFormGroup label="Cara Pulang" name="discharge_status" class="w-full lg:w-[25%]">
-          <USelectMenu v-model="state.discharge_status" value-attribute="value" option-attribute="label" :options="caraPulangOptions" placeholder="cara pulang pasien" searchable />
+          <USelectMenu v-model="state.discharge_status" :loading="optionLoading" value-attribute="value" :options="caraPulangOptions" placeholder="cara pulang pasien" searchable />
         </UFormGroup>
       </div>
       
       <div class="flex flex-col lg:flex-row gap-4">
         <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:w-[25%]">
-          <USelectMenu v-model="state.nama_dokter" :options="dpjpOptions" value-attribute="value" option-attribute="label" placeholder="DPJP" searchable />
+          <USelectMenu v-model="state.nama_dokter" :loading="optionLoading" value-attribute="value" :options="dpjpOptions" placeholder="DPJP" searchable />
         </UFormGroup>
         
         <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:w-[25%]">
-          <USelectMenu v-model="state.kode_tarif" :options="jenisTarifOptions" value-attribute="value" option-attribute="label" placeholder="jenis tarif RS" searchable />
+          <USelectMenu v-model="state.kode_tarif" :loading="optionLoading" value-attribute="value" :options="jenisTarifOptions" placeholder="jenis tarif RS" searchable />
         </UFormGroup>
       </div>
 
@@ -461,6 +491,8 @@ const moneyMask = reactive<MaskInputOptions>({
         </div>
       </div>
       
+      <UDivider label="Tarif Rumah Sakit" />
+
       <div class="p-3 lg:p-6 rounded bg-cool-800 shadow-inner">
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
           <UFormGroup v-for="(field, index) in tarifFields" :key="index" :label="field.label" :name="field.name">
@@ -473,7 +505,122 @@ const moneyMask = reactive<MaskInputOptions>({
         </div>
       </div>
 
-      <div class="flex justify-end pt-10">
+      <UDivider label="Diagnosa dan Prosedur" />
+
+      <UTabs :items="[{ key: 'coding_unu', label: 'Coding UNU Grouper' }]" class="w-full">
+        <template #default="{ item, index, selected }">
+          <span class="truncate" :class="[selected && 'text-primary-500 dark:text-primary']">{{ item.label }}</span>
+        </template>
+        
+        <template #item="{ item }">
+          <div class="px-4 py-5 sm:p-6 bg-cool-800 shadow-inner rounded-lg">
+            <div v-if="item.key === 'coding_unu'" class="space-y-3">
+              
+              <UDivider label="Diagnosa" :ui="{border: {base: 'flex border-cool-200 dark:border-cool-700'}, label: 'text-sm font-semibold text-primary'}" />
+
+              <div class="flex flex-col lg:flex-row items-center justify-between">
+                <h3 class="text-base font-semibold mb-2">Diagnosa UNU Grouper (<code>ICD-10</code>):</h3>
+                <UInput name="search_UNU" placeholder="cari diagnosa" />
+              </div>
+
+              <Sortable
+                :list="diagnosa ?? []"
+                item-key="id"
+                tag="div"
+                @end="(event) => moveItemInArray(diagnosa ?? [], event.oldIndex, event.newIndex)"
+              >
+                <template #item="{element, index}">
+                  <div class="draggable mb-2 flex items-center justify-between gap-3 p-2 border rounded-xl border-cool-700"  :key="element.kd_penyakit">
+                    <div class="flex gap-3 truncate text-ellipsis overflow-hidden">
+                      <UBadge color="primary" variant="soft">{{ element.kd_penyakit }}</UBadge>
+                      <span class="truncate text-ellipsis">{{ element.penyakit.nm_penyakit }}</span>
+                    </div>
+                    <!-- button close -->
+                     <UButton variant="soft" color="red" @click="diagnosa?.splice(index, 1)" icon="i-heroicons-x-mark-solid" />
+                  </div>
+                </template>
+              </Sortable>
+              
+              <UDivider label="Prosedur" :ui="{border: {base: 'flex border-cool-200 dark:border-cool-700'}, label: 'text-sm font-semibold text-primary'}" />
+              
+              <div class="flex flex-col lg:flex-row items-center justify-between">
+                <h3 class="text-base font-semibold mb-2">Prosedur UNU Grouper (<code>ICD-9-CM</code>):</h3>
+                <UInput name="search_prosedur_UNU" placeholder="cari prosedur" />
+              </div>
+            
+              <Sortable
+                :list="prosedur ?? []"
+                item-key="id"
+                tag="div"
+                @end="(event) => moveItemInArray(prosedur ?? [], event.oldIndex, event.newIndex)"
+              >
+                <template #item="{element, index}">
+                  <div class="draggable mb-2 flex items-center justify-between gap-3 p-2 border rounded-xl border-cool-700"  :key="element.kode">
+                    <div class="flex gap-3 truncate text-ellipsis overflow-hidden">
+                      <UBadge color="amber" variant="soft">{{ element.kode }}</UBadge>
+                      <span class="truncate text-ellipsis">{{ element.penyakit.deskripsi_panjang }}</span>
+                    </div>
+                    <!-- button close -->
+                     <UButton variant="soft" color="red" @click="prosedur?.splice(index, 1)" icon="i-heroicons-x-mark-solid" />
+                  </div>
+                </template>
+              </Sortable>
+
+            </div>
+          </div>
+        </template>
+      </UTabs>
+
+      <UDivider label="Data Klinis" />
+
+      <div class="flex flex-col items-center justify-center gap-2">
+        <p class="text-center font-semibold text-sm">Tekanan Darah (mmHg)</p>
+        <div class="flex items-center justify-center gap-3">
+          <UFormGroup name="sistole">
+            <UInput placeholder="sistole" v-model="state.sistole" type="text" inputmode="number"/>
+          </UFormGroup>
+          <UFormGroup name="diastole">
+            <UInput placeholder="diastole" v-model="state.diastole" type="text" inputmode="number"/>
+          </UFormGroup>
+        </div>
+      </div>
+      
+      <UDivider />
+      
+      <div class="flex flex-col xl:flex-row gap-5 xl:gap-0 items-start justify-between">
+        <div class="flex flex-col gap-2 w-full lg:w-[58%] lg:mx-auto xl:mx-0 xl:max-w-max">
+          <p class="text-center font-semibold text-sm">Usia Kehamilan (minggu)</p>
+          <UFormGroup name="usia_kehamilan">
+            <UInput placeholder="usia kehamilan" type="number" inputmode="number" v-model="state.usia_kehamilan"/>
+          </UFormGroup>
+        </div>
+        
+        <div class="flex flex-col gap-2 w-full xl:max-w-max">
+          <p class="text-center font-semibold text-sm">Riwayat Kehamilan Sebelumnya</p>
+          <div class="flex gap-3 items-center justify-center w-full xl:max-w-max">
+            <UFormGroup name="gravida">
+              <UInput placeholder="gravida" v-model="state.gravida"/>
+            </UFormGroup>
+            <UFormGroup name="partus">
+              <UInput placeholder="partus" v-model="state.partus"/>
+            </UFormGroup>
+            <UFormGroup name="abortus">
+              <UInput placeholder="abortus" v-model="state.abortus"/>
+            </UFormGroup>
+          </div>
+        </div>
+        
+        <div class="flex flex-col gap-3 items-center justify-center w-full xl:max-w-max">
+          <p class="text-center font-semibold text-sm">Onset Kontraksi</p>
+          <URadioGroup :loading="optionLoading" value-attribute="value" :options="[{ value: 'spontan', label: 'Timbul Spontan' }, { value: 'induksi', label: 'Dengan Induksi' }, { value: 'non_spontan_non_induksi', label: 'SC Tanpa Kontraksi/Induksi' }]" v-model="state.onset_kontraksi"/>
+        </div>
+      </div>
+
+      <!-- [TODO] : Lanjutkan Pembuatan Forms JAMPERSAL -->
+
+      <UDivider />
+
+      <div class="flex justify-end gap-3 pt-5">
         <UButton type="submit" :loading="isLoading">Submit</UButton>
       </div>
     </UForm>
