@@ -160,21 +160,27 @@
 
       <!-- ---------- TABLE HEADER -->
       <template #real_cost-header="{ column }">
-        <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border rounded-md px-2 py-1">
+        <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
 
       <template #mining_tarif-header="{ column }">
-        <span class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border rounded-md px-2 py-1">
+        <span class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
 
       <template #groupping_tarif-header="{ column }">
-        <span class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border rounded-md px-2 py-1">
+        <span class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
+      </template>
+
+      <template #tgl_keluar-header="{ column }">
+        <stan class="whitespace-nowrap">
+          {{ column.label }}
+        </stan>
       </template>
     </UTable>
 

@@ -41,8 +41,7 @@
           <div class="flex gap-2 items-center justify-center pl-1">
             {{ row.no_rawat ?? "-" }}
             <template v-if="row.no_rawat">
-              <UButton icon="i-tabler-copy" :color="row.jnspelayanan == 1 ? '' : 'sky'" variant="soft" size="2xs"
-                @click="isSupported && copy(row.no_rawat)" />
+              <UButton icon="i-tabler-copy" :color="row.jnspelayanan == 1 ? undefined : 'sky'" variant="soft" size="2xs" @click="isSupported && copy(row.no_rawat)" />
             </template>
           </div>
         </UBadge>
