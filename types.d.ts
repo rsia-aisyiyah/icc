@@ -131,31 +131,31 @@ export type KamarInapResponse = {
 
 // ==============================
 export type Prosedur = {
-  'no_rawat': string;
-  'kode': string;
-  'status': "Ranap" | "Ralan";
-  'prioritas': number;
+  'no_rawat'?: string;
+  'kode'?: string;
+  'status'?: "Ranap" | "Ralan";
+  'prioritas'?: number;
   'penyakit'?: {
-    'kode': string;
-    'deskripsi_panjang': string;
-    'deskripsi_pendek': string;
+    'kode'?: string;
+    'deskripsi_panjang'?: string;
+    'deskripsi_pendek'?: string;
   }
 }
 
 // ==============================
 export type Diagnosa = {
-  'no_rawat': string;
-  'kd_penyakit': string;
-  'status': "Ranap" | "Ralan";
-  'prioritas': number;
+  'no_rawat'?: string;
+  'kd_penyakit'?: string;
+  'status'?: "Ranap" | "Ralan";
+  'prioritas'?: number;
   'status_penyakit'?: "Lama" | "Baru";
   'penyakit'?: {
-    'kd_penyakit': string;
-    'nm_penyakit': string;
-    'ciri_ciri': string;
-    'keterangan': string;
-    'kd_ktg': string;
-    'status': string;
+    'kd_penyakit'?: string;
+    'nm_penyakit'?: string;
+    'ciri_ciri'?: string;
+    'keterangan'?: string;
+    'kd_ktg'?: string;
+    'status'?: string;
   }
 }
 
