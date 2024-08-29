@@ -4,18 +4,19 @@ import { format } from 'date-fns'
 import { reactive, onMounted } from 'vue'
 import { Sortable } from "sortablejs-vue3"
 
-import type { MaskInputOptions } from 'maska'
 import type { FormSubmitEvent, NotificationColor } from '#ui/types'
 import type { BillingPasien, Diagnosa, KamarInap, Prosedur, RegPeriksa, SepData, TensiData } from '~/types';
 
+import { moneyMask } from '~/common/masks'
 import { tarifFields } from '~/data/tarifFields'
 import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
 import { PrepareKlaimData } from '~/common/helpers/PrepareKlaimData'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
+import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 
 const toast = useToast()
-const optionLoading = ref(false)
 const isLoading = ref(false)
+const optionLoading = ref(false)
 const tokenStore = useAccessTokenStore()
 const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi } = defineProps<{
   sep?: SepData
@@ -239,8 +240,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
   mappedData.diagnosa             = diagnosa?.map(d => d.kd_penyakit) ?? ["#"]
   mappedData.procedure            = prosedur?.map(p => p.kode) ?? ["#"]
-  mappedData.diagnosa_inagrouper  = []
-  mappedData.procedure_inagrouper = []
 
   const { data, error, refresh, status } = await useFetch(`http://172.24.19.22/rsia/api/v2/eklaim/${sep?.no_sep}`,{
     method: 'POST',
@@ -248,6 +247,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   })
 
   if (error.value) {
+    console.log(error.value.data.metadata);
+
     addToaster('Failed to submit', `${error.value.message}, please check the logs for more details`, 'red', 'i-heroicons-information-circle')
     isLoading.value = false
     return
@@ -259,15 +260,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
   isLoading.value = false
 }
-
-const moneyMask = reactive<MaskInputOptions>({
-  mask: 'money',
-  number: {
-    fraction: 0,
-    locale: 'id-ID',
-    unsigned: true
-  },
-})
 </script>
 
 <template>
@@ -452,11 +444,11 @@ const moneyMask = reactive<MaskInputOptions>({
       </div>
       
       <div class="flex flex-col lg:flex-row gap-4">
-        <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:w-[25%]">
+        <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:min-w-[18.3em]">
           <USelectMenu v-model="state.nama_dokter" :loading="optionLoading" value-attribute="value" :options="dpjpOptions" placeholder="DPJP" searchable />
         </UFormGroup>
         
-        <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:w-[25%]">
+        <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:min-w-[18.3em]">
           <USelectMenu v-model="state.kode_tarif" :loading="optionLoading" value-attribute="value" :options="jenisTarifOptions" placeholder="jenis tarif RS" searchable />
         </UFormGroup>
       </div>
@@ -520,7 +512,21 @@ const moneyMask = reactive<MaskInputOptions>({
 
               <div class="flex flex-col lg:flex-row items-center justify-between">
                 <h3 class="text-base font-semibold mb-2">Diagnosa UNU Grouper (<code>ICD-10</code>):</h3>
-                <UInput name="search_UNU" placeholder="cari diagnosa" />
+                <USelectMenu class="w-full lg:w-[300px]" 
+                  :searchable="fetchDiagnosaUnu" 
+                  :loading="dul" 
+                  :onChange="(val: any) => {
+                    diagnosa?.push({
+                      kd_penyakit: val.value,
+                      penyakit: {
+                        kd_penyakit: val.value,
+                        nm_penyakit: val.title
+                      }
+                    })
+                  }" 
+                  searchable-placeholder="cari diagnosa ..." 
+                  placeholder="cari diagnosa ..." 
+                />
               </div>
 
               <Sortable
@@ -545,7 +551,21 @@ const moneyMask = reactive<MaskInputOptions>({
               
               <div class="flex flex-col lg:flex-row items-center justify-between">
                 <h3 class="text-base font-semibold mb-2">Prosedur UNU Grouper (<code>ICD-9-CM</code>):</h3>
-                <UInput name="search_prosedur_UNU" placeholder="cari prosedur" />
+                <USelectMenu class="w-full lg:w-[300px]" 
+                  :searchable="fetchProsedurUnu" 
+                  :loading="pul" 
+                  :onChange="(val: any) => {
+                    prosedur?.push({
+                      kode: val.value,
+                      penyakit: {
+                        kode: val.value,
+                        deskripsi_panjang: val.title
+                      }
+                    })
+                  }" 
+                  searchable-placeholder="cari diagnosa ..." 
+                  placeholder="cari diagnosa ..." 
+                />
               </div>
             
               <Sortable
@@ -616,7 +636,8 @@ const moneyMask = reactive<MaskInputOptions>({
         </div>
       </div>
 
-      <!-- [TODO] : Lanjutkan Pembuatan Forms JAMPERSAL -->
+      <!-- INFO : Cek `rsia_grouping_chunks` tabel -->
+      <!-- TODO : Lanjutkan Pembuatan Forms JAMPERSAL -->
 
       <UDivider />
 
