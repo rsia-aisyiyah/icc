@@ -8,15 +8,19 @@ export interface DPJPData {
 export const getDpjp = async (search: string | undefined): Promise<DPJPData | undefined> => {
   if (!search) {
     return undefined;
-  }
+  }  
 
   try {
     const response = await fetch('/dpjp.json');
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      return undefined;
     }
+    
+    search = search.toUpperCase();
+
     const dpjpData: DPJPData[] = await response.json();
-    return dpjpData.find((item: DPJPData) => item.label === search || item.value === search);
+    const find = dpjpData.find((item: DPJPData) => item.label == search || item.value == search);
+    return find;
   } catch (error) {
     console.error('Failed to fetch DPJP data:', error);
     return undefined;
