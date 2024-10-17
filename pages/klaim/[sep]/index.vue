@@ -1,5 +1,21 @@
 <template>
   <UContainer class="p-0">
+
+    <div class="flex justify-between items-center mb-5">
+      <h1 class="text-2xl font-semibold text-primary-500">Form Klaim</h1>
+      <div class="flex items-center space-x-2">
+        <UButton
+          color="primary"
+          variant="soft"
+          size="sm"
+          icon="i-heroicons-document-text-20-solid"
+          @click="openDokumen = true"
+        >
+          Berkas Klaim
+        </UButton>
+      </div>
+    </div>
+
     <UCard>
       <ClientOnly fallback="Loading Forms . . .">
         <FormKlaimNew
@@ -16,6 +32,26 @@
       </ClientOnly>
     </UCard>
   </UContainer>
+
+  <USlideover v-model="openDokumen" :ui="{width: 'w-screen max-w-[50%]'}">
+    <div class="p-4 flex-1">
+      <UButton
+        color="gray"
+        variant="ghost"
+        size="sm"
+        icon="i-heroicons-x-mark-20-solid"
+        class="flex sm:hidden absolute end-5 top-5 z-10"
+        square
+        padded
+        @click="openDokumen = false"
+      />
+      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10">
+        <div class="loader">Loading...</div>
+      </div>
+
+      <iframe :src="pdfUrl" frameborder="0" width="100%" height="100%" @load="pdfReady = true"></iframe>
+    </div>
+  </USlideover>
 </template>
 <script lang="ts" setup>
 import type { ResponseSepData, ResponseTensi, ResponseRegPeriksa, KamarInapResponse, BillingPasienResponse, ResourcePagination } from '~/types';
@@ -24,7 +60,10 @@ const route = useRoute();
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
+const pdfReady = ref(false);
 const no_sep = ref(route.params.sep);
+const openDokumen = ref(false);
+const pdfUrl = `${config.public.API_V2_URL}/sep/${no_sep.value}/print`;
 
 // Fungsi untuk membangun URL tensi
 const buildUrlTensi = (noRm: string, noRawat: string, status: number) => {
@@ -55,6 +94,7 @@ const allData = ref<{
 // Fetch data SEP
 const { data: bridgingSep, pending: bridgingSepPending, error: bridgingSepError } = await useFetch<ResponseSepData>(`${config.public.API_V2_URL}/sep/${no_sep.value}`, {
   method: 'GET',
+  // query: { include: 'chunk' },
   headers: { Authorization: `Bearer ${tokenStore.accessToken}` },
 })
 
@@ -69,7 +109,7 @@ if (bridgingSepError.value) {
     // Parallel fetching
     const [regPeriksa, kamarInap, billing, diagnosa, prosedur, sisDiastole] = await Promise.all([
       $fetch<ResponseRegPeriksa>(`${config.public.API_V2_URL}/registrasi/periksa/${btoa(noRawat)}`, {
-        query: { include: 'pasienBayi' },
+        query: { include: 'pasienBayi,dokter' },
         headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
       }),
 

@@ -9,10 +9,11 @@ import type { BillingPasien, Diagnosa, KamarInap, Prosedur, RegPeriksa, SepData,
 
 import { moneyMask } from '~/common/masks'
 import { tarifFields } from '~/data/tarifFields'
-import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
+import { getTanggalKeluar, getDpjp } from '~/common/helpers/dataHelpers'
 import { PrepareKlaimData } from '~/common/helpers/PrepareKlaimData'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
+import { getCaraPulangByLabel } from '~/utils/labelToValue'
 
 const toast = useToast()
 const isLoading = ref(false)
@@ -66,7 +67,7 @@ const schema = z.object({
   tgl_masuk: z.date().optional(),
   tgl_pulang: z.date().optional(),
   age: z.number().int().min(0).optional(),
-  cara_masuk: z.string().optional(),
+  cara_masuk: z.string().min(1).optional(),
   los: z.number().int().min(0).optional(),
   los_in_hour: z.string().optional(),
   birth_weight: z.number().int().min(0).optional(),
@@ -119,7 +120,7 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-  // Define the reactive state for the form
+// Define the reactive state for the form
 const state = reactive<Schema>({
   payor_label         : '',
   payor_id            : '',
@@ -127,22 +128,23 @@ const state = reactive<Schema>({
   nomor_kartu         : sep?.no_kartu ?? '',
   nomor_sep           : sep?.no_sep ?? '',
   cob_cd              : undefined,
-  jenis_rawat         : parseInt(`${sep?.jnspelayanan}` ?? 0),
+  jenis_rawat         : parseInt(`${sep?.jnspelayanan}`),
   upgrade_class_ind   : !!sep?.klsnaik,
   icu_indikator       : false,
   executive_class_ind : false,
-  tariff_class        : parseInt(`${sep?.klsrawat}` ?? 0),
+  tariff_class        : parseInt(`${sep?.klsrawat}`),
   tgl_masuk           : new Date(regPeriksa?.tgl_registrasi + ' ' + regPeriksa?.jam_reg),
   tgl_pulang          : undefined,
   age                 : regPeriksa?.umurdaftar,
-  cara_masuk          : undefined,
+  cara_masuk          : sep?.chunk?.cara_masuk,
   los                 : kamarInap?.lama_inap,
   los_in_hour         : kamarInap?.lama_jam,
   birth_weight        : regPeriksa?.umurdaftar == 0 ? regPeriksa?.pasien_bayi?.berat_badan: 0,
   adl_sub_acute       : undefined,
   adl_chronic         : undefined,
-  discharge_status    : undefined,
-  nama_dokter         : undefined,
+  // @ts-ignore
+  discharge_status    : (await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? '',
+  nama_dokter         : (await getDpjp(regPeriksa?.dokter?.nm_dokter))?.value ?? '',
   kode_tarif          : "CS",
   jkn_sitb_checked_ind: false,
   co_insidence_ind_jkn: false,
@@ -178,6 +180,17 @@ const state = reactive<Schema>({
 
   diagnosa_inagrouper : [],
   procedure_inagrouper: [],
+
+  // @ts-ignore
+  usia_kehamilan      : sep?.chunk?.usia_kehamilan,
+  // @ts-ignore
+  gravida             : null,
+  // @ts-ignore
+  partus              : null,
+  // @ts-ignore
+  abortus             : null,
+  // @ts-ignore
+  onset_kontraksi     : sep?.chunk?.onset_kontraksi,
 })
 
 // Fetch the COB data on component mount
@@ -231,16 +244,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
   if (sep?.no_sep == '' || sep?.no_sep == undefined) {
     addToaster('Nomor SEP tidak ada', 'Nomor SEP tidak ada, silahkan cek kembali data pasien', 'red', 'i-heroicons-information-circle')
-
     isLoading.value = false
   }
 
   // map the data and remove the undefined values from data
   const mappedData = PrepareKlaimData(event.data)  
-
+  
   mappedData.diagnosa             = diagnosa?.map(d => d.kd_penyakit) ?? ["#"]
   mappedData.procedure            = prosedur?.map(p => p.kode) ?? ["#"]
-
+   
   const { data, error, refresh, status } = await useFetch(`http://172.24.19.22/rsia/api/v2/eklaim/${sep?.no_sep}`,{
     method: 'POST',
     body: mappedData
@@ -485,7 +497,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       
       <UDivider label="Tarif Rumah Sakit" />
 
-      <div class="p-3 lg:p-6 rounded bg-cool-800 shadow-inner">
+      <div class="p-3 lg:p-6 rounded dark:bg-cool-800 bg-cool-50 shadow-inner">
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
           <UFormGroup v-for="(field, index) in tarifFields" :key="index" :label="field.label" :name="field.name">
             <UInput v-model="(state as any)[field.name]" :placeholder="field.name" type="text" v-maska="moneyMask" inputmode="numeric">
@@ -505,7 +517,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         </template>
         
         <template #item="{ item }">
-          <div class="px-4 py-5 sm:p-6 bg-cool-800 shadow-inner rounded-lg">
+          <div class="px-4 py-5 sm:p-6 bg-cool-50 dark:bg-cool-800 shadow-inner rounded-lg">
             <div v-if="item.key === 'coding_unu'" class="space-y-3">
               
               <UDivider label="Diagnosa" :ui="{border: {base: 'flex border-cool-200 dark:border-cool-700'}, label: 'text-sm font-semibold text-primary'}" />
@@ -536,7 +548,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 @end="(event) => moveItemInArray(diagnosa ?? [], event.oldIndex, event.newIndex)"
               >
                 <template #item="{element, index}">
-                  <div class="draggable mb-2 flex items-center justify-between gap-3 p-2 border rounded-xl border-cool-700"  :key="element.kd_penyakit">
+                  <div :key="element.kd_penyakit" class="draggable mb-2 flex items-center justify-between gap-3 p-2 border rounded-xl dark:border-cool-700 border-cool-300">
                     <div class="flex gap-3 truncate text-ellipsis overflow-hidden">
                       <UBadge color="primary" variant="soft">{{ element.kd_penyakit }}</UBadge>
                       <span class="truncate text-ellipsis">{{ element.penyakit.nm_penyakit }}</span>
@@ -597,10 +609,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <p class="text-center font-semibold text-sm">Tekanan Darah (mmHg)</p>
         <div class="flex items-center justify-center gap-3">
           <UFormGroup name="sistole">
-            <UInput placeholder="sistole" v-model="state.sistole" type="text" inputmode="number"/>
+            <UInput placeholder="sistole" readonly v-model="state.sistole" type="text" inputmode="number"/>
           </UFormGroup>
           <UFormGroup name="diastole">
-            <UInput placeholder="diastole" v-model="state.diastole" type="text" inputmode="number"/>
+            <UInput placeholder="diastole" readonly v-model="state.diastole" type="text" inputmode="number"/>
           </UFormGroup>
         </div>
       </div>
