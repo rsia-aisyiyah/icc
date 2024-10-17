@@ -1,6 +1,6 @@
 export const pasienRanapColumns = [
   { label: "No. SEP", key: "sep.no_sep" },
-  { label: "No. Rawat", key: "no_rawat" },
+  // { label: "No. Rawat", key: "no_rawat" },
   { label: "Pasien", key: "pasien.nm_pasien" },
   { label: "Diag Awal", key: "sep.diagawal" },
   { label: "Tgl Masuk", key: "reg_periksa?.tgl_registrasi" },
@@ -13,12 +13,13 @@ export const pasienRanapColumns = [
 
 export const dataSepColumns = [
   { label: "No. SEP", key: "no_sep" },
-  { label: "No. Rawat", key: "no_rawat" },
+  // { label: "No. Rawat", key: "no_rawat" },
   { label: "Pasien", key: "nama_pasien" },
-  { label: "Peserta", key: "peserta" },
+  // { label: "Peserta", key: "peserta" },
+  { label: "Status", key: "status.status" },
   { label: "No Kartu", key: "no_kartu" },
-  { label: "Diagnosa Awal", key: "diagawal" },
-  { label: "Tgl Masuk", key: "tglrujukan" },
-  { label: "Tgl Keluar", key: "tglpulang" },
+  // { label: "Diagnosa Awal", key: "nmdiagnosaawal" },
+  { label: "Tgl Masuk", key: "reg_periksa?.tgl_registrasi" },
+  { label: "Tgl Keluar", key: "tanggal_pulang" },
   { label: "Action", key: "action" }
 ];

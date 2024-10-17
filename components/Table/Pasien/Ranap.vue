@@ -41,7 +41,7 @@
     </div>
 
     <!-- Table -->
-    <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="pending">
+    <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="status == 'pending'">
       <!-- Action -->
       <template #action-data="{ row }">
         <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
@@ -66,15 +66,25 @@
       </template>
 
       <template #sep.no_sep-data="{ row }">
-        <UBadge :color="row.sep?.no_sep ? 'primary' : 'primary'" variant="soft">
-          <div class="flex gap-2 items-center justify-center" :class="row.sep?.no_sep ? 'pl-1' : ''">
-            {{ row.sep?.no_sep ?? "-" }}
-            <template v-if="row.sep?.no_sep">
+        <div class="flex flex-col gap-1">
+          <UBadge :color="row.sep?.no_sep ? 'primary' : 'primary'" variant="soft">
+            <div class="flex gap-2 items-center justify-between w-full pl-1">
+              {{ row.sep?.no_sep ?? "-" }}
               <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs"
                 @click="isSupported && copy(row.sep?.no_sep)" />
-            </template>
-          </div>
-        </UBadge>
+            </div>
+          </UBadge>
+
+          <UBadge color="sky" variant="soft">
+            <div class="flex gap-2 items-center justify-between w-full pl-1">
+              {{ row.no_rawat ?? "-" }}
+              <template v-if="row.no_rawat">
+                <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs"
+                  @click="isSupported && copy(row.no_rawat)" />
+              </template>
+            </div>
+          </UBadge>
+        </div>
       </template>
 
       <template #sep.diagawal-data="{ row }">
@@ -272,7 +282,7 @@ function updateFilters() {
   currentPage.value = 1
 }
 
-const { data: pasienRanap, pending, status } = await useAsyncData<ResourcePagination>(
+const { data: pasienRanap, status } = await useAsyncData<ResourcePagination>(
   'pasien/ranap',
   () => $fetch(`${config.public.API_V2_URL}/pasien/ranap/search?page=${currentPage.value}`, {
     method: 'POST',

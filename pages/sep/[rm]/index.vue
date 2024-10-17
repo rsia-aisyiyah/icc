@@ -10,7 +10,7 @@ const tokenStore = useAccessTokenStore()
 const currentPage = ref(1)
 const rm = ref(atob(route.params.rm as string));
 
-const { data, pending, error, refresh } = await useFetch(`${config.public.API_V2_URL}/sep/search`, {
+const { data, error } = await useFetch(`${config.public.API_V2_URL}/sep/search`, {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${tokenStore.accessToken}`
@@ -21,11 +21,20 @@ const { data, pending, error, refresh } = await useFetch(`${config.public.API_V2
     ],
     "filters": [
       { "field": "nomr", "operator": "=", "value": rm },
+    ],
+    "includes": [
+      { "relation": "reg_periksa" },
+      { "relation": "tanggal_pulang" }
     ]
   })
 })
 
-if (error) {
-  console.error('Error fetching data:', error.value)
+console.log("DEBUGG");
+
+if (error.value) {
+  console.error('Error fetching data:', error.value.cause)
 }
+
+console.log("DEBUGG");
+console.log(data.value)
 </script>
