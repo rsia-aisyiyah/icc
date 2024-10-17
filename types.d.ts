@@ -29,6 +29,15 @@ export type RegPeriksa = {
   status_bayar: string;
   status_poli: string;
   pasien_bayi?: PasienBayi;
+  dokter?: {
+    kd_dokter: string;
+    nm_dokter: string;
+    kd_sps: string;
+    spesialis: {
+      kd_sps: string;
+      nm_sps: string;
+    }
+  }
 }
 
 export type ResponseRegPeriksa = {
@@ -97,6 +106,12 @@ export type SepData = {
   asesmenpelayanan: string;
   kddpjplayanan: string;
   nmdpjplayanan: string;
+  chunk?: {
+    no_sep?: string;
+    cara_masuk?: string;
+    usia_kehamilan?: string;
+    onset_kontraksi?: string;
+  }
 }
 
 export type ResponseSepData = {
