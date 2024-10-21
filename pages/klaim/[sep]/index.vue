@@ -9,7 +9,7 @@
           variant="soft"
           size="sm"
           icon="i-heroicons-document-text-20-solid"
-          @click="openDokumen = true"
+          @click="openDokumen = true; pdfReady = false"
         >
           Berkas Klaim
         </UButton>
@@ -63,7 +63,7 @@ const tokenStore = useAccessTokenStore()
 const pdfReady = ref(false);
 const no_sep = ref(route.params.sep);
 const openDokumen = ref(false);
-const pdfUrl = `${config.public.API_V2_URL}/sep/${no_sep.value}/print`;
+const pdfUrl = `${config.public.API_V2_URL}/sep/${no_sep.value}/print?token=${tokenStore.accessToken}`;
 
 // Fungsi untuk membangun URL tensi
 const buildUrlTensi = (noRm: string, noRawat: string, status: number) => {
