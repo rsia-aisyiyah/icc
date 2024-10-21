@@ -16,7 +16,7 @@ export const dataSepColumns = [
   // { label: "No. Rawat", key: "no_rawat" },
   { label: "Pasien", key: "nama_pasien" },
   // { label: "Peserta", key: "peserta" },
-  { label: "Status", key: "status.status" },
+  { label: "Status", key: "status_klaim.status" },
   { label: "No Kartu", key: "no_kartu" },
   // { label: "Diagnosa Awal", key: "nmdiagnosaawal" },
   { label: "Tgl Masuk", key: "reg_periksa?.tgl_registrasi" },
