@@ -1,6 +1,6 @@
 import { tarifFields } from "~/data/tarifFields";
 
-export const PrepareKlaimData = (data: object) => {
+export const prepareKlaimData = (data: object) => {
   // Remove undefined, empty string, and convert boolean to number
   const r = Object.fromEntries(
     Object.entries(data).filter(([_, v]) => v !== undefined && v !== '').map(([k, v]) => [k, typeof v === 'boolean' ? (v ? 1 : 0) : v])
