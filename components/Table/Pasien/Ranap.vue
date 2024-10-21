@@ -12,7 +12,7 @@
     </template>
 
     <!-- Filter and search -->
-    <div class="mb-4 flex gap-4 justify-end items-center">
+    <div class="mb-4 flex flex-col lg:flex-row gap-4 justify-end items-center">
       <!-- Pulang / Belum Pulang -->
       <div class="p-1.5 px-3 rounded-2xl border border-cool-200 dark:border-cool-700 flex gap-4">
         <URadio v-for="method of methods" :key="method.value" v-model="masukKeluar" v-bind="method" />
@@ -20,7 +20,8 @@
 
       <!-- tanggal masuk - keluar -->
       <UPopover :popper="{ placement: 'bottom-start' }">
-        <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
+        <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'"
+          :color="masukKeluar == '-' ? 'gray' : 'primary'">
           <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
           <span v-else-if="typeof date === 'object'">
             {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
@@ -37,18 +38,50 @@
       </UPopover>
 
       <!-- search -->
-      <UInput v-model="bodyReqs.search.value" placeholder="Search..." class="w-[20%]" />
+      <UInput v-model="bodyReqs.search.value" placeholder="Search..." class="w-full md:w-[50%] lg:w-[20%]" />
     </div>
 
     <!-- Table -->
     <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="status == 'pending'">
       <!-- Action -->
       <template #action-data="{ row }">
-        <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
-          :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'" target="_blank"
-          size="xs" square>
-          Data Klaim
-        </UButton>
+        <div class="flex gap-1 flex-col">
+          <div>
+            <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
+              :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'"
+              target="_blank" size="xs" square>
+              Data Klaim
+            </UButton>
+          </div>
+
+          <div class="flex gap-1">
+            <UButton square :disabled="!row.sep?.no_sep" icon="i-tabler-file-description"
+              :color="!row.sep?.no_sep ? 'gray' : 'primary'" :variant="!row.sep?.no_sep ? 'solid' : 'soft'"
+              @click="openDokumen = true; pdfReady = false; sep = row.sep?.no_sep" size="xs" />
+
+            <UDropdown :items="[
+              [{
+                label: 'Status & Note',
+                icon: 'i-tabler-note',
+                click: () => {
+                  setSepRawat(row)
+                  openModalKlaimFeedback = true
+                }
+              }, {
+                label: 'Update Status',
+                icon: 'i-tabler-status-change',
+                click: () => {
+                  setSepRawat(row)
+                  openModalUpdateStatus = true
+                }
+              }]
+            ]">
+              <UButton square :variant="!row.sep?.no_sep ? 'solid' : 'soft'" size="xs"
+                :color="!row.sep?.no_sep ? 'gray' : 'primary'" :disabled="!row.sep?.no_sep"
+                trailing-icon="i-heroicons-chevron-down-20-solid" />
+            </UDropdown>
+          </div>
+        </div>
       </template>
 
 
@@ -135,7 +168,7 @@
               style: 'currency',
               currency: 'IDR',
               maximumFractionDigits: 0
-            }).format(rc?.[row.no_rawat].total) : '-' }}
+            }).format(rc?.[row.no_rawat].total ?? 0) : '-' }}
           </span>
         </span>
       </template>
@@ -157,7 +190,7 @@
                     style: 'currency',
                     currency: 'IDR',
                     maximumFractionDigits: 0
-                  }).format(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif)
+                  }).format(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0)
                   : '-'
               }}
             </span>
@@ -170,19 +203,22 @@
 
       <!-- ---------- TABLE HEADER -->
       <template #real_cost-header="{ column }">
-        <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+        <span
+          class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
 
       <template #mining_tarif-header="{ column }">
-        <span class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+        <span
+          class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
 
       <template #groupping_tarif-header="{ column }">
-        <span class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+        <span
+          class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
@@ -196,7 +232,7 @@
 
     <!-- pagination -->
     <div v-if="pasienRanap && pasienRanap.meta">
-      <div class="mt-5 flex items-center justify-between">
+      <div class="mt-5 flex flex-col md:flex-row items-center justify-between">
         <p class="text-sm text-gray-500 dark:text-gray-400">
           Showing : {{ (pasienRanap.meta as any).from }}
           to {{ (pasienRanap.meta as any).to }}
@@ -207,19 +243,63 @@
       </div>
     </div>
   </UCard>
+
+  <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
+    <div class="p-4 flex-1">
+      <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
+        class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
+      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10">
+        <div class="loader">Loading...</div>
+      </div>
+
+      <!-- open new tab pdfUrl -->
+      <UButton color="primary" size="xs" icon="i-tabler-external-link" class="absolute bottom-5 left-5 z-10"
+        :to="pdfUrl" target="_blank">
+        Open in new tab
+      </UButton>
+
+      <iframe :src="pdfUrl" frameborder="0" width="100%" height="100%" @load="pdfReady = true"></iframe>
+    </div>
+  </USlideover>
+
+  <!-- Modal Update Status -->
+  <ModalUpdateStatus v-model:isOpen="openModalUpdateStatus" :sep="sep" :noRawat="noRawat" />
+  <!-- Modal Klaim Feedback -->
+  <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
 </template>
 
 <script lang="ts" setup>
-import type { ResourcePagination } from '~/types'
+import type { GroupingCostRawatInap, RealCostRawatInap, ResourcePagination } from '~/types'
 import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
 
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
 
+const sep = ref('')
+const noRawat = ref('')
+const pdfUrl = ref('')
 const toast = useToast()
+const pdfReady = ref(false)
+const openDokumen = ref(false)
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
+
+const openModalUpdateStatus = ref(false);
+const openModalKlaimFeedback = ref(false);
+
+// Watch for SEP changes and update PDF URL
+watch(sep, (val) => {
+  if (val) {
+    pdfUrl.value = `${config.public.API_V2_URL}/sep/${val}/print?token=${tokenStore.accessToken}`
+  }
+})
+
+const setSepRawat = (row: any) => {
+  sep.value = row.sep?.no_sep
+  noRawat.value = row.no_rawat
+}
+
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
 
 const methods = [
@@ -228,127 +308,109 @@ const methods = [
   { value: 'keluar', label: 'Tanggal Keluar' }
 ]
 
-const rc = ref<any>()
-const gc = ref<any>()
+const rc = ref<RealCostRawatInap[]>([])
+const gc = ref<GroupingCostRawatInap[]>([])
 const pendingFetchCost = ref(false)
-const showedNoRawat = ref<any[]>([])
-const showedNoSep = ref<any[]>([])
+const showedNoRawat = ref<string[]>([])
+const showedNoSep = ref<string[]>([])
 const currentPage = ref(1)
 const masukKeluar = ref('-')
 const date = ref({
   start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
 })
-const bodyReqs = ref<any>({
+const bodyReqs = ref({
   filters: [
     { field: 'stts_pulang', operator: '=', value: '-' },
     { field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] }
   ],
-  sort: [
-    { field: 'no_rawat', direction: 'desc' }
-  ],
-  aggregates: [
-    { type: "sum", relation: "lamaInap", field: "lama" }
-  ],
-  search: { value: '' },
+  sort: [{ field: 'no_rawat', direction: 'desc' }],
+  aggregates: [{ type: "sum", relation: "lamaInap", field: "lama" }],
+  search: { value: '' }
 })
 
+// Update filters based on the selected options
 function updateFilters() {
   bodyReqs.value.filters = []
 
-  // Jika search.value tidak kosong, tambahkan filter yang spesifik dan atur currentPage menjadi 1
-  if (bodyReqs.value.search.value != '') {
-    bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' });
-    currentPage.value = 1;
-    return; // Keluar dari fungsi updateFilters karena filter yang lain tidak perlu ditambahkan
+  const { search, filters } = bodyReqs.value
+
+  if (search.value) {
+    filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' })
+    currentPage.value = 1
+    return
   }
 
-  if (masukKeluar.value === 'masuk') {
-    bodyReqs.value.filters.push({ field: 'regPeriksa.tgl_registrasi', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') })
-    bodyReqs.value.filters.push({ field: 'regPeriksa.tgl_registrasi', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') })
-  } else if (masukKeluar.value === 'keluar') {
-    bodyReqs.value.filters.push({ field: 'tgl_keluar', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') })
-    bodyReqs.value.filters.push({ field: 'tgl_keluar', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') })
+  const dateFilter = masukKeluar.value === 'masuk'
+    ? 'regPeriksa.tgl_registrasi'
+    : 'tgl_keluar'
+
+  if (masukKeluar.value !== '-') {
+    filters.push({ field: dateFilter, operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') })
+    filters.push({ field: dateFilter, operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') })
   }
 
-  if (bodyReqs.value.search.value == '' && masukKeluar.value === '-') {
-    bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '=', value: '-' })
-  } else {
-    bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: '-' })
-    bodyReqs.value.filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' })
-  }
+  filters.push({
+    field: 'stts_pulang',
+    operator: masukKeluar.value === '-' ? '=' : '!=',
+    value: '-'
+  })
 
-  bodyReqs.value.filters.push({ field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] })
+  filters.push({ field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] })
   currentPage.value = 1
 }
 
-const { data: pasienRanap, status } = await useAsyncData<ResourcePagination>(
+// Fetch pasienRanap data with filters
+const { data: pasienRanap, status, refresh } = await useAsyncData<ResourcePagination>(
   'pasien/ranap',
   () => $fetch(`${config.public.API_V2_URL}/pasien/ranap/search?page=${currentPage.value}`, {
     method: 'POST',
     body: JSON.stringify(bodyReqs.value),
-    headers: {
-      Authorization: `Bearer ${tokenStore.accessToken}`
-    }
+    headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
   }), {
-  watch: [currentPage, bodyReqs, bodyReqs.value]
+  watch: [currentPage, bodyReqs]
 })
 
+// Update displayed data based on pasienRanap changes
 function updateShowedData() {
   showedNoRawat.value = pasienRanap.value?.data.map((item: any) => item.no_rawat) ?? []
-  showedNoSep.value = pasienRanap.value?.data.map((item: any) => {
-    if (item.sep) {
-      return item.sep.no_sep
-    }
-  }).filter((noSep) => noSep !== undefined) ?? []
+  showedNoSep.value = pasienRanap.value?.data.map((item: any) => item.sep?.no_sep).filter(Boolean) ?? []
 }
 
+// Fetch real and grouping costs
 async function fetchData() {
   pendingFetchCost.value = true
 
-  const realCostPromise = $fetch(`${config.public.API_V2_URL}/pasien/ranap/real-cost`, {
-    method: 'POST',
-    body: { filters: [{ field: 'no_rawat', operator: 'in', value: showedNoRawat.value }] },
-    headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
-  })
+  const [realCostResponse, groupingCostResponse] = await Promise.all([
+    $fetch(`${config.public.API_V2_URL}/pasien/ranap/real-cost`, {
+      method: 'POST',
+      body: { filters: [{ field: 'no_rawat', operator: 'in', value: showedNoRawat.value }] },
+      headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
+    }) as any,
+    $fetch(`${config.public.API_V2_URL}/pasien/ranap/grouping-cost`, {
+      method: 'POST',
+      body: { filters: [{ field: 'no_sep', operator: 'in', value: showedNoSep.value }] },
+      headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
+    }) as any
+  ])
 
-  const groupingCostPromise = $fetch(`${config.public.API_V2_URL}/pasien/ranap/grouping-cost`, {
-    method: 'POST',
-    body: { filters: [{ field: 'no_Sep', operator: 'in', value: showedNoSep.value }] },
-    headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
-  })
-
-  const [realCostResponse, groupingCostResponse] = await Promise.all<any>([realCostPromise, groupingCostPromise])
-
-  if (realCostResponse.error) {
-    console.error('Error fetching real cost:', realCostResponse.error)
-  } else {
-    rc.value = realCostResponse.data || []
-  }
-
-  if (groupingCostResponse.error) {
-    console.error('Error fetching grouping cost:', groupingCostResponse.error)
-  } else {
-    gc.value = groupingCostResponse.data || []
-  }
-
+  rc.value = realCostResponse.data || []
+  gc.value = groupingCostResponse.data || []
   pendingFetchCost.value = false
 }
 
-onMounted(() => {
-  updateShowedData()
-})
+onMounted(updateShowedData)
 
-// Watch showedNoRawat and showedNoSep for changes
 watch([showedNoRawat, showedNoSep], fetchData, { immediate: true })
-
-// Watch pasienRanap for changes
 watch(pasienRanap, updateShowedData)
+watch([date, masukKeluar, bodyReqs.value.search], useDebounceFn(async () => {
+  status.value = 'pending'
+  await new Promise((resolve) => setTimeout(resolve, 1300))
 
-// Watch date, masukKeluar, and search for changes
-watch([date, masukKeluar, bodyReqs.value.search], useDebounceFn(updateFilters, 800), { deep: true })
+  updateFilters()
+  refresh()
+}, 800), { deep: true })
 
-// Watch copied for changes
 watch(copied, (val) => {
   if (val) {
     toast.add({
