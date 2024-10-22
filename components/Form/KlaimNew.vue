@@ -20,7 +20,7 @@ const toast = useToast()
 const isLoading = ref(false)
 const optionLoading = ref(false)
 const tokenStore = useAccessTokenStore()
-const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi } = defineProps<{
+const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa,
   kamarInap?: KamarInap,
@@ -28,9 +28,9 @@ const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi } = defin
   diagnosa?: Diagnosa[],
   prosedur?: Prosedur[],
   tensi?: TensiData,
-}>();
 
-console.log(billing);
+  refreshLatestKlaim: () => void
+}>();
 
 const addToaster = (title: string, description: string, color: NotificationColor, icon: string) => {
   toast.add({
@@ -70,19 +70,20 @@ const state = reactive<FormData>({
   tgl_masuk: new Date(regPeriksa?.tgl_registrasi + ' ' + regPeriksa?.jam_reg),
   tgl_pulang: undefined,
   age: regPeriksa?.umurdaftar,
-  cara_masuk: sep?.chunk?.cara_masuk,
+  cara_masuk: sep?.chunk?.cara_masuk ?? undefined,
   los: kamarInap?.lama_inap,
   los_in_hour: kamarInap?.lama_jam,
   birth_weight: regPeriksa?.umurdaftar == 0 ? regPeriksa?.pasien_bayi?.berat_badan : 0,
   adl_sub_acute: undefined,
   adl_chronic: undefined,
   // @ts-ignore
-  discharge_status: (await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? '',
+  discharge_status: (await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? null,
   nama_dokter: (await getDpjp(regPeriksa?.dokter?.nm_dokter))?.value ?? '',
   kode_tarif: "CS",
   jkn_sitb_checked_ind: false,
   co_insidence_ind_jkn: false,
   upgrade_class_class: undefined,
+  upgrade_class_payor: sep?.pembiayaan ?? undefined,
   upgrade_class_los: undefined,
   use_ind: false,
   start_dttm: undefined,
@@ -115,15 +116,15 @@ const state = reactive<FormData>({
   diagnosa_inagrouper: [],
   procedure_inagrouper: [],
 
-  usia_kehamilan: sep?.chunk?.usia_kehamilan,
+  usia_kehamilan: sep?.chunk?.usia_kehamilan ?? null,
   gravida: null,
   partus: null,
   abortus: null,
-  onset_kontraksi: sep?.chunk?.onset_kontraksi,
+  onset_kontraksi: sep?.chunk?.onset_kontraksi ?? null,
 })
 
 // Fetch the COB data on component mount
-onMounted(() => {
+onMounted(async () => {
   optionLoading.value = true
   let tgl_keluar = ref('')
   if (kamarInap && kamarInap?.detail?.length > 0) {
@@ -169,6 +170,7 @@ const onChangePayorCd = (payor: CarabayarData) => {
 
 // Handle form submission
 async function onSubmit(event: FormSubmitEvent<FormData>) {
+  const config = useRuntimeConfig()
   isLoading.value = true
 
   if (sep?.no_sep == '' || sep?.no_sep == undefined) {
@@ -182,7 +184,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   mappedData.diagnosa = diagnosa?.map(d => d.kd_penyakit) ?? ["#"]
   mappedData.procedure = prosedur?.map(p => p.kode) ?? ["#"]
 
-  const { data, error, refresh, status } = await useFetch(`http://172.24.19.22/rsia/api/v2/eklaim/${sep?.no_sep}`, {
+  const { data, error, refresh, status } = await useFetch(`${config.public.API_V2_URL}/eklaim/${sep?.no_sep}`, {
     headers: {
       'Authorization': `Bearer ${tokenStore?.accessToken}`,
       'Content-Type': 'application/json',
@@ -195,12 +197,14 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   if (error.value) {
     console.error(error.value.data.metadata);
 
+    refreshLatestKlaim()
     addToaster('Failed to submit', `${error.value.message}, please check the logs for more details`, 'red', 'i-heroicons-information-circle')
     isLoading.value = false
     return
   }
 
   if (status.value == 'success') {
+    refreshLatestKlaim()
     addToaster('Success', 'Data berhasil disimpan & di grouping', 'green', 'i-heroicons-check-badge')
   }
 
@@ -230,7 +234,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
       <UDivider />
 
-      <div class="flex flex-col lg:flex-row gap-4 justify-between">
+      <div class="flex flex-col lg:flex-row gap-4 justify-between ">
         <UFormGroup label="Jenis Rawat" name="jenis_rawat">
           <URadioGroup v-model="state.jenis_rawat" :loading="optionLoading" value-attribute="value"
             :options="[{ value: 2, label: 'Rawat Jalan' }, { value: 1, label: 'Rawat Inap' }]"
@@ -238,13 +242,19 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </UFormGroup>
         <div class="flex gap-3">
           <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1 && state.payor_cd != 'JPS'">
-            <UCheckbox v-model="state.upgrade_class_ind" name="upgrade_class_ind" label="Naik / Turun Kelas" />
+            <UFormGroup name="upgrade_class_ind">
+              <UCheckbox v-model="state.upgrade_class_ind" name="upgrade_class_ind" label="Naik / Turun Kelas" />
+            </UFormGroup>
           </div>
           <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1">
-            <UCheckbox v-model="state.icu_indikator" name="icu_indikator" label="Ada Rawat Intensif" />
+            <UFormGroup name="icu_indikator">
+              <UCheckbox v-model="state.icu_indikator" name="icu_indikator" label="Ada Rawat Intensif" />
+            </UFormGroup>
           </div>
           <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 2 && state.payor_cd != 'JPS'">
-            <UCheckbox v-model="state.executive_class_ind" name="executive_class_ind" label="Kelas Eksekutif" />
+            <UFormGroup name="executive_class_ind">
+              <UCheckbox v-model="state.executive_class_ind" name="executive_class_ind" label="Kelas Eksekutif" />
+            </UFormGroup>
           </div>
         </div>
 
@@ -307,11 +317,20 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       </div>
 
       <div v-if="state.upgrade_class_ind" class="flex flex-col md:flex-row gap-4 justify-between">
-        <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :loading="optionLoading"
-          value-attribute="value"
-          :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.tariff_class && state.tariff_class <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.tariff_class && state.tariff_class <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.tariff_class && state.tariff_class <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]"
-          :ui="{ fieldset: 'flex flex-row gap-4' }" />
-        <UFormGroup label="Rawat Intensif" name="icu_los">
+        <UFormGroup name="upgrade_class_class">
+          <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :loading="optionLoading"
+            value-attribute="value"
+            :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.tariff_class && state.tariff_class <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.tariff_class && state.tariff_class <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.tariff_class && state.tariff_class <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]"
+            :ui="{ fieldset: 'flex flex-row gap-4' }" />
+        </UFormGroup>
+
+        <UFormGroup label="Pembiayaan" name="upgrade_class_payor">
+          <USelectMenu v-model="state.upgrade_class_payor" value-attribute="value"
+            :options="[{ value: '1', label: 'Peserta' }, { value: '2', label: 'Pemberi Kerja' }, { value: '3', label: 'Asuransi Tambahan' }]"
+            placeholder="Pembiayaan" searchable class="w-[250px]" />
+        </UFormGroup>
+
+        <UFormGroup label="Lama ( hari )" name="icu_los">
           <UInput placeholder="Lama upgrade kelas" v-model="state.upgrade_class_los">
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400 text-xs">Hari</span>
@@ -426,7 +445,10 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </UFormGroup>
 
         <div class="flex gap-2 mt-3" v-if="state.jkn_sitb_checked_ind">
-          <UInput placeholder="nomor register sitb" class="w-full lg:w-min lg:min-w-[300px]" />
+          <UFormGroup name="jkn_sitb_checked_ind">
+            <UInput placeholder="nomor register sitb" class="w-full lg:w-min lg:min-w-[300px]" />
+          </UFormGroup>
+
           <UButton variant="soft" color="blue">Validasi</UButton>
         </div>
       </div>
@@ -445,17 +467,19 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </UFormGroup>
 
         <div class="flex gap-2 mt-3" v-if="state.co_insidence_ind_jkn">
-          <UInput placeholder="nomor klaim COVID-19" class="w-full lg:w-min lg:min-w-[300px]" />
+          <UFormGroup name="co_insidence_ind_jkn">
+            <UInput placeholder="nomor klaim COVID-19" class="w-full lg:w-min lg:min-w-[300px]" />
+          </UFormGroup>
           <UButton variant="soft" color="blue">Validasi</UButton>
         </div>
       </div>
 
       <UDivider label="Tarif Rumah Sakit" />
 
-      <div class="p-4 rounded-xl text-center bg-indigo-100 text-indigo-600">
+      <div class="p-4 rounded-xl text-center bg-indigo-100 text-indigo-600 dark:bg-indigo-800/50 dark:text-indigo-300">
         <p class="font-semibold">Total Tarif RS</p>
         <p class="text-xl font-semibold font-mono">
-            Rp {{ getTotalTarifRS(state).toLocaleString('id-ID') }}
+          Rp {{ getTotalTarifRS(state).toLocaleString('id-ID') }}
         </p>
       </div>
 
@@ -476,7 +500,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
       <UTabs :items="[{ key: 'coding_unu', label: 'Coding UNU Grouper' }]" class="w-full">
         <template #default="{ item, index, selected }">
-          <span class="truncate" :class="[selected && 'text-primary-500 dark:text-primary']">{{ item.label }}</span>
+          <span class="truncate" :class="[selected && 'text-indigo-500 dark:text-indigo']">{{ item.label }}</span>
         </template>
 
         <template #item="{ item }">
@@ -484,7 +508,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
             <div v-if="item.key === 'coding_unu'" class="space-y-3">
 
               <UDivider label="Diagnosa"
-                :ui="{ border: { base: 'flex border-cool-200 dark:border-cool-700' }, label: 'text-sm font-semibold text-primary' }" />
+                :ui="{ border: { base: 'flex border-cool-200 dark:border-cool-700' }, label: 'text-sm font-semibold text-indigo' }" />
 
               <div class="flex flex-col lg:flex-row items-center justify-between">
                 <h3 class="text-base font-semibold mb-2">Diagnosa UNU Grouper (<code>ICD-10</code>):</h3>
@@ -505,7 +529,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
                   <div :key="element.kd_penyakit"
                     class="draggable mb-2 flex items-center justify-between gap-3 p-2 border rounded-xl dark:border-cool-700 border-cool-300">
                     <div class="flex gap-3 truncate text-ellipsis overflow-hidden">
-                      <UBadge color="primary" variant="soft">{{ element.kd_penyakit }}</UBadge>
+                      <UBadge color="indigo" variant="soft">{{ element.kd_penyakit }}</UBadge>
                       <span class="truncate text-ellipsis">{{ element.penyakit.nm_penyakit }}</span>
                     </div>
                     <!-- button close -->
@@ -516,7 +540,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
               </Sortable>
 
               <UDivider label="Prosedur"
-                :ui="{ border: { base: 'flex border-cool-200 dark:border-cool-700' }, label: 'text-sm font-semibold text-primary' }" />
+                :ui="{ border: { base: 'flex border-cool-200 dark:border-cool-700' }, label: 'text-sm font-semibold text-indigo' }" />
 
               <div class="flex flex-col lg:flex-row items-center justify-between">
                 <h3 class="text-base font-semibold mb-2">Prosedur UNU Grouper (<code>ICD-9-CM</code>):</h3>
@@ -561,6 +585,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
           <UFormGroup name="sistole">
             <UInput placeholder="sistole" readonly v-model="state.sistole" type="text" inputmode="number" />
           </UFormGroup>
+
           <UFormGroup name="diastole">
             <UInput placeholder="diastole" readonly v-model="state.diastole" type="text" inputmode="number" />
           </UFormGroup>
@@ -583,9 +608,11 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
             <UFormGroup name="gravida">
               <UInput placeholder="gravida" v-model="state.gravida" />
             </UFormGroup>
+
             <UFormGroup name="partus">
               <UInput placeholder="partus" v-model="state.partus" />
             </UFormGroup>
+
             <UFormGroup name="abortus">
               <UInput placeholder="abortus" v-model="state.abortus" />
             </UFormGroup>
@@ -594,9 +621,12 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
         <div class="flex flex-col gap-3 items-center justify-center w-full xl:max-w-max">
           <p class="text-center font-semibold text-sm">Onset Kontraksi</p>
-          <URadioGroup :loading="optionLoading" value-attribute="value"
-            :options="[{ value: 'spontan', label: 'Timbul Spontan' }, { value: 'induksi', label: 'Dengan Induksi' }, { value: 'non_spontan_non_induksi', label: 'SC Tanpa Kontraksi/Induksi' }]"
-            v-model="state.onset_kontraksi" />
+
+          <UFormGroup name="onset_kontraksi">
+            <URadioGroup :loading="optionLoading" value-attribute="value"
+              :options="[{ value: 'spontan', label: 'Timbul Spontan' }, { value: 'induksi', label: 'Dengan Induksi' }, { value: 'non_spontan_non_induksi', label: 'SC Tanpa Kontraksi/Induksi' }]"
+              v-model="state.onset_kontraksi" />
+          </UFormGroup>
         </div>
       </div>
 
@@ -606,7 +636,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       <UDivider />
 
       <div class="flex justify-end gap-3 pt-5">
-        <UButton type="submit" :loading="isLoading">Submit</UButton>
+        <UButton color="indigo" type="submit" :loading="isLoading">Submit</UButton>
       </div>
     </UForm>
   </div>
