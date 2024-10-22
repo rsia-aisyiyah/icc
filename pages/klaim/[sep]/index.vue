@@ -1,50 +1,75 @@
 <template>
   <UContainer class="p-0">
-
     <div class="flex justify-between items-center mb-5">
-      <h1 class="text-2xl font-semibold text-primary-500">Form Klaim</h1>
+      <h1 class="text-2xl font-semibold text-indigo-500">Form Klaim</h1>
       <div class="flex items-center space-x-2">
-        <UButton
-          color="primary"
-          variant="soft"
-          size="sm"
-          icon="i-heroicons-document-text-20-solid"
-          @click="openDokumen = true; pdfReady = false"
-        >
+        <UButton color="indigo" variant="soft" size="sm" icon="i-heroicons-document-text-20-solid"
+          @click="openDokumen = true; pdfReady = false">
           Berkas Klaim
         </UButton>
       </div>
     </div>
 
-    <UCard>
+    <div class="px-6 py-4 rounded-lg border-[1px] shadow bg-white dark:bg-gray-900 dark:border-gray-800 mb-5">
+      <!-- nama & no_rkm_medis -->
+      <div class="flex flex-row gap-5 items-center justify-between ">
+        <div>
+          <h3 class="text-sm font-semibold text-indigo-500 mb-1">Nama Pasien</h3>
+          <p class="font-semibold">{{ bridgingSep?.data.nama_pasien }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-indigo-500 mb-1">Nomor Rawat</h3>
+          <p class="font-semibold">{{ bridgingSep?.data.no_rawat }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-indigo-500 mb-1">No. Rekam Medis</h3>
+          <p class="font-semibold">{{ bridgingSep?.data.nomr }}</p>
+        </div>
+      </div>
+    </div>
+
+    <UCard class="mb-5">
       <ClientOnly fallback="Loading Forms . . .">
-        <FormKlaimNew
-          :sep="bridgingSep?.data" 
-          :regPeriksa="allData.regPeriksa?.data"
-          :kamarInap="allData.kamarInap?.data"
-          :billing="allData.billing?.data" 
-          :diagnosa="allData.diagnosa?.data"
-          :prosedur="allData.prosedur?.data"
-          :tensi="allData.sisDiastole?.data"
-        />
+        <FormKlaimNew :refreshLatestKlaim="refreshLatestKlaim" :sep="bridgingSep?.data"
+          :regPeriksa="allData.regPeriksa?.data" :kamarInap="allData.kamarInap?.data" :billing="allData.billing?.data"
+          :diagnosa="allData.diagnosa?.data" :prosedur="allData.prosedur?.data" :tensi="allData.sisDiastole?.data" />
         <!-- <FormKlaim :sep="bridgingSep?.data" :regPeriksa="allData.regPeriksa?.data" :kamarInap="allData.kamarInap?.data"
           :billing="allData.billing?.data" :diagnosa="allData.diagnosa?.data" :tensi="allData.sisDiastole?.data" /> -->
       </ClientOnly>
     </UCard>
+
+    <template v-if="klaimData">
+      <UCard class="mb-5">
+        <template #header>
+          <h2 class="text-lg font-semibold text-indigo-500">Hasil Klaim Terakhir</h2>
+        </template>
+
+        <!-- show 3 information, code cbg, deskripsi dan tarif -->
+        <div class="flex flex-col xl:flex-row gap-5 items-stretch">
+          <div class="">
+            <h3 class="text-sm font-semibold text-indigo-500 mb-1">Kode CBG</h3>
+            <UBadge color="sky" variant="subtle" class="text-sm">
+              {{ klaimData?.data?.code_cbg }}
+            </UBadge>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold text-indigo-500 mb-1">Deskripsi</h3>
+            <p>{{ klaimData?.data?.deskripsi }}</p>
+          </div>
+          <div class="">
+            <h3 class="text-sm font-semibold text-indigo-500 mb-1">Tarif</h3>
+            <p>{{ formatRupiah(klaimData?.data?.tarif) }}</p>
+          </div>
+        </div>
+      </UCard>
+    </template>
+
   </UContainer>
 
-  <USlideover v-model="openDokumen" :ui="{width: 'w-screen max-w-[50%]'}">
+  <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
     <div class="p-4 flex-1">
-      <UButton
-        color="gray"
-        variant="ghost"
-        size="sm"
-        icon="i-heroicons-x-mark-20-solid"
-        class="flex sm:hidden absolute end-5 top-5 z-10"
-        square
-        padded
-        @click="openDokumen = false"
-      />
+      <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
+        class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
       <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10">
         <div class="loader">Loading...</div>
       </div>
@@ -75,13 +100,13 @@ const buildUrlTensi = (noRm: string, noRawat: string, status: number) => {
   return `${config.public.API_V2_URL}/pasien/${noRm}/riwayat/${noRawat}/${stts}/get-tensi`;
 }
 
-const allData = ref<{ 
-  regPeriksa: ResponseRegPeriksa | null, 
-  kamarInap: KamarInapResponse | null, 
-  billing: BillingPasienResponse | null, 
-  diagnosa: ResourcePagination | null, 
-  prosedur: ResourcePagination | null, 
-  sisDiastole: ResponseTensi | null 
+const allData = ref<{
+  regPeriksa: ResponseRegPeriksa | null,
+  kamarInap: KamarInapResponse | null,
+  billing: BillingPasienResponse | null,
+  diagnosa: ResourcePagination | null,
+  prosedur: ResourcePagination | null,
+  sisDiastole: ResponseTensi | null
 }>({
   regPeriksa: null,
   kamarInap: null,
@@ -94,7 +119,7 @@ const allData = ref<{
 // Fetch data SEP
 const { data: bridgingSep, pending: bridgingSepPending, error: bridgingSepError } = await useFetch<ResponseSepData>(`${config.public.API_V2_URL}/sep/${no_sep.value}`, {
   method: 'GET',
-  // query: { include: 'chunk' },
+  query: { include: 'chunk' },
   headers: { Authorization: `Bearer ${tokenStore.accessToken}` },
 })
 
@@ -149,5 +174,34 @@ if (bridgingSepError.value) {
   } catch (error) {
     console.error('Error during parallel fetching:', error)
   }
+}
+
+interface Klaim {
+  code_cbg: string;
+  deskripsi: string;
+  tarif: number;
+}
+
+interface KlaimResponse {
+  data: Klaim;
+  message: string;
+}
+
+
+const { data: klaimData, error, status, refresh: refreshLatestKlaim } = await useFetch<KlaimResponse>(`${config.public.API_V2_URL}/sep/${no_sep.value}/klaim/latest`, {
+  method: 'GET',
+  headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
+})
+
+if (error.value) {
+  console.error(error.value)
+}
+
+const formatRupiah = (value: number): string => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(value);
 }
 </script>
