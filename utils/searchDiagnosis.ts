@@ -4,6 +4,7 @@ export const [dul, iil] = [ref(false), ref(false)]
 export const [pul, pil] = [ref(false), ref(false)]
 
 export async function fetchDiagnosaUnu(query: string) {
+  const config = useRuntimeConfig();
   dul.value = true;
 
   if (query.length < 3) {
@@ -11,7 +12,7 @@ export async function fetchDiagnosaUnu(query: string) {
     return [];
   }
 
-  const { data, status } = await useDebounceFn(async () => await useFetch('http://172.24.19.22/rsia/api/v2/eklaim/diagnosis/search', {
+  const { data, status } = await useDebounceFn(async () => await useFetch(`${config.public.API_V2_URL}/eklaim/diagnosis/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ search: { value: query } }),
@@ -37,6 +38,7 @@ export async function fetchDiagnosaUnu(query: string) {
 }
 
 export async function fetchProsedurUnu(query: string) {
+  const config = useRuntimeConfig();
   pul.value = true;
 
   if (query.length < 3) {
@@ -44,7 +46,7 @@ export async function fetchProsedurUnu(query: string) {
     return [];
   }
 
-  const { data, status } = await useDebounceFn(async () => await useFetch('http://172.24.19.22/rsia/api/v2/eklaim/procedures/search', {
+  const { data, status } = await useDebounceFn(async () => await useFetch(`${config.public.API_V2_URL}/eklaim/procedures/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ search: { value: query } }),
