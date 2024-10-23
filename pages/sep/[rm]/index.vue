@@ -25,7 +25,8 @@ const { data, error } = await useFetch(`${config.public.API_V2_URL}/sep/search`,
     "includes": [
       { "relation": "reg_periksa" },
       { "relation": "tanggal_pulang" },
-      { "relation": "status_klaim" }
+      { "relation": "status_klaim" },
+      { "relation": "groupStage" }
     ]
   })
 })
