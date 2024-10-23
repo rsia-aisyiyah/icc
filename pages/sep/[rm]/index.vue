@@ -7,6 +7,7 @@ const route = useRoute();
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
+const toast = useToast()
 const currentPage = ref(1)
 const rm = ref(atob(route.params.rm as string));
 
@@ -32,6 +33,13 @@ const { data, error } = await useFetch(`${config.public.API_V2_URL}/sep/search`,
 })
 
 if (error.value) {
-  console.error('Error fetching data:', error.value.cause)
+  console.error(error)
+  toast.add({
+    icon: 'i-tabler-circle-x',
+    title: 'Error!',
+    description: error.value.data.message,
+    color: 'red',
+    timeout: 2000
+  })
 }
 </script>

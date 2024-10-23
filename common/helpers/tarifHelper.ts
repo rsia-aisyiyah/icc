@@ -1,4 +1,4 @@
-import type { FormData } from "~/common/types/formData";
+import type { FormData } from "~/types";
 
 export const getTotalTarifRS = (state: FormData) => {
   const nominalKey = [

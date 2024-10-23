@@ -38,7 +38,7 @@
       </ClientOnly>
     </UCard>
 
-    <template v-if="klaimData">
+    <template v-if="klaimData?.data">
       <UCard class="mb-5">
         <template #header>
           <h2 class="text-lg font-semibold text-indigo-500">Hasil Klaim Terakhir</h2>
@@ -47,7 +47,7 @@
         <!-- show 3 information, code cbg, deskripsi dan tarif -->
         <div class="flex flex-col xl:flex-row gap-5 items-stretch">
           <div class="">
-            <h3 class="text-sm font-semibold text-indigo-500 mb-1">Kode CBG</h3>
+            <h3 class="text-sm font-semibold text-indigo-500 mb-1">CBG</h3>
             <UBadge color="sky" variant="subtle" class="text-sm">
               {{ klaimData?.data?.code_cbg }}
             </UBadge>
@@ -58,7 +58,7 @@
           </div>
           <div class="">
             <h3 class="text-sm font-semibold text-indigo-500 mb-1">Tarif</h3>
-            <p>{{ formatRupiah(klaimData?.data?.tarif) }}</p>
+            <p>{{ klaimData?.data?.tarif ? formatRupiah(klaimData?.data?.tarif) : '-' }}</p>
           </div>
         </div>
       </UCard>
@@ -85,6 +85,7 @@ const route = useRoute();
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
+const toast = useToast()
 const pdfReady = ref(false);
 const no_sep = ref(route.params.sep);
 const openDokumen = ref(false);
@@ -124,7 +125,14 @@ const { data: bridgingSep, pending: bridgingSepPending, error: bridgingSepError 
 })
 
 if (bridgingSepError.value) {
-  console.error(bridgingSepError.value)
+  console.error(bridgingSepError)
+  toast.add({
+    icon: 'i-tabler-circle-x',
+    title: 'Error!',
+    description: bridgingSepError.value.data.message,
+    color: 'red',
+    timeout: 2000
+  })
 } else if (!bridgingSepPending.value && bridgingSep.value) {
   const noRawat = bridgingSep.value.data.no_rawat || ''
   const noRm = bridgingSep.value.data.nomr || ''
@@ -194,7 +202,14 @@ const { data: klaimData, error, status, refresh: refreshLatestKlaim } = await us
 })
 
 if (error.value) {
-  console.error(error.value)
+  console.error(error)
+  toast.add({
+    icon: 'i-tabler-circle-x',
+    title: 'Error!',
+    description: error.value.data.message,
+    color: 'red',
+    timeout: 2000
+  })
 }
 
 const formatRupiah = (value: number): string => {

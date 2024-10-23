@@ -184,6 +184,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   if (error.value) {
     loadButton.value = false
     console.error(error)
+    toast.add({
+      icon: 'i-tabler-circle-x',
+      title: 'Error!',
+      description: error.value.data.message,
+      color: 'red',
+      timeout: 2000
+    })
     return
   }
 

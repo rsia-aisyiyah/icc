@@ -15,6 +15,7 @@ import { prepareKlaimData } from '~/common/helpers/PrepareKlaimData'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 import { getCaraPulangByLabel } from '~/utils/labelToValue'
+import { determineKelas } from '~/common/helpers/naikKelasHelpers'
 
 const toast = useToast()
 const isLoading = ref(false)
@@ -82,7 +83,7 @@ const state = reactive<FormData>({
   kode_tarif: "CS",
   jkn_sitb_checked_ind: false,
   co_insidence_ind_jkn: false,
-  upgrade_class_class: undefined,
+  upgrade_class_class: determineKelas(sep?.klsnaik)?.value,
   upgrade_class_payor: sep?.pembiayaan ?? undefined,
   upgrade_class_los: undefined,
   use_ind: false,
@@ -195,10 +196,8 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   })
 
   if (error.value) {
-    console.error(error.value.data.metadata);
-
     refreshLatestKlaim()
-    addToaster('Failed to submit', `${error.value.message}, please check the logs for more details`, 'red', 'i-heroicons-information-circle')
+    addToaster('Failed to submit', `${error?.value?.data?.message ?? error?.value}, please check the logs for more details`, 'red', 'i-heroicons-information-circle')
     isLoading.value = false
     return
   }
@@ -234,207 +233,213 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
       <UDivider />
 
-      <div class="flex flex-col lg:flex-row gap-4 justify-between ">
-        <UFormGroup label="Jenis Rawat" name="jenis_rawat">
-          <URadioGroup v-model="state.jenis_rawat" :loading="optionLoading" value-attribute="value"
-            :options="[{ value: 2, label: 'Rawat Jalan' }, { value: 1, label: 'Rawat Inap' }]"
-            :ui="{ fieldset: 'flex flex-row gap-4' }" />
-        </UFormGroup>
-        <div class="flex gap-3">
-          <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1 && state.payor_cd != 'JPS'">
-            <UFormGroup name="upgrade_class_ind">
-              <UCheckbox v-model="state.upgrade_class_ind" name="upgrade_class_ind" label="Naik / Turun Kelas" />
-            </UFormGroup>
-          </div>
-          <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1">
-            <UFormGroup name="icu_indikator">
-              <UCheckbox v-model="state.icu_indikator" name="icu_indikator" label="Ada Rawat Intensif" />
-            </UFormGroup>
-          </div>
-          <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 2 && state.payor_cd != 'JPS'">
-            <UFormGroup name="executive_class_ind">
-              <UCheckbox v-model="state.executive_class_ind" name="executive_class_ind" label="Kelas Eksekutif" />
-            </UFormGroup>
-          </div>
-        </div>
-
-        <div v-if="state.jenis_rawat == 1">
-          <UFormGroup label="Kelas Hak" name="tariff_class" class="min-w-[250px]">
-            <URadioGroup v-model="state.tariff_class" :loading="optionLoading" value-attribute="value"
-              :options="[{ value: 3, label: 'Kelas 3' }, { value: 2, label: 'Kelas 2' }, { value: 1, label: 'Kelas 1' }]"
-              :ui="{ fieldset: 'flex flex-row gap-4' }" disabled />
+      <div class="p-6 rounded-xl dark:bg-cool-800/50 bg-cool-100 space-y-8">
+        <div class="flex flex-col lg:flex-row gap-4 justify-between">
+          <UFormGroup label="Jenis Rawat" name="jenis_rawat">
+            <URadioGroup v-model="state.jenis_rawat" :loading="optionLoading" value-attribute="value"
+              :options="[{ value: 2, label: 'Rawat Jalan' }, { value: 1, label: 'Rawat Inap' }]"
+              :ui="{ fieldset: 'flex flex-row gap-4' }" />
           </UFormGroup>
-        </div>
-        <div v-else="">
-          <UFormGroup label="Kelas Hak" class="min-w-[250px]">
-            -
-          </UFormGroup>
-        </div>
-      </div>
+          <div class="flex gap-3">
+            <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1 && state.payor_cd != 'JPS'">
+              <UFormGroup name="upgrade_class_ind">
+                <UCheckbox v-model="state.upgrade_class_ind" name="upgrade_class_ind" label="Naik / Turun Kelas" />
+              </UFormGroup>
+            </div>
+            <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1">
+              <UFormGroup name="icu_indikator">
+                <UCheckbox v-model="state.icu_indikator" name="icu_indikator" label="Ada Rawat Intensif" />
+              </UFormGroup>
+            </div>
+            <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 2 && state.payor_cd != 'JPS'">
+              <UFormGroup name="executive_class_ind">
+                <UCheckbox v-model="state.executive_class_ind" name="executive_class_ind" label="Kelas Eksekutif" />
+              </UFormGroup>
+            </div>
+          </div>
 
-      <div class="flex flex-col lg:flex-row gap-4 justify-between">
-        <div class="flex flex-col md:flex-row gap-3">
-          <UFormGroup label="Tanggal Masuk" name="tgl_masuk" class="w-full md:w-max min-w-[180px]">
-            <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-              <UButton variant="link" color="green" icon="i-heroicons-calendar-days-20-solid"
-                :label="state.tgl_masuk ? format(new Date(state.tgl_masuk), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Masuk'" />
+          <div v-if="state.jenis_rawat == 1">
+            <UFormGroup label="Kelas Hak" name="tariff_class" class="min-w-[250px]">
+              <URadioGroup v-model="state.tariff_class" :loading="optionLoading" value-attribute="value"
+                :options="[{ value: 3, label: 'Kelas 3' }, { value: 2, label: 'Kelas 2' }, { value: 1, label: 'Kelas 1' }]"
+                :ui="{ fieldset: 'flex flex-row gap-4' }" disabled />
+            </UFormGroup>
+          </div>
+          <div v-else="">
+            <UFormGroup label="Kelas Hak" class="min-w-[250px]">
+              -
+            </UFormGroup>
+          </div>
+        </div>
 
-              <template #panel="{ close }">
-                <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_masuk" />
+        <div class="flex flex-col lg:flex-row gap-4 justify-between">
+          <div class="flex flex-col md:flex-row gap-3">
+            <UFormGroup label="Tanggal Masuk" name="tgl_masuk" class="w-full md:w-max min-w-[180px]">
+              <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
+                <UButton variant="link" color="green" icon="i-heroicons-calendar-days-20-solid"
+                  :label="state.tgl_masuk ? format(new Date(state.tgl_masuk), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Masuk'" />
+
+                <template #panel="{ close }">
+                  <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_masuk" />
+                </template>
+              </UPopover>
+            </UFormGroup>
+
+            <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
+              <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
+                <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
+                  :label="state.tgl_pulang ? format(new Date(state.tgl_pulang), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Keluar'"
+                  :disabled="state.jenis_rawat == 2" />
+
+                <template #panel="{ close }">
+                  <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_pulang" />
+                </template>
+              </UPopover>
+            </UFormGroup>
+          </div>
+
+          <UFormGroup label="Umur Pasien" name="age">
+            <UInput placeholder="Umur Pasien" v-model="state.age" :readonly="true"
+              class="w-full md:w-max min-w-[18.4em]">
+              <template #trailing>
+                <span class="text-gray-500 dark:text-gray-400 text-xs">{{ regPeriksa?.sttsumur }}</span>
               </template>
-            </UPopover>
-          </UFormGroup>
-
-          <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
-            <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-              <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
-                :label="state.tgl_pulang ? format(new Date(state.tgl_pulang), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Keluar'"
-                :disabled="state.jenis_rawat == 2" />
-
-              <template #panel="{ close }">
-                <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_pulang" />
-              </template>
-            </UPopover>
+            </UInput>
           </UFormGroup>
         </div>
-
-        <UFormGroup label="Umur Pasien" name="age">
-          <UInput placeholder="Umur Pasien" v-model="state.age" :readonly="true" class="w-full md:w-max min-w-[18.4em]">
-            <template #trailing>
-              <span class="text-gray-500 dark:text-gray-400 text-xs">{{ regPeriksa?.sttsumur }}</span>
-            </template>
-          </UInput>
-        </UFormGroup>
       </div>
 
       <UDivider />
 
-      <div class="flex flex-col lg:flex-row gap-4 justify-between">
-        <UFormGroup label="Cara Masuk" name="cara_masuk" class="w-full md:w-min md:min-w-[26.6em]">
-          <USelectMenu v-model="state.cara_masuk" :loading="optionLoading" value-attribute="value"
-            :options="caraMasukOptions" placeholder="cara masuk pasien" searchable />
-        </UFormGroup>
-      </div>
-
-      <div v-if="state.upgrade_class_ind" class="flex flex-col md:flex-row gap-4 justify-between">
-        <UFormGroup name="upgrade_class_class">
-          <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :loading="optionLoading"
-            value-attribute="value"
-            :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.tariff_class && state.tariff_class <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.tariff_class && state.tariff_class <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.tariff_class && state.tariff_class <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]"
-            :ui="{ fieldset: 'flex flex-row gap-4' }" />
-        </UFormGroup>
-
-        <UFormGroup label="Pembiayaan" name="upgrade_class_payor">
-          <USelectMenu v-model="state.upgrade_class_payor" value-attribute="value"
-            :options="[{ value: '1', label: 'Peserta' }, { value: '2', label: 'Pemberi Kerja' }, { value: '3', label: 'Asuransi Tambahan' }]"
-            placeholder="Pembiayaan" searchable class="w-[250px]" />
-        </UFormGroup>
-
-        <UFormGroup label="Lama ( hari )" name="icu_los">
-          <UInput placeholder="Lama upgrade kelas" v-model="state.upgrade_class_los">
-            <template #trailing>
-              <span class="text-gray-500 dark:text-gray-400 text-xs">Hari</span>
-            </template>
-          </UInput>
-        </UFormGroup>
-      </div>
-
-      <div v-if="state.icu_indikator" class="flex flex-col md:flex-row gap-4 justify-between">
-        <div class="flex gap-12">
-          <UFormGroup label="Ventilator" name="use_ind">
-            <UCheckbox v-model="state.use_ind" name="use_ind" label="Ya" />
+      <div class="p-6 rounded-xl dark:bg-cool-800/50 bg-cool-100 space-y-8">
+        <div class="flex flex-col lg:flex-row gap-4 justify-between">
+          <UFormGroup label="Cara Masuk" name="cara_masuk" class="w-full md:w-min md:min-w-[26.6em]">
+            <USelectMenu v-model="state.cara_masuk" :loading="optionLoading" value-attribute="value"
+              :options="caraMasukOptions" placeholder="cara masuk pasien" searchable />
           </UFormGroup>
-
-          <div class="flex flex-col md:flex-row gap-3" v-if="state.use_ind">
-            <UFormGroup label="Intubasi" name="start_dttm" class="w-full md:w-max min-w-[180px]">
-              <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                <UButton variant="link" color="sky" icon="i-heroicons-calendar-days-20-solid"
-                  :label="state.start_dttm ? format(new Date(state.start_dttm), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Intubasi'" />
-
-                <template #panel="{ close }">
-                  <DatePicker is-required @close="close" mode="dateTime" v-model="state.start_dttm" />
-                </template>
-              </UPopover>
-            </UFormGroup>
-
-            <UFormGroup label="Ekstubasi" name="stop_dttm" class="w-full md:w-max min-w-[180px]">
-              <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                <UButton variant="link" color="blue" icon="i-heroicons-calendar-days-20-solid"
-                  :label="state.stop_dttm ? format(new Date(state.stop_dttm), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Ekstubasi'" />
-
-                <template #panel="{ close }">
-                  <DatePicker is-required @close="close" mode="dateTime" v-model="state.stop_dttm" />
-                </template>
-              </UPopover>
-            </UFormGroup>
-          </div>
         </div>
 
-        <UFormGroup label="Rawat Intensif" name="icu_los">
-          <UInput placeholder="rawat intensif" v-model="state.icu_los" :readonly="true">
-            <template #trailing>
-              <span class="text-gray-500 dark:text-gray-400 text-xs">Hari</span>
-            </template>
-          </UInput>
-        </UFormGroup>
-      </div>
+        <div v-if="state.upgrade_class_ind" class="flex flex-col md:flex-row gap-4 justify-between">
+          <UFormGroup name="upgrade_class_class">
+            <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :loading="optionLoading"
+              value-attribute="value"
+              :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.tariff_class && state.tariff_class <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.tariff_class && state.tariff_class <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.tariff_class && state.tariff_class <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]"
+              :ui="{ fieldset: 'flex flex-row gap-4' }" />
+          </UFormGroup>
 
-      <div class="flex flex-col lg:flex-row gap-4 justify-between">
-        <div class="flex gap-4">
-          <UFormGroup label="LOS" name="los">
-            <UInput placeholder="los in day" v-model="state.los" :readonly="true">
+          <UFormGroup label="Pembiayaan" name="upgrade_class_payor">
+            <USelectMenu v-model="state.upgrade_class_payor" value-attribute="value"
+              :options="[{ value: '1', label: 'Peserta' }, { value: '2', label: 'Pemberi Kerja' }, { value: '3', label: 'Asuransi Tambahan' }]"
+              placeholder="Pembiayaan" searchable class="w-[250px]" />
+          </UFormGroup>
+
+          <UFormGroup label="Lama ( hari )" name="icu_los">
+            <UInput placeholder="Lama upgrade kelas" v-model="state.upgrade_class_los">
               <template #trailing>
                 <span class="text-gray-500 dark:text-gray-400 text-xs">Hari</span>
               </template>
             </UInput>
           </UFormGroup>
-          <UFormGroup name="los_in_hour" class="mt-6">
-            <UInput placeholder="los in hour" v-model="state.los_in_hour" :readonly="true">
+        </div>
+
+        <div v-if="state.icu_indikator" class="flex flex-col md:flex-row gap-4 justify-between">
+          <div class="flex gap-12">
+            <UFormGroup label="Ventilator" name="use_ind">
+              <UCheckbox v-model="state.use_ind" name="use_ind" label="Ya" />
+            </UFormGroup>
+
+            <div class="flex flex-col md:flex-row gap-3" v-if="state.use_ind">
+              <UFormGroup label="Intubasi" name="start_dttm" class="w-full md:w-max min-w-[180px]">
+                <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
+                  <UButton variant="link" color="sky" icon="i-heroicons-calendar-days-20-solid"
+                    :label="state.start_dttm ? format(new Date(state.start_dttm), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Intubasi'" />
+
+                  <template #panel="{ close }">
+                    <DatePicker is-required @close="close" mode="dateTime" v-model="state.start_dttm" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+
+              <UFormGroup label="Ekstubasi" name="stop_dttm" class="w-full md:w-max min-w-[180px]">
+                <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
+                  <UButton variant="link" color="blue" icon="i-heroicons-calendar-days-20-solid"
+                    :label="state.stop_dttm ? format(new Date(state.stop_dttm), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Ekstubasi'" />
+
+                  <template #panel="{ close }">
+                    <DatePicker is-required @close="close" mode="dateTime" v-model="state.stop_dttm" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
+          </div>
+
+          <UFormGroup label="Rawat Intensif" name="icu_los">
+            <UInput placeholder="rawat intensif" v-model="state.icu_los" :readonly="true">
               <template #trailing>
-                <span class="text-gray-500 dark:text-gray-400 text-xs">Jam</span>
+                <span class="text-gray-500 dark:text-gray-400 text-xs">Hari</span>
               </template>
             </UInput>
           </UFormGroup>
         </div>
 
-        <UFormGroup label="Berat Lahir" name="birth_weight">
-          <UInput placeholder="Berat Lahir" v-model="state.birth_weight" :readonly="true"
-            class="w-full md:w-max min-w-[18.3em]">
-            <template #trailing>
-              <span class="text-gray-500 dark:text-gray-400 text-xs">gram</span>
-            </template>
-          </UInput>
-        </UFormGroup>
-      </div>
+        <div class="flex flex-col lg:flex-row gap-4 justify-between">
+          <div class="flex gap-4">
+            <UFormGroup label="LOS" name="los">
+              <UInput placeholder="los in day" v-model="state.los" :readonly="true">
+                <template #trailing>
+                  <span class="text-gray-500 dark:text-gray-400 text-xs">Hari</span>
+                </template>
+              </UInput>
+            </UFormGroup>
+            <UFormGroup name="los_in_hour" class="mt-6">
+              <UInput placeholder="los in hour" v-model="state.los_in_hour" :readonly="true">
+                <template #trailing>
+                  <span class="text-gray-500 dark:text-gray-400 text-xs">Jam</span>
+                </template>
+              </UInput>
+            </UFormGroup>
+          </div>
 
+          <UFormGroup label="Berat Lahir" name="birth_weight">
+            <UInput placeholder="Berat Lahir" v-model="state.birth_weight" :readonly="true"
+              class="w-full md:w-max min-w-[18.3em]">
+              <template #trailing>
+                <span class="text-gray-500 dark:text-gray-400 text-xs">gram</span>
+              </template>
+            </UInput>
+          </UFormGroup>
+        </div>
+      </div>
       <UDivider label="ADL Score" />
 
-      <div class="flex flex-col lg:flex-row gap-4 justify-between">
-        <div class="flex gap-4">
-          <UFormGroup label="Sub Acute" name="adl_sub_acute" class="w-full lg:w-min lg:min-w-[18.3em]">
-            <UInput placeholder="adl score sub acute" v-model="state.adl_sub_acute" />
-          </UFormGroup>
-          <UFormGroup label="Chronic" name="adl_chronic" class="w-full lg:w-min lg:min-w-[18.3em]">
-            <UInput placeholder="adl score cronic" v-model="state.adl_chronic" />
+      <div class="p-6 rounded-xl dark:bg-cool-800/50 bg-cool-100 space-y-8">
+        <div class="flex flex-col lg:flex-row gap-4 justify-between">
+          <div class="flex gap-4">
+            <UFormGroup label="Sub Acute" name="adl_sub_acute" class="w-full lg:w-min lg:min-w-[18.3em]">
+              <UInput placeholder="adl score sub acute" v-model="state.adl_sub_acute" />
+            </UFormGroup>
+            <UFormGroup label="Chronic" name="adl_chronic" class="w-full lg:w-min lg:min-w-[18.3em]">
+              <UInput placeholder="adl score cronic" v-model="state.adl_chronic" />
+            </UFormGroup>
+          </div>
+
+          <UFormGroup label="Cara Pulang" name="discharge_status" class="w-full lg:w-[25%]">
+            <USelectMenu v-model="state.discharge_status" :loading="optionLoading" value-attribute="value"
+              :options="caraPulangOptions" placeholder="cara pulang pasien" searchable />
           </UFormGroup>
         </div>
 
-        <UFormGroup label="Cara Pulang" name="discharge_status" class="w-full lg:w-[25%]">
-          <USelectMenu v-model="state.discharge_status" :loading="optionLoading" value-attribute="value"
-            :options="caraPulangOptions" placeholder="cara pulang pasien" searchable />
-        </UFormGroup>
-      </div>
+        <div class="flex flex-col lg:flex-row gap-4">
+          <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:min-w-[18.3em]">
+            <USelectMenu v-model="state.nama_dokter" :loading="optionLoading" value-attribute="value"
+              :options="dpjpOptions" placeholder="DPJP" searchable />
+          </UFormGroup>
 
-      <div class="flex flex-col lg:flex-row gap-4">
-        <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:min-w-[18.3em]">
-          <USelectMenu v-model="state.nama_dokter" :loading="optionLoading" value-attribute="value"
-            :options="dpjpOptions" placeholder="DPJP" searchable />
-        </UFormGroup>
-
-        <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:min-w-[18.3em]">
-          <USelectMenu v-model="state.kode_tarif" :loading="optionLoading" value-attribute="value"
-            :options="jenisTarifOptions" placeholder="jenis tarif RS" searchable />
-        </UFormGroup>
+          <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:min-w-[18.3em]">
+            <USelectMenu v-model="state.kode_tarif" :loading="optionLoading" value-attribute="value"
+              :options="jenisTarifOptions" placeholder="jenis tarif RS" searchable />
+          </UFormGroup>
+        </div>
       </div>
 
       <UDivider />
@@ -483,7 +488,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </p>
       </div>
 
-      <div class="p-3 lg:p-6 rounded dark:bg-cool-800 bg-cool-50 shadow-inner">
+      <div class="p-3 lg:p-6 rounded dark:bg-cool-800/50 bg-cool-100 shadow-inner">
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
           <UFormGroup v-for="(field, index) in tarifFields" :key="index" :label="field.label" :name="field.name">
             <UInput v-model="(state as any)[field.name]" :placeholder="field.name" type="text" v-maska="moneyMask"
@@ -504,7 +509,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </template>
 
         <template #item="{ item }">
-          <div class="px-4 py-5 sm:p-6 bg-cool-50 dark:bg-cool-800 shadow-inner rounded-lg">
+          <div class="px-4 py-5 sm:p-6 bg-cool-100 dark:bg-cool-800/50 shadow-inner rounded-lg">
             <div v-if="item.key === 'coding_unu'" class="space-y-3">
 
               <UDivider label="Diagnosa"
