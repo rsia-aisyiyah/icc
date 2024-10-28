@@ -90,9 +90,8 @@
         <UBadge color="sky" variant="soft">
           <div class="flex gap-2 items-center justify-center pl-1">
             {{ row.no_rawat ?? "-" }}
-            <template v-if="row.no_rawat">
-              <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs"
-                @click="isSupported && copy(row.no_rawat)" />
+            <template v-if="row.no_rawat && isSupported">
+              <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
             </template>
           </div>
         </UBadge>
@@ -103,17 +102,17 @@
           <UBadge :color="row.sep?.no_sep ? 'primary' : 'primary'" variant="soft">
             <div class="flex gap-2 items-center justify-between w-full pl-1">
               {{ row.sep?.no_sep ?? "-" }}
-              <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs"
-                @click="isSupported && copy(row.sep?.no_sep)" />
+              <template v-if="row.sep?.no_sep && isSupported">
+                <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.sep?.no_sep)" />
+              </template>
             </div>
           </UBadge>
 
           <UBadge color="sky" variant="soft">
             <div class="flex gap-2 items-center justify-between w-full pl-1">
               {{ row.no_rawat ?? "-" }}
-              <template v-if="row.no_rawat">
-                <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs"
-                  @click="isSupported && copy(row.no_rawat)" />
+              <template v-if="row.no_rawat && isSupported">
+                <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
               </template>
             </div>
           </UBadge>
