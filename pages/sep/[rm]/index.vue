@@ -1,5 +1,5 @@
 <template>
-  <TableDataSep :data="data" />
+  <TableDataSep :data="data" :refresh="onRefresh" :status="status" />
 </template>
 
 <script lang="ts" setup>
@@ -11,7 +11,7 @@ const toast = useToast()
 const currentPage = ref(1)
 const rm = ref(atob(route.params.rm as string));
 
-const { data, error } = await useFetch(`${config.public.API_V2_URL}/sep/search`, {
+const { data, error, refresh, status } = await useFetch(`${config.public.API_V2_URL}/sep/search`, {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${tokenStore.accessToken}`
@@ -41,5 +41,9 @@ if (error.value) {
     color: 'red',
     timeout: 2000
   })
+}
+
+function onRefresh() {
+  refresh()
 }
 </script>

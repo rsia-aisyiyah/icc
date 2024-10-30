@@ -45,18 +45,19 @@
 
           <UDropdown :items="[
             [{
+              label: 'Sync Data',
+              icon: 'i-tabler-refresh',
+              click: () => {
+                syncClaimData(row)
+                openModalSync = true
+              }
+            }],
+            [{
               label: 'Status & Note',
               icon: 'i-tabler-note',
               click: () => {
                 setSepRawat(row)
                 openModalKlaimFeedback = true
-              }
-            }, {
-              label: 'Update Status',
-              icon: 'i-tabler-status-change',
-              click: () => {
-                setSepRawat(row)
-                openModalUpdateStatus = true
               }
             }]
           ]">
@@ -206,7 +207,7 @@
     <div class="p-4 flex-1">
       <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
         class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
-      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10">
+      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
         <div class="loader">Loading...</div>
       </div>
 
@@ -218,6 +219,8 @@
   <ModalUpdateStatus v-model:isOpen="openModalUpdateStatus" :sep="sep" :noRawat="noRawat" />
   <!-- Modal Klaim Feedback -->
   <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
+  <!-- Modal Loading -->
+  <ModalLoading v-model:isOpen="openModalSync" />
 </template>
 
 <script lang="ts" setup>
@@ -234,6 +237,7 @@ const noRawat = ref('')
 const pdfUrl = ref('');
 const openModalUpdateStatus = ref(false);
 const openModalKlaimFeedback = ref(false);
+const openModalSync = ref(false);
 
 watch(sep, async (val) => {
   if (val) {
@@ -247,6 +251,16 @@ const props = defineProps({
   data: {
     required: true,
     type: Object as PropType<any>
+  },
+
+  refresh: {
+    type: Function as PropType<() => void>,
+    required: true
+  },
+
+  status: {
+    type: String as PropType<string>,
+    required: true
   }
 })
 
@@ -266,4 +280,37 @@ watch(copied, (val) => {
     })
   }
 })
+
+const syncClaimData = async (row: any) => {  
+  const { data, error, refresh, status } = await useFetch(`${config.public.API_V2_URL}/sep/${row.no_sep}/klaim/sync`,{
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${tokenStore.accessToken}`
+    }
+  })
+
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
+  if (status.value == 'success') {
+    props.refresh()
+    openModalSync.value = false
+
+    toast.add({
+      icon: 'i-tabler-circle-check',
+      title: 'Success!',
+      description: 'Data klaim berhasil disinkronisasi',
+      color: 'sky',
+      timeout: 2000
+    })
+  } else {
+    openModalSync.value = false
+    toast.add({
+      icon: 'i-tabler-circle-x',
+      title: 'Failed!',
+      description: 'Data klaim gagal disinkronisasi',
+      color: 'rose',
+      timeout: 2000
+    })
+  }
+}
 </script>
