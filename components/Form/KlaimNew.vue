@@ -72,13 +72,13 @@ const state = reactive<FormData>({
   tgl_pulang: undefined,
   age: regPeriksa?.umurdaftar,
   cara_masuk: sep?.chunk?.cara_masuk ?? undefined,
-  los: kamarInap?.lama_inap,
+  los: parseInt(`${sep?.jnspelayanan}`) == 1 ? kamarInap?.lama_inap : 1,
   los_in_hour: kamarInap?.lama_jam,
   birth_weight: regPeriksa?.umurdaftar == 0 ? regPeriksa?.pasien_bayi?.berat_badan : 0,
   adl_sub_acute: undefined,
   adl_chronic: undefined,
   // @ts-ignore
-  discharge_status: (await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? null,
+  discharge_status: parseInt(`${sep?.jnspelayanan}`) == 1 ? ((await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? null) : 1,
   nama_dokter: (await getDpjp(regPeriksa?.dokter?.nm_dokter))?.value ?? '',
   kode_tarif: "CS",
   jkn_sitb_checked_ind: false,
@@ -128,11 +128,11 @@ const state = reactive<FormData>({
 onMounted(async () => {
   optionLoading.value = true
   let tgl_keluar = ref('')
-  if (kamarInap && kamarInap?.detail?.length > 0) {
+  if (kamarInap && kamarInap.detail.length > 0) {
     tgl_keluar = computed(() => getTanggalKeluar(kamarInap));
   }
 
-  state.tgl_pulang = new Date(tgl_keluar.value)
+  if (state.jenis_rawat == 1) state.tgl_pulang = new Date(tgl_keluar.value)
 
   setTimeout(async () => {
     try {
@@ -160,7 +160,7 @@ onMounted(async () => {
     }
 
     optionLoading.value = false
-  }, 1200)
+  }, 1300)
 })
 
 const onChangePayorCd = (payor: CarabayarData) => {
@@ -233,13 +233,14 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
       <UDivider />
 
-      <div class="p-6 rounded-xl dark:bg-cool-800/50 bg-cool-100 space-y-8">
+      <div class="p-6 rounded-xl dark:bg-cool-800/75 bg-cool-100 space-y-8">
         <div class="flex flex-col lg:flex-row gap-4 justify-between">
           <UFormGroup label="Jenis Rawat" name="jenis_rawat">
             <URadioGroup v-model="state.jenis_rawat" :loading="optionLoading" value-attribute="value"
               :options="[{ value: 2, label: 'Rawat Jalan' }, { value: 1, label: 'Rawat Inap' }]"
               :ui="{ fieldset: 'flex flex-row gap-4' }" />
           </UFormGroup>
+
           <div class="flex gap-3">
             <div class="my-2 md:my-0 md:mt-6" v-if="state.jenis_rawat == 1 && state.payor_cd != 'JPS'">
               <UFormGroup name="upgrade_class_ind">
@@ -278,24 +279,25 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
               <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
                 <UButton variant="link" color="green" icon="i-heroicons-calendar-days-20-solid"
                   :label="state.tgl_masuk ? format(new Date(state.tgl_masuk), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Masuk'" />
-
                 <template #panel="{ close }">
                   <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_masuk" />
                 </template>
               </UPopover>
             </UFormGroup>
 
-            <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
-              <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
-                  :label="state.tgl_pulang ? format(new Date(state.tgl_pulang), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Keluar'"
-                  :disabled="state.jenis_rawat == 2" />
+            <div v-if="state.jenis_rawat == 1">
+              <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
+                <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
+                  <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
+                    :label="state.tgl_pulang ? format(new Date(state.tgl_pulang), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Keluar'"
+                    :disabled="state.jenis_rawat == 2" />
 
-                <template #panel="{ close }">
-                  <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_pulang" />
-                </template>
-              </UPopover>
-            </UFormGroup>
+                  <template #panel="{ close }">
+                    <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_pulang" />
+                  </template>
+                </UPopover>
+              </UFormGroup>
+            </div>
           </div>
 
           <UFormGroup label="Umur Pasien" name="age">
@@ -311,7 +313,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
       <UDivider />
 
-      <div class="p-6 rounded-xl dark:bg-cool-800/50 bg-cool-100 space-y-8">
+      <div class="p-6 rounded-xl dark:bg-cool-800/75 bg-cool-100 space-y-8">
         <div class="flex flex-col lg:flex-row gap-4 justify-between">
           <UFormGroup label="Cara Masuk" name="cara_masuk" class="w-full md:w-min md:min-w-[26.6em]">
             <USelectMenu v-model="state.cara_masuk" :loading="optionLoading" value-attribute="value"
@@ -412,7 +414,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       </div>
       <UDivider label="ADL Score" />
 
-      <div class="p-6 rounded-xl dark:bg-cool-800/50 bg-cool-100 space-y-8">
+      <div class="p-6 rounded-xl dark:bg-cool-800/75 bg-cool-100 space-y-8">
         <div class="flex flex-col lg:flex-row gap-4 justify-between">
           <div class="flex gap-4">
             <UFormGroup label="Sub Acute" name="adl_sub_acute" class="w-full lg:w-min lg:min-w-[18.3em]">
@@ -488,7 +490,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </p>
       </div>
 
-      <div class="p-3 lg:p-6 rounded dark:bg-cool-800/50 bg-cool-100 shadow-inner">
+      <div class="p-3 lg:p-6 rounded dark:bg-cool-800/75 bg-cool-100 shadow-inner">
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
           <UFormGroup v-for="(field, index) in tarifFields" :key="index" :label="field.label" :name="field.name">
             <UInput v-model="(state as any)[field.name]" :placeholder="field.name" type="text" v-maska="moneyMask"
@@ -509,7 +511,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </template>
 
         <template #item="{ item }">
-          <div class="px-4 py-5 sm:p-6 bg-cool-100 dark:bg-cool-800/50 shadow-inner rounded-lg">
+          <div class="px-4 py-5 sm:p-6 bg-cool-100 dark:bg-cool-800/75 shadow-inner rounded-lg">
             <div v-if="item.key === 'coding_unu'" class="space-y-3">
 
               <UDivider label="Diagnosa"
@@ -597,41 +599,43 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </div>
       </div>
 
-      <UDivider />
+      <div v-if="state.jenis_rawat == 1">
+        <UDivider />
 
-      <div class="flex flex-col xl:flex-row gap-5 xl:gap-0 items-start justify-between">
-        <div class="flex flex-col gap-2 w-full lg:w-[58%] lg:mx-auto xl:mx-0 xl:max-w-max">
-          <p class="text-center font-semibold text-sm">Usia Kehamilan (minggu)</p>
-          <UFormGroup name="usia_kehamilan">
-            <UInput placeholder="usia kehamilan" type="number" inputmode="number" v-model="state.usia_kehamilan" />
-          </UFormGroup>
-        </div>
-
-        <div class="flex flex-col gap-2 w-full xl:max-w-max">
-          <p class="text-center font-semibold text-sm">Riwayat Kehamilan Sebelumnya</p>
-          <div class="flex gap-3 items-center justify-center w-full xl:max-w-max">
-            <UFormGroup name="gravida">
-              <UInput placeholder="gravida" v-model="state.gravida" />
-            </UFormGroup>
-
-            <UFormGroup name="partus">
-              <UInput placeholder="partus" v-model="state.partus" />
-            </UFormGroup>
-
-            <UFormGroup name="abortus">
-              <UInput placeholder="abortus" v-model="state.abortus" />
+        <div class="flex flex-col xl:flex-row gap-5 xl:gap-0 items-start justify-between">
+          <div class="flex flex-col gap-2 w-full lg:w-[58%] lg:mx-auto xl:mx-0 xl:max-w-max">
+            <p class="text-center font-semibold text-sm">Usia Kehamilan (minggu)</p>
+            <UFormGroup name="usia_kehamilan">
+              <UInput placeholder="usia kehamilan" type="number" inputmode="number" v-model="state.usia_kehamilan" />
             </UFormGroup>
           </div>
-        </div>
 
-        <div class="flex flex-col gap-3 items-center justify-center w-full xl:max-w-max">
-          <p class="text-center font-semibold text-sm">Onset Kontraksi</p>
+          <div class="flex flex-col gap-2 w-full xl:max-w-max">
+            <p class="text-center font-semibold text-sm">Riwayat Kehamilan Sebelumnya</p>
+            <div class="flex gap-3 items-center justify-center w-full xl:max-w-max">
+              <UFormGroup name="gravida">
+                <UInput placeholder="gravida" v-model="state.gravida" />
+              </UFormGroup>
 
-          <UFormGroup name="onset_kontraksi">
-            <URadioGroup :loading="optionLoading" value-attribute="value"
-              :options="[{ value: 'spontan', label: 'Timbul Spontan' }, { value: 'induksi', label: 'Dengan Induksi' }, { value: 'non_spontan_non_induksi', label: 'SC Tanpa Kontraksi/Induksi' }]"
-              v-model="state.onset_kontraksi" />
-          </UFormGroup>
+              <UFormGroup name="partus">
+                <UInput placeholder="partus" v-model="state.partus" />
+              </UFormGroup>
+
+              <UFormGroup name="abortus">
+                <UInput placeholder="abortus" v-model="state.abortus" />
+              </UFormGroup>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 items-center justify-center w-full xl:max-w-max">
+            <p class="text-center font-semibold text-sm">Onset Kontraksi</p>
+
+            <UFormGroup name="onset_kontraksi">
+              <URadioGroup :loading="optionLoading" value-attribute="value"
+                :options="[{ value: 'spontan', label: 'Timbul Spontan' }, { value: 'induksi', label: 'Dengan Induksi' }, { value: 'non_spontan_non_induksi', label: 'SC Tanpa Kontraksi/Induksi' }]"
+                v-model="state.onset_kontraksi" />
+            </UFormGroup>
+          </div>
         </div>
       </div>
 
@@ -641,7 +645,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       <UDivider />
 
       <div class="flex justify-end gap-3 pt-5">
-        <UButton color="indigo" type="submit" :loading="isLoading">Submit</UButton>
+        <UButton color="indigo" type="submit" :loading="isLoading" icon="i-heroicons-check-badge">Submit</UButton>
       </div>
     </UForm>
   </div>
