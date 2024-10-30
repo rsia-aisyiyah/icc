@@ -9,7 +9,7 @@ const links = [
       "to": "/"
     },
     { "label": "Rawat Inap", "icon": "i-healthicons-inpatient", "to": "/ranap" },
-    // { "label": "Rawat Jalan", "icon": "i-healthicons-outpatient", "to": "/ralan" }
+    { "label": "Rawat Jalan", "icon": "i-healthicons-outpatient", "to": "/ralan" }
   ],
   [
     { "label": "Logout", "icon": "i-tabler-logout", "to": "/auth/logout" },
