@@ -37,19 +37,24 @@ export interface JenisTarifData {
  * @returns {Promise<{ value: string; label: string }[]>} The processed data
  * @throws {Error} The error when failed to fetch the data
  */
-const fetchData = async <T>(url: string, mapFn: (item: T) => { value: string; label: string }): Promise<{ value: string; label: string }[]> => {
-  const { data, error } = await useFetch<T[]>(url);
+const fetchData = async <T>(
+  url: string,
+  mapFn: (item: T) => { value: string; label: string }
+): Promise<{ value: string; label: string }[]> => {
+  try {
+    const data = await $fetch<T[]>(url);
 
-  if (error.value) {
+    if (!data) {
+      return [];
+    }
+
+    return data.map(mapFn);
+  } catch (error) {
+    console.error(`Failed to fetch data from ${url}:`, error);
     throw new Error(`Failed to fetch data from ${url}`);
   }
-
-  if (!data.value) {
-    return [];
-  }
-
-  return data.value.map(mapFn);
 };
+
 
 
 export const getCaraBayarData = () => fetchData<CarabayarData>('/cara_bayar.json', (item) => ({
