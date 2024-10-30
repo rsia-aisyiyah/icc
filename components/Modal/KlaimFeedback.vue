@@ -19,7 +19,7 @@
             <UFormGroup label="Log Perubahan">
               <div class="rounded-lg max-h-[340px] overflow-y-auto pr-1">
                 <!-- loop logs data -->
-                <div v-for="log in (logs as any)?.data ?? []" :key="log?.id" class="w-full bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-indigo-200 dark:hover:bg-indigo-700">
+                <div v-for="log in (logs as any)?.data ?? []" :key="log?.id" class="w-full bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-indigo-200 dark:hover:bg-gray-700">
                   <div>
                     <div  class="flex gap-2 items-center">
                       <div class="flex items-center justify-between gap-2 w-full">
@@ -39,7 +39,7 @@
                   </div>
 
                   <!-- feedback -->
-                  <div v-if="log?.feedback?.catatan" class="mt-2 w-full px-3 py-1 bg-amber-200/50 dark:bg-amber-800/50 rounded-lg">
+                  <div v-if="log?.feedback?.catatan" class="mt-2 w-full px-3 py-1 bg-lime-200/50 dark:bg-lime-800/30 rounded-lg border-2 border-lime-200 dark:border-lime-800 text-lime-800 dark:text-lime-200">
                     <strong class="text-sm font-semibold">Feedback</strong>
                     <div class="text-sm">{{ log?.feedback?.catatan }}</div>
                   </div>
@@ -159,8 +159,8 @@ type Schema = z.output<typeof schema>
 
 // Form state
 const state = reactive({
-  no_sep: props.sep,
-  no_rawat: props.noRawat,
+  no_sep: '',
+  no_rawat: '',
   status: selectedStatus.value.id,
   feedback: feedback.value,
 })
@@ -168,6 +168,9 @@ const state = reactive({
 // Form submit handler
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   loadButton.value = true
+
+  state.no_sep = props.sep
+  state.no_rawat = props.noRawat
 
   const { data, error, status } = await useFetch(`${config.public.API_V2_URL}/sep/${props.sep}/klaim/status`, {
     headers: {

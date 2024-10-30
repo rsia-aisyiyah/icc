@@ -67,13 +67,6 @@
                   setSepRawat(row)
                   openModalKlaimFeedback = true
                 }
-              }, {
-                label: 'Update Status',
-                icon: 'i-tabler-status-change',
-                click: () => {
-                  setSepRawat(row)
-                  openModalUpdateStatus = true
-                }
               }]
             ]">
               <UButton square :variant="!row.sep?.no_sep ? 'solid' : 'soft'" size="xs"
@@ -247,7 +240,7 @@
     <div class="p-4 flex-1">
       <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
         class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
-      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10">
+      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
         <div class="loader">Loading...</div>
       </div>
 
@@ -296,7 +289,7 @@ watch(sep, (val) => {
 
 const setSepRawat = (row: any) => {
   sep.value = row.sep?.no_sep
-  noRawat.value = row.no_rawat
+  noRawat.value = row?.no_rawat
 }
 
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
