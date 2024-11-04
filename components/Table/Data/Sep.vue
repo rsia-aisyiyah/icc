@@ -36,15 +36,20 @@
         <div class="flex gap-1.5">
           <UButton square :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-tabler-edit-circle"
             :color="!row.no_rawat ? 'gray' : 'sky'" size="xs" variant="soft">
-            Form
+            Form Klaim
           </UButton>
-
-          <UButton square :disabled="!row.no_rawat" icon="i-tabler-file-description"
-            :color="!row.no_rawat ? 'gray' : 'primary'" size="xs" variant="soft"
-            @click="openDokumen = true; pdfReady = false; sep = row.no_sep" />
 
           <UDropdown :items="[
             [{
+              label: 'Berkas Klaim',
+              icon: 'i-tabler-file-description',
+              click: () => {
+                openDokumen = true; 
+                pdfReady = false; 
+                sep = row.no_sep
+              }
+            },
+            {
               label: 'Sync Data',
               icon: 'i-tabler-refresh',
               click: () => {
@@ -61,7 +66,7 @@
               }
             }]
           ]">
-            <UButton square color="amber" variant="soft" size="xs" :disabled="!row.no_rawat"
+            <UButton square color="sky" variant="soft" size="xs" :disabled="!row.no_rawat"
               trailing-icon="i-heroicons-chevron-down-20-solid" />
           </UDropdown>
         </div>
