@@ -45,21 +45,24 @@
     <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="status == 'pending'">
       <!-- Action -->
       <template #action-data="{ row }">
-        <div class="flex gap-1 flex-col">
-          <div>
-            <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
-              :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'"
-              target="_blank" size="xs" square>
-              Data Klaim
-            </UButton>
-          </div>
+        <div class="flex gap-1">
+          <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
+            :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'"
+            target="_blank" size="xs" square>
+            Data Klaim
+          </UButton>
 
-          <div class="flex gap-1">
-            <UButton square :disabled="!row.sep?.no_sep" icon="i-tabler-file-description"
-              :color="!row.sep?.no_sep ? 'gray' : 'primary'" :variant="!row.sep?.no_sep ? 'solid' : 'soft'"
-              @click="openDokumen = true; pdfReady = false; sep = row.sep?.no_sep" size="xs" />
-
-            <UDropdown :items="[
+          <UDropdown :items="[
+              [{
+                // berkas
+                label: 'Berkas Klaim',
+                icon: 'i-tabler-file-text',
+                click: () => {
+                  openDokumen = true; 
+                  pdfReady = false; 
+                  sep = row.sep?.no_sep
+                }
+              }],
               [{
                 label: 'Status & Note',
                 icon: 'i-tabler-note',
@@ -73,7 +76,6 @@
                 :color="!row.sep?.no_sep ? 'gray' : 'primary'" :disabled="!row.sep?.no_sep"
                 trailing-icon="i-heroicons-chevron-down-20-solid" />
             </UDropdown>
-          </div>
         </div>
       </template>
 
