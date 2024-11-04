@@ -35,7 +35,7 @@
       <template #action-data="{ row }">
         <div class="flex gap-1.5">
           <UButton square :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-tabler-edit-circle"
-            :color="!row.no_rawat ? 'gray' : 'sky'" size="xs" variant="soft">
+            :color="!row.no_rawat ? 'gray' : 'sky'" size="sm" variant="soft">
             Form Klaim
           </UButton>
 
@@ -64,9 +64,17 @@
                 setSepRawat(row)
                 openModalKlaimFeedback = true
               }
+            }], [{
+              label: 'Kirim Berkas',
+              icon: 'i-tabler-file-export',
+              click: () => {
+                setSepRawat(row)
+                openModalLoading = true
+                doExportBerkas()
+              }
             }]
           ]">
-            <UButton square color="sky" variant="soft" size="xs" :disabled="!row.no_rawat"
+            <UButton square color="sky" variant="soft" size="sm" :disabled="!row.no_rawat"
               trailing-icon="i-heroicons-chevron-down-20-solid" />
           </UDropdown>
         </div>
@@ -243,6 +251,7 @@ const pdfUrl = ref('');
 const openModalUpdateStatus = ref(false);
 const openModalKlaimFeedback = ref(false);
 const openModalSync = ref(false);
+const openModalLoading = ref(false);
 
 watch(sep, async (val) => {
   if (val) {
@@ -316,6 +325,21 @@ const syncClaimData = async (row: any) => {
       color: 'rose',
       timeout: 2000
     })
+  }
+}
+
+const doExportBerkas = async () => {
+  try {
+    await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/export`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tokenStore.accessToken}`
+      }
+    })
+  } catch (error) {
+    console.error('Failed to Kirim Berkas', error)
+  } finally {
+    openModalLoading.value = false
   }
 }
 </script>

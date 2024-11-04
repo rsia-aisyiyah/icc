@@ -1,6 +1,26 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 
+const config = useRuntimeConfig()
+const tokenStore = useAccessTokenStore()
+
+const sep = ref('')
+const noRawat = ref('')
+const pdfUrl = ref('')
+
+const pdfReady = ref(false)
+const openDokumen = ref(false)
+const openModalLoading = ref(false);
+const openModalKlaimFeedback = ref(false);
+
+const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
+const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
+
+const setSepRawat = (row: any) => {
+  sep.value = row?.no_sep
+  noRawat.value = row?.no_rawat
+}
+
 const props = defineProps({
   data: Object,
   error: Object,
@@ -12,11 +32,29 @@ const props = defineProps({
   grouppingCostData: Object,
 })
 
-const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
-const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
+const doExportBerkas = async () => {
+  try {
+    await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/export`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tokenStore.accessToken}`
+      }
+    })
+  } catch (error) {
+    console.error('Failed to Kirim Berkas', error)
+  } finally {
+    openModalLoading.value = false
+  }
+}
 
 watch(() => props.grouppingCostData, () => {
   console.log('grouppingCostData ---', props.grouppingCostData)
+})
+
+watch(sep, (val) => {
+  if (val) {
+    pdfUrl.value = `${config.public.API_V2_URL}/sep/${val}/print?token=${tokenStore.accessToken}`
+  }
 })
 </script>
 
@@ -33,14 +71,43 @@ watch(() => props.grouppingCostData, () => {
     { label: 'Action', key: 'action' },
   ]">
     <template #action-data="{ row }">
-      <div class="flex gap-1 flex-col">
-        <div>
-          <UButton :disabled="!row.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
-            :variant="!row.no_sep ? 'solid' : 'soft'" :color="!row.no_sep ? 'gray' : 'primary'" target="_blank"
-            size="xs" square>
-            Data Klaim
-          </UButton>
-        </div>
+      <div class="flex gap-2">
+        <UButton :disabled="!row.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
+          :variant="!row.no_sep ? 'solid' : 'soft'" :color="!row.no_sep ? 'gray' : 'sky'" target="_blank" size="sm"
+          square>
+          Data Klaim
+        </UButton>
+
+        <UDropdown :items="[
+          [{
+            // berkas
+            label: 'Berkas Klaim',
+            icon: 'i-tabler-file-text',
+            click: () => {
+              openDokumen = true;
+              pdfReady = false;
+              sep = row?.no_sep
+            }
+          }],
+          [{
+            label: 'Status & Note',
+            icon: 'i-tabler-note',
+            click: () => {
+              setSepRawat(row)
+              openModalKlaimFeedback = true
+            }
+          }], [{
+            label: 'Kirim Berkas',
+            icon: 'i-tabler-file-export',
+            click: () => {
+              setSepRawat(row)
+              openModalLoading = true
+              doExportBerkas()
+            }
+          }]
+        ]">
+          <UButton square variant="soft" size="sm" color="sky" trailing-icon="i-heroicons-chevron-down-20-solid" />
+        </UDropdown>
       </div>
     </template>
 
@@ -167,4 +234,29 @@ watch(() => props.grouppingCostData, () => {
       <div>{{ row.reg_periksa?.jam_reg }}</div>
     </template>
   </UTable>
+
+
+  <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
+    <div class="p-4 flex-1">
+      <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
+        class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
+      <div v-if="!pdfReady"
+        class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
+        <div class="loader">Loading...</div>
+      </div>
+
+      <!-- open new tab pdfUrl -->
+      <UButton color="primary" size="xs" icon="i-tabler-external-link" class="absolute bottom-5 left-5 z-10"
+        :to="pdfUrl" target="_blank">
+        Open in new tab
+      </UButton>
+
+      <iframe :src="pdfUrl" frameborder="0" width="100%" height="100%" @load="pdfReady = true"></iframe>
+    </div>
+  </USlideover>
+
+  <!-- Modal Klaim Feedback -->
+  <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
+  <!-- Modal Loading -->
+  <ModalLoading v-model:isOpen="openModalLoading" />
 </template>

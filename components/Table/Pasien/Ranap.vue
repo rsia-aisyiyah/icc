@@ -48,34 +48,42 @@
         <div class="flex gap-1">
           <UButton :disabled="!row.sep?.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
             :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'"
-            target="_blank" size="xs" square>
+            target="_blank" size="sm" square>
             Data Klaim
           </UButton>
 
           <UDropdown :items="[
-              [{
-                // berkas
-                label: 'Berkas Klaim',
-                icon: 'i-tabler-file-text',
-                click: () => {
-                  openDokumen = true; 
-                  pdfReady = false; 
-                  sep = row.sep?.no_sep
-                }
-              }],
-              [{
-                label: 'Status & Note',
-                icon: 'i-tabler-note',
-                click: () => {
-                  setSepRawat(row)
-                  openModalKlaimFeedback = true
-                }
-              }]
-            ]">
-              <UButton square :variant="!row.sep?.no_sep ? 'solid' : 'soft'" size="xs"
-                :color="!row.sep?.no_sep ? 'gray' : 'primary'" :disabled="!row.sep?.no_sep"
-                trailing-icon="i-heroicons-chevron-down-20-solid" />
-            </UDropdown>
+            [{
+              // berkas
+              label: 'Berkas Klaim',
+              icon: 'i-tabler-file-text',
+              click: () => {
+                openDokumen = true;
+                pdfReady = false;
+                sep = row.sep?.no_sep
+              }
+            }],
+            [{
+              label: 'Status & Note',
+              icon: 'i-tabler-note',
+              click: () => {
+                setSepRawat(row)
+                openModalKlaimFeedback = true
+              }
+            }], [{
+              label: 'Kirim Berkas',
+              icon: 'i-tabler-file-export',
+              click: () => {
+                setSepRawat(row)
+                openModalLoading = true
+                doExportBerkas()
+              }
+            }]
+          ]">
+            <UButton square :variant="!row.sep?.no_sep ? 'solid' : 'soft'" size="sm"
+              :color="!row.sep?.no_sep ? 'gray' : 'primary'" :disabled="!row.sep?.no_sep"
+              trailing-icon="i-heroicons-chevron-down-20-solid" />
+          </UDropdown>
         </div>
       </template>
 
@@ -98,7 +106,8 @@
             <div class="flex gap-2 items-center justify-between w-full pl-1">
               {{ row.sep?.no_sep ?? "-" }}
               <template v-if="row.sep?.no_sep && isSupported">
-                <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.sep?.no_sep)" />
+                <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs"
+                  @click="copy(row.sep?.no_sep)" />
               </template>
             </div>
           </UBadge>
@@ -242,7 +251,8 @@
     <div class="p-4 flex-1">
       <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
         class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
-      <div v-if="!pdfReady" class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
+      <div v-if="!pdfReady"
+        class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
         <div class="loader">Loading...</div>
       </div>
 
@@ -260,6 +270,8 @@
   <ModalUpdateStatus v-model:isOpen="openModalUpdateStatus" :sep="sep" :noRawat="noRawat" />
   <!-- Modal Klaim Feedback -->
   <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
+  <!-- Modal Loading -->
+  <ModalLoading v-model:isOpen="openModalLoading" />
 </template>
 
 <script lang="ts" setup>
@@ -279,6 +291,7 @@ const openDokumen = ref(false)
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
+const openModalLoading = ref(false);
 const openModalUpdateStatus = ref(false);
 const openModalKlaimFeedback = ref(false);
 
@@ -288,6 +301,21 @@ watch(sep, (val) => {
     pdfUrl.value = `${config.public.API_V2_URL}/sep/${val}/print?token=${tokenStore.accessToken}`
   }
 })
+
+const doExportBerkas = async () => {
+  try {
+    await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/export`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tokenStore.accessToken}`
+      }
+    })
+  } catch (error) {
+    console.error('Failed to Kirim Berkas', error)
+  } finally {
+    openModalLoading.value = false
+  }
+}
 
 const setSepRawat = (row: any) => {
   sep.value = row.sep?.no_sep
