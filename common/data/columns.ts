@@ -1,8 +1,8 @@
 export const pasienRanapColumns = [
-  { label: "No. SEP", key: "sep.no_sep" },
-  // { label: "No. Rawat", key: "no_rawat" },
-  { label: "Pasien", key: "pasien.nm_pasien" },
-  { label: "Diag Awal", key: "sep.diagawal" },
+  { label: "Data Pasien", key: "sep.no_sep" },
+  // { label: "Pasien", key: "pasien.nm_pasien" },
+  { label: "Status", key: "status_klaim" },
+  { label: "Diagnosa", key: "diagnosa" },
   { label: "Tgl Masuk", key: "reg_periksa?.tgl_registrasi" },
   { label: "Tgl Keluar", key: "tgl_keluar" },
   { label: "Real Cost", key: "real_cost" },
