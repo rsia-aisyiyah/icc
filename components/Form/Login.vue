@@ -1,28 +1,77 @@
-<script setup>
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'nuxt/app'
+import { z } from 'zod'
+
 const config = useRuntimeConfig()
-const form$ = ref(null)
+
+// Define Zod schema for form validation
+const schema = z.object({
+  username: z.string().min(1, { message: 'Username is required' }),
+  password: z.string().min(1, { message: 'Password is required' })
+})
+
+// Reactive form state
+const formData = ref({
+  username: '',
+  password: ''
+})
+
+// Validation errors
+const errors = ref<{ [key: string]: string | null }>({
+  username: null,
+  password: null
+})
 
 onMounted(() => {
-  const config = useRuntimeConfig()
-  form$.value.update({
-    username: config.public.TEST_USERNAME,
-    password: config.public.TEST_PASSWORD
-  })
-});
+  formData.value.username = config.public.TEST_USERNAME || ''
+  formData.value.password = config.public.TEST_PASSWORD || ''
+})
 
-const handleResponse = (response, form$) => {
+const validateForm = () => {
+  const result = schema.safeParse(formData.value)
+  if (result.success) {
+    errors.value = { username: null, password: null }
+    return true
+  } else {
+    result.error.errors.forEach(error => {
+      errors.value[error.path[0]] = error.message
+    })
+    return false
+  }
+}
+
+const handleSubmit = async () => {
   const toast = useToast()
   const router = useRouter()
   const tokenStore = useAccessTokenStore()
 
-  if (response.status == 200) {
-    tokenStore.set(response.data.access_token)
-    router.push('/ranap')
-  } else {
+  if (!validateForm()) return
+
+  try {
+    const response = await fetch(`${config.public.API_V2_URL}/user/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData.value)
+    })
+    const data = await response.json()
+
+    if (response.status === 200) {
+      tokenStore.set(data.access_token)
+      router.push('/ranap')
+    } else {
+      toast.add({
+        title: 'Login failed',
+        description: data.message,
+        icon: 'i-tabler-alert-triangle',
+        color: 'red'
+      })
+    }
+  } catch (error) {
     toast.add({
       title: 'Login failed',
-      description: response.data.message,
-      status: 'error',
+      description: 'An error occurred during login.',
+      icon: 'i-tabler-alert-triangle',
       color: 'red'
     })
   }
@@ -30,39 +79,56 @@ const handleResponse = (response, form$) => {
 </script>
 
 <template>
-  <Vueform ref="form$" size="md" :display-errors="false" method="POST" :endpoint="`${config.public.API_V2_URL}/user/auth/login`" @response="handleResponse">
-    <StaticElement name="register_title" content="Login" tag="h2" />
-    <StaticElement name="page_subtitle" content="Login untuk dapat menggunakan layanan yang ada." tag="p" element="p" size="sm"/>
-    <StaticElement name="divider" tag="hr" />
-    
-    <TextElement 
-      name="username" 
-      label="Username ( NIK )" 
-      info="NIK Karywan, sesuai dengan kartu karyawan anda. "
-      placeholder="username ( nik )" 
-      field-name="username" 
-      autocomplete="off" 
-      :floating="false" 
-      :rules="[ 'required' ]" 
-      id="username" 
-      size="md"
-    />
-      
-    <TextElement 
-      name="password" 
-      label="Password" 
-      input-type="password" 
-      placeholder="password" 
-      field-name="password" 
-      :floating="false"
-      :rules="[ 'required' ]" 
-      autocomplete="off" 
-      id="password" 
-      size="md"
-    />
-    
-    <StaticElement name="divider_1" tag="hr" />
-    
-    <ButtonElement name="register" :submits="true" button-label="Login" :full="true" size="lg" />
-  </Vueform>
+  <div class="rounded-md">
+    <h2 class="text-2xl font-semibold mb-1">Login Pegawai</h2>
+    <p class="text-gray-600 dark:text-gray-400 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-primary font-semibold">ICC (INACBG's Cost Comparator)</span>.</p>
+    <hr class="mb-6 dark:border-gray-700" />
+
+    <div class="space-y-4 mb-10">
+      <!-- Username Field -->
+      <UFormGroup label="Username (NIK)" v-model="formData.username" v-slot="{ error }" :error="!formData.username && 'Username is required'">
+        <UInput
+          id="username"
+          v-model="formData.username"
+          placeholder="username (nik)"
+          autocomplete="off"
+          size="lg"
+          icon="i-tabler-user"
+          :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined"
+          required
+        />
+      </UFormGroup>
+
+      <!-- Password Field -->
+      <UFormGroup label="Password" v-model="formData.password" v-slot="{ error }" :error="!formData.password && 'Password is required'">
+        <UInput
+          id="password"
+          v-model="formData.password"
+          placeholder="password"
+          autocomplete="off"
+          size="lg"
+          type="password"
+          icon="i-tabler-lock"
+          :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined"
+          required
+        />
+      </UFormGroup>
+    </div>
+
+    <!-- Submit Button -->
+    <button
+      @click.prevent="handleSubmit"
+      type="button"
+      class="btn btn-primary w-full py-2 mt-2 text-lg font-semibold rounded-md bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800"
+    >
+      Login
+    </button>
+  </div>
 </template>
+
+<style scoped>
+.login-form {
+  max-width: 400px;
+  margin: auto;
+}
+</style>
