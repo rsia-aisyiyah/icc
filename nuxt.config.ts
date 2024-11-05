@@ -48,4 +48,8 @@ export default defineNuxtConfig({
   ],
 
   compatibilityDate: "2024-08-13",
+
+  ui: {
+    safelistColors: ['orange', 'red', 'green', 'blue', 'yellow', 'purple', 'pink', 'indigo', 'teal', 'cyan', 'gray', 'black', 'white'],
+  }
 })
