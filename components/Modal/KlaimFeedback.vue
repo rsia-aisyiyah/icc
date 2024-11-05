@@ -19,27 +19,33 @@
             <UFormGroup label="Log Perubahan">
               <div class="rounded-lg max-h-[340px] overflow-y-auto pr-1">
                 <!-- loop logs data -->
-                <div v-for="log in (logs as any)?.data ?? []" :key="log?.id" class="w-full bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-indigo-200 dark:hover:bg-gray-700">
+                <div v-for="log in (logs as any)?.data ?? []" :key="log?.id"
+                  class="w-full bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-indigo-200 dark:hover:bg-gray-700">
                   <div>
-                    <div  class="flex gap-2 items-center">
+                    <div class="flex gap-2 items-center">
                       <div class="flex items-center justify-between gap-2 w-full">
                         <!-- status -->
                         <div class="flex items-center gap-2">
                           <UIcon :name="status.find((s) => s.id == log?.status)?.icon as string" class="w-5 h-5" />
                           <span class="text-sm font-semibold">{{ log?.status }}</span>
                         </div>
-    
+
                         <!-- tanggal -->
                         <div class="flex flex-col gap-1">
-                          <strong class="text-xs leading-none">{{ new Date(log?.updated_at).toLocaleDateString('id-ID', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) }}</strong>
-                          <div class="text-xs text-gray-500">{{ new Date(log?.updated_at).toLocaleTimeString('id-ID') }} WIB</div>
+                          <strong class="text-xs leading-none">{{ new Date(log?.updated_at).toLocaleDateString('id-ID',
+                            {
+                              weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) }}</strong>
+                          <div class="text-xs text-gray-500">{{ new Date(log?.updated_at).toLocaleTimeString('id-ID') }}
+                            WIB
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <!-- feedback -->
-                  <div v-if="log?.feedback?.catatan" class="mt-2 w-full px-3 py-1 bg-lime-200/50 dark:bg-lime-800/30 rounded-lg border-2 border-lime-200 dark:border-lime-800 text-lime-800 dark:text-lime-200">
+                  <div v-if="log?.feedback?.catatan"
+                    class="mt-2 w-full px-3 py-1 bg-lime-200/50 dark:bg-lime-800/30 rounded-lg border-2 border-lime-200 dark:border-lime-800 text-lime-800 dark:text-lime-200">
                     <strong class="text-sm font-semibold">Feedback</strong>
                     <div class="text-sm">{{ log?.feedback?.catatan }}</div>
                   </div>
@@ -47,7 +53,7 @@
                   <!-- petugas -->
                   <div v-if="log?.petugas" class="mt-3 w-full">
                     <div class="text-sm">{{ log?.petugas?.nama }}</div>
-                  </div>                  
+                  </div>
                 </div>
               </div>
             </UFormGroup>
@@ -70,7 +76,9 @@
 
             <!-- Button Submit -->
             <div class="flex justify-end gap-2 mt-4">
-              <UButton color="green" icon="i-tabler-check" type="submit" :loading="loadButton" :disabled="loadButton">Simpan</UButton>
+              <UButton color="green" icon="i-tabler-check" type="submit" :loading="loadButton" :disabled="loadButton">
+                Simpan
+              </UButton>
               <UButton color="gray" variant="ghost" @click="localIsOpen = false">Batal</UButton>
             </div>
           </div>
@@ -111,7 +119,7 @@ interface Log {
   }
   feedback?: {
     catatan?: string;
-  }
+  },
 }
 
 // Props
@@ -127,6 +135,10 @@ const props = defineProps({
   noRawat: {
     required: true,
     type: String
+  },
+  callback: {
+    required: false,
+    type: Function
   }
 })
 
@@ -171,6 +183,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
   state.no_sep = props.sep
   state.no_rawat = props.noRawat
+  state.feedback = state.feedback == '' ? '-' : state.feedback
 
   const { data, error, status } = await useFetch(`${config.public.API_V2_URL}/sep/${props.sep}/klaim/status`, {
     headers: {
@@ -185,7 +198,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   await new Promise((resolve) => setTimeout(resolve, 1500))
 
   if (error.value) {
-    loadButton.value = false
     console.error(error)
     toast.add({
       icon: 'i-tabler-circle-x',
@@ -194,14 +206,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       color: 'red',
       timeout: 2000
     })
-    return
   }
-
-  console.log(status.value);
 
   if (status.value == 'success') {
     refreshLog()
-    loadButton.value = false
     toast.add({
       icon: 'i-tabler-circle-check',
       title: 'Success!',
@@ -209,8 +217,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       color: 'sky',
       timeout: 2000
     })
+  }
 
-    localIsOpen.value = false
+  loadButton.value = false
+  localIsOpen.value = false
+  if (props.callback) {
+    props.callback()
   }
 }
 
