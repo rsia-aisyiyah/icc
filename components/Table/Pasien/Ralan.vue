@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
+import { determineStatus } from '~/common/helpers/statusHelper';
 
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
@@ -56,14 +57,19 @@ watch(sep, (val) => {
     pdfUrl.value = `${config.public.API_V2_URL}/sep/${val}/print?token=${tokenStore.accessToken}`
   }
 })
+
+const openNewTab = (url: string) => {
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
 
   <UTable :rows="(data as any).data" :loading="props.status == 'pending'" :columns="[
     { label: 'No. SEP', key: 'no_sep' },
-    { label: 'Pasien', key: 'pasien?.nm_pasien' },
-    { label: 'Diag Awal', key: 'diagawal' },
+    // { label: 'Pasien', key: 'pasien?.nm_pasien' },
+    { label: 'Status', key: 'status_klaim' },
+    { label: 'Diagnosa', key: 'diagawal' },
     { label: 'DPJP', key: 'nmdpdjp' },
     { label: 'Tgl Periksa', key: 'reg_periksa?.tgl_registrasi' },
     { label: 'Real Cost', key: 'real_cost' },
@@ -72,7 +78,7 @@ watch(sep, (val) => {
   ]">
     <template #action-data="{ row }">
       <div class="flex gap-2">
-        <UButton :disabled="!row.no_sep" :to="buildUrl(row.pasien.no_rkm_medis)" icon="i-tabler-external-link"
+        <UButton :disabled="!row.no_sep" :to="`/klaim/${row?.no_sep}`" icon="i-tabler-external-link"
           :variant="!row.no_sep ? 'solid' : 'soft'" :color="!row.no_sep ? 'gray' : 'sky'" target="_blank" size="sm"
           square>
           Data Klaim
@@ -80,6 +86,12 @@ watch(sep, (val) => {
 
         <UDropdown :items="[
           [{
+            label: 'Riawayat Klaim',
+            icon: 'i-tabler-pig-money',
+            click: () => {
+              openNewTab(buildUrl(row.pasien.no_rkm_medis));
+            }
+          }, {
             // berkas
             label: 'Berkas Klaim',
             icon: 'i-tabler-file-text',
@@ -170,27 +182,64 @@ watch(sep, (val) => {
       </template>
     </template>
 
+    <template #status_klaim-data="{ row }">
+      <div class="flex flex-row gap-2 items-start">
+        <template v-if="row.status_klaim">
+          <UButton :color="(determineStatus(row.status_klaim?.status)?.color as any)"
+            :variant="(determineStatus(row.status_klaim?.status)?.variant as any)"
+            :icon="(determineStatus(row.status_klaim?.status)?.icon as any)" size="2xs"
+            class="uppercase tracking-wide">
+            {{ row.status_klaim?.status }}
+          </UButton>
+        </template>
+        <template v-else>
+          <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash">
+            Belum Proses
+          </UButton>
+        </template>
+      </div>
+    </template>
 
     <template #no_sep-data="{ row }">
-      <div class="flex flex-col gap-1">
-        <UBadge :color="row.no_sep ? 'primary' : 'primary'" variant="soft">
-          <div class="flex gap-2 items-center justify-between w-full pl-1">
-            {{ row.no_sep ?? "-" }}
-            <template v-if="row.no_sep && isSupported">
-              <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.no_sep)" />
+      <div class="flex flex-col gap-4 w-[310px]">
+        <div>
+          <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-"
+            }}</p>
+          <div class="flex gap-1 mt-1">
+            <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
+            <template v-if="row?.berkas_perawatan">
+              <span class="text-gray-500 font-semibold text-sm px-1">|</span>
+              <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }">
+                <UBadge size="xs" color="fuchsia" variant="subtle" class="flex items-center gap-1">
+                  <UIcon name="i-tabler-checks" class="text-fuchsia-400 h-4.5 w-4.5" />
+                  Terkirim
+                </UBadge>
+              </UTooltip>
             </template>
           </div>
-        </UBadge>
+        </div>
 
-        <UBadge color="sky" variant="soft">
-          <div class="flex gap-2 items-center justify-between w-full pl-1">
-            {{ row.no_rawat ?? "-" }}
-            <template v-if="row.no_rawat && isSupported">
-              <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
-            </template>
-          </div>
-        </UBadge>
+        <div class="flex flex-col gap-1">
+          <UBadge :color="row.no_sep ? 'primary' : 'primary'" variant="soft">
+            <div class="flex gap-2 items-center justify-between w-full pl-1">
+              {{ row.no_sep ?? "-" }}
+              <template v-if="row.no_sep && isSupported">
+                <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.no_sep)" />
+              </template>
+            </div>
+          </UBadge>
+
+          <UBadge color="sky" variant="soft">
+            <div class="flex gap-2 items-center justify-between w-full pl-1">
+              {{ row.no_rawat ?? "-" }}
+              <template v-if="row.no_rawat && isSupported">
+                <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
+              </template>
+            </div>
+          </UBadge>
+        </div>
       </div>
+
     </template>
 
     <template #diagawal-data="{ row }">
