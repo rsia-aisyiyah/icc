@@ -24,7 +24,7 @@
         </UButton>
 
         <template #panel="{ close }">
-          <DatePicker v-model="(date as DatePickerRangeObject)" @close="close" isRange />
+          <DatePicker v-model="(date as any)" @close="close" isRange />
 
           <div class="flex justify-end p-3">
             <UButton color="red" @click="clearDate" icon="i-tabler-circle-x">Clear</UButton>
@@ -36,17 +36,8 @@
       <UInput placeholder="Search..." class="w-full md:w-[50%] lg:w-[20%]" v-model="qw" />
     </div>
 
-
-    <TablePasienRalan 
-      :data="(data as any)" 
-      :error="(error as any)" 
-      :refresh="refresh" 
-      :status="status"
-      
-      :costStatus="computedCostStatus" 
-      :realCostData="computedRealCost" 
-      :grouppingCostData="computedGrouppingCost"
-    />
+    <TablePasienRalan :data="(data as any)" :error="(error as any)" :refresh="refresh" :status="status"
+      :costStatus="computedCostStatus" :realCostData="computedRealCost" :grouppingCostData="computedGrouppingCost" />
 
     <!-- pagination -->
     <div v-if="data && (data as any).meta">
@@ -57,11 +48,8 @@
           of {{ ((data as any).meta as any).total }} entries
         </p>
 
-        <UPagination 
-          v-model="currentPage" 
-          :page-count="((data as any).meta as any).per_page"
-          :total="((data as any).meta as any).total" 
-        />
+        <UPagination v-model="currentPage" :page-count="((data as any).meta as any).per_page"
+          :total="((data as any).meta as any).total" />
       </div>
     </div>
   </UCard>
@@ -69,7 +57,6 @@
 
 <script lang="ts" setup>
 import { format } from 'date-fns'
-import type { DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePicker.js';
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 
 const config = useRuntimeConfig()
@@ -110,6 +97,8 @@ const bodyReqs = ref<any>({
   search: { value: '' },
   includes: [
     { "relation": "pasien" },
+    { "relation": "status_klaim" },
+    { "relation": "berkasPerawatan" },
     { "relation": "reg_periksa.dokter.spesialis" },
   ]
 })
@@ -144,7 +133,7 @@ const clearDate = () => {
   bodyReqs.value.filters = bodyReqs.value.filters.filter((f: Filter) => f.field !== 'reg_periksa.tgl_registrasi')
 }
 
-watch(date, () => {  
+watch(date, () => {
   bodyReqs.value.filters = bodyReqs.value.filters.filter((f: Filter) => f.field !== 'reg_periksa.tgl_registrasi')
 
   bodyReqs.value.filters = [
@@ -188,10 +177,10 @@ async function fetchRealCost() {
       }) as any,
 
       $fetch(`${config.public.API_V2_URL}/pasien/ranap/grouping-cost`, {
-      method: 'POST',
-      body: { filters: [{ field: 'no_sep', operator: 'in', value: showedNoSep }] },
-      headers: { Authorization: `Bearer ${token.accessToken}` }
-    }) as any
+        method: 'POST',
+        body: { filters: [{ field: 'no_sep', operator: 'in', value: showedNoSep }] },
+        headers: { Authorization: `Bearer ${token.accessToken}` }
+      }) as any
     ]);
 
     // sleep 2 seconds
@@ -202,7 +191,7 @@ async function fetchRealCost() {
       costStatus.value = 'error';
       throw new Error("Invalid response from server");
     }
-    
+
     if (!grouppingCostResponse || !grouppingCostResponse.data) {
       costStatus.value = 'error';
       throw new Error("Invalid response from server");
