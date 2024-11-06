@@ -5,14 +5,15 @@ import { determineStatus } from '~/common/helpers/statusHelper';
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
-const sep = ref('')
 const noRawat = ref('')
 const pdfUrl = ref('')
+const sep = ref('')
 
 const pdfReady = ref(false)
 const openDokumen = ref(false)
-const openModalLoading = ref(false);
-const openModalKlaimFeedback = ref(false);
+const openModalLoading = ref(false)
+const localCostStatus = ref('idle')
+const openModalKlaimFeedback = ref(false)
 
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
@@ -33,6 +34,10 @@ const props = defineProps({
   grouppingCostData: Object,
 })
 
+watch(() => props.costStatus, () => {
+  (localCostStatus as any).value = props.costStatus
+})
+
 const doExportBerkas = async () => {
   try {
     await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/export`, {
@@ -47,10 +52,6 @@ const doExportBerkas = async () => {
     openModalLoading.value = false
   }
 }
-
-watch(() => props.grouppingCostData, () => {
-  console.log('grouppingCostData ---', props.grouppingCostData)
-})
 
 watch(sep, (val) => {
   if (val) {
@@ -147,15 +148,15 @@ const openNewTab = (url: string) => {
 
     <!-- realcost data -->
     <template #real_cost-data="{ row }">
-      <template v-if="costStatus == 'success'">
+      <template v-if="props.costStatus == 'success'">
         <span class="font-semibold text-teal-500">{{ new Intl.NumberFormat('id-ID', {
           style: 'currency', currency: 'IDR', minimumFractionDigits: 0
         }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</span>
       </template>
-      <template v-else-if="costStatus == 'loading'">
+      <template v-else-if="props.costStatus == 'loading'">
         <div class="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded-md"></div>
       </template>
-      <template v-else-if="costStatus == 'error'">
+      <template v-else-if="props.costStatus == 'error'">
         <span class="text-red-500">Failed to fetch</span>
       </template>
       <template v-else>
@@ -164,17 +165,17 @@ const openNewTab = (url: string) => {
     </template>
 
     <template #groupping_cost-data="{ row }">
-      <template v-if="costStatus == 'success'">
+      <template v-if="props.costStatus == 'success'">
         <span class="font-semibold text-indigo-500">{{
           new Intl.NumberFormat('id-ID', {
             style: 'currency', currency: 'IDR', minimumFractionDigits: 0
           }).format(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0)
         }}</span>
       </template>
-      <template v-else-if="costStatus == 'loading'">
+      <template v-else-if="props.costStatus == 'loading'">
         <div class="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded-md"></div>
       </template>
-      <template v-else-if="costStatus == 'error'">
+      <template v-else-if="props.costStatus == 'error'">
         <span class="text-red-500">Failed to fetch</span>
       </template>
       <template v-else>

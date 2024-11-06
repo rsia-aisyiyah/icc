@@ -36,8 +36,8 @@
       <UInput placeholder="Search..." class="w-full md:w-[50%] lg:w-[20%]" v-model="qw" />
     </div>
 
-    <TablePasienRalan :data="(data as any)" :error="(error as any)" :refresh="refresh" :status="status"
-      :costStatus="computedCostStatus" :realCostData="computedRealCost" :grouppingCostData="computedGrouppingCost" />
+    <!-- Table -->
+    <TablePasienRalan :data="(data as any)" :error="(error as any)" :refresh="refresh" :status="status" :costStatus="costStatus.value" :realCostData="realCost" :grouppingCostData="grouppingCost" />
 
     <!-- pagination -->
     <div v-if="data && (data as any).meta">
@@ -65,13 +65,9 @@ const toast = useToast()
 
 const qw = ref<string>('')
 const currentPage = ref(1)
-const realCost = reactive([]);
-const grouppingCost = reactive([]);
+const realCost = ref([]);
+const grouppingCost = ref([]);
 const costStatus = reactive({ value: 'idle' });
-
-const computedCostStatus = computed(() => costStatus.value);
-const computedGrouppingCost = computed(() => grouppingCost.values);
-const computedRealCost = computed(() => realCost.values);
 
 const date = ref<{
   start: Date | undefined,
@@ -197,17 +193,14 @@ async function fetchRealCost() {
       throw new Error("Invalid response from server");
     }
 
-    realCost.values = realCostResponse.data;
-    grouppingCost.values = grouppingCostResponse.data;
-
-    costStatus.value = 'success';
+    realCost.value = realCostResponse.data;
+    grouppingCost.value = grouppingCostResponse.data;
   } catch (error) {
     console.error("Error fetching real cost:", error);
     costStatus.value = 'error';
-    // Optionally, add more handling here, like setting an error message or displaying an alert
+  } finally {
+    costStatus.value = 'success';
   }
-
-  costStatus.value = 'success';
 }
 
 </script>

@@ -33,8 +33,7 @@
                         <!-- tanggal -->
                         <div class="flex flex-col gap-1">
                           <strong class="text-xs leading-none">{{ new Date(log?.updated_at).toLocaleDateString('id-ID',
-                            {
-                              weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) }}</strong>
+                            { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'}) }}</strong>
                           <div class="text-xs text-gray-500">{{ new Date(log?.updated_at).toLocaleTimeString('id-ID') }}
                             WIB
                           </div>
@@ -228,13 +227,22 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 const { data: logs, error, refresh: refreshLog } = await useAsyncData(
   `${config.public.API_V2_URL}/sep/${props.sep}/klaim/status`,
-  () => $fetch(`${config.public.API_V2_URL}/sep/${props.sep}/klaim/logs`, {
-    method: 'GET',
-    headers: {
-      accept: 'application/json',
-      Authorization: `Bearer ${token.accessToken}`
-    },
-  }), {
-  watch: [() => props.sep, () => localIsOpen.value],
-});
+  async () => {
+    // Only fetch data if props.sep has a value
+    if (props.sep) {
+      return $fetch(`${config.public.API_V2_URL}/sep/${props.sep}/klaim/logs`, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${token.accessToken}`
+        },
+      });
+    }
+    return Promise.resolve(null); // or some default empty data if needed
+  },
+  {
+    watch: [() => props.sep, () => localIsOpen.value],
+  }
+);
+
 </script>
