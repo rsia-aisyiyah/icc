@@ -81,7 +81,7 @@ const toData = (key: string, subKey: string) => {
           <div class="grid grid-cols-2 gap-4">
             <template v-for="(subItem, subKey) in item" :key="key">
               <button class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1"
-                @click="toData(key, subKey)">
+                @click="toData(key.toString(), subKey)">
                 <UCard class="rounded-xl">
                   <div class="flex flex-col gap-3 leading-0 items-start m-0 p-0">
                     <template v-if="status == 'pending'">
