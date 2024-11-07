@@ -48,7 +48,7 @@
         <div class="flex gap-1">
           <UButton :disabled="!row.sep?.no_sep" :to="`/klaim/${row.sep?.no_sep}`" icon="i-tabler-external-link"
             :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'"
-            :class="!row.sep?.no_sep ? 'cursor-not-allowed' : ''" size="xs">
+            size="xs">
             Form Klaim
           </UButton>
 
@@ -56,6 +56,7 @@
             [{
               label: 'Riawayat Klaim',
               icon: 'i-tabler-pig-money',
+              disabled: !row?.pasien?.no_rkm_medis,
               click: () => {
                 openNewTab(buildUrl(row.pasien.no_rkm_medis));
               }
@@ -63,6 +64,7 @@
               // berkas
               label: 'Berkas Klaim',
               icon: 'i-tabler-file-text',
+              disabled: !row.sep?.no_sep,
               click: () => {
                 openDokumen = true;
                 pdfReady = false;
@@ -72,6 +74,7 @@
             [{
               label: 'Status & Note',
               icon: 'i-tabler-note',
+              disabled: !row.sep?.no_sep,
               click: () => {
                 setSepRawat(row)
                 openModalKlaimFeedback = true
@@ -79,6 +82,7 @@
             }], [{
               label: 'Kirim Berkas',
               icon: 'i-tabler-file-export',
+              disabled: !row.sep?.no_sep,
               click: () => {
                 setSepRawat(row)
                 openModalLoading = true
@@ -86,9 +90,13 @@
               }
             }]
           ]">
-            <UButton :variant="!row.sep?.no_sep ? 'solid' : 'soft'" size="xs"
-              :color="!row.sep?.no_sep ? 'gray' : 'primary'" :disabled="!row.sep?.no_sep"
-              :class="!row.sep?.no_sep ? 'cursor-not-allowed' : ''" trailing-icon="i-heroicons-chevron-down-20-solid" />
+            <UButton 
+              size="xs"
+              :disable="false"
+              :variant="!row.sep?.no_sep ? 'solid' : 'soft'" 
+              :color="!row.sep?.no_sep ? 'gray' : 'primary'"
+              trailing-icon="i-heroicons-chevron-down-20-solid" 
+            />
           </UDropdown>
         </div>
       </template>

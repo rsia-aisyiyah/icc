@@ -78,17 +78,17 @@ const openNewTab = (url: string) => {
     { label: 'Action', key: 'action' },
   ]">
     <template #action-data="{ row }">
-      <div class="flex gap-2">
-        <UButton :disabled="!row.no_sep" :to="`/klaim/${row?.no_sep}`" icon="i-tabler-external-link"
-          :variant="!row.no_sep ? 'solid' : 'soft'" :color="!row.no_sep ? 'gray' : 'sky'" target="_blank" size="sm"
-          square>
-          Data Klaim
+      <div class="flex items-start gap-1">
+        <UButton :disabled="!row?.no_sep" :to="`/klaim/${row?.no_sep}`" icon="i-tabler-external-link"
+          :variant="!row?.no_sep ? 'solid' : 'soft'" :color="!row?.no_sep ? 'gray' : 'sky'" size="xs">
+          Form Klaim
         </UButton>
 
         <UDropdown :items="[
           [{
             label: 'Riawayat Klaim',
             icon: 'i-tabler-pig-money',
+            disabled: !row?.pasien?.no_rkm_medis,
             click: () => {
               openNewTab(buildUrl(row.pasien.no_rkm_medis));
             }
@@ -96,15 +96,17 @@ const openNewTab = (url: string) => {
             // berkas
             label: 'Berkas Klaim',
             icon: 'i-tabler-file-text',
+            disabled: !row.no_sep,
             click: () => {
               openDokumen = true;
               pdfReady = false;
-              sep = row?.no_sep
+              sep = row.no_sep
             }
           }],
           [{
             label: 'Status & Note',
             icon: 'i-tabler-note',
+            disabled: !row.no_sep,
             click: () => {
               setSepRawat(row)
               openModalKlaimFeedback = true
@@ -112,6 +114,7 @@ const openNewTab = (url: string) => {
           }], [{
             label: 'Kirim Berkas',
             icon: 'i-tabler-file-export',
+            disabled: !row?.no_sep,
             click: () => {
               setSepRawat(row)
               openModalLoading = true
@@ -119,7 +122,13 @@ const openNewTab = (url: string) => {
             }
           }]
         ]">
-          <UButton square variant="soft" size="sm" color="sky" trailing-icon="i-heroicons-chevron-down-20-solid" />
+          <UButton
+            size="xs"
+            :disable="false"
+            :variant="!row?.no_sep ? 'solid' : 'soft'"
+            :color="!row?.no_sep ? 'gray' : 'sky'"
+            trailing-icon="i-heroicons-chevron-down-20-solid"
+          />
         </UDropdown>
       </div>
     </template>
@@ -188,8 +197,7 @@ const openNewTab = (url: string) => {
         <template v-if="row.status_klaim">
           <UButton :color="(determineStatus(row.status_klaim?.status)?.color as any)"
             :variant="(determineStatus(row.status_klaim?.status)?.variant as any)"
-            :icon="(determineStatus(row.status_klaim?.status)?.icon as any)" size="2xs"
-            class="uppercase tracking-wide">
+            :icon="(determineStatus(row.status_klaim?.status)?.icon as any)" size="2xs" class="uppercase tracking-wide">
             {{ row.status_klaim?.status }}
           </UButton>
         </template>

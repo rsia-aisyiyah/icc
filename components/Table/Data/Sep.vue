@@ -17,25 +17,25 @@
       <div class="flex items-center justify-between">
         <div>
           <h3 class="dark:text-white font-semibold">Nama Pasien</h3>
-          <p class="dark:text-gray-300">{{ data.data[0]?.nama_pasien ?? "-" }}</p>
+          <p class="dark:text-gray-300">{{ data?.data[0]?.nama_pasien ?? "-" }}</p>
         </div>
         <div>
           <h3 class="dark:text-white font-semibold">No. Rekam Medis</h3>
-          <p class="dark:text-gray-300">{{ data.data[0]?.nomr ?? "-" }}</p>
+          <p class="dark:text-gray-300">{{ data?.data[0]?.nomr ?? "-" }}</p>
         </div>
         <div>
           <h3 class="dark:text-white font-semibold">Kepesertaan</h3>
-          <p class="dark:text-gray-300">{{ data.data[0]?.peserta ?? "-" }}</p>
+          <p class="dark:text-gray-300">{{ data?.data[0]?.peserta ?? "-" }}</p>
         </div>
       </div>
     </div>
 
-    <UTable :rows="(props.data as any).data" :columns="dataSepColumns">
+    <UTable :rows="(props?.data as any)?.data" :columns="dataSepColumns">
       <!------------ Action ------------>
       <template #action-data="{ row }">
         <div class="flex gap-1.5">
           <UButton square :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-tabler-edit-circle"
-            :color="!row.no_rawat ? 'gray' : 'sky'" size="sm" variant="soft">
+            :color="!row.no_rawat ? 'gray' : 'sky'" size="xs" variant="soft">
             Form Klaim
           </UButton>
 
@@ -43,6 +43,7 @@
             [{
               label: 'Berkas Klaim',
               icon: 'i-tabler-file-description',
+              disabled: !row.no_sep,
               click: () => {
                 openDokumen = true; 
                 pdfReady = false; 
@@ -52,6 +53,7 @@
             {
               label: 'Sync Data',
               icon: 'i-tabler-refresh',
+              disabled: !row.no_sep,
               click: () => {
                 syncClaimData(row)
                 openModalSync = true
@@ -60,6 +62,7 @@
             [{
               label: 'Status & Note',
               icon: 'i-tabler-note',
+              disabled: !row.no_sep,
               click: () => {
                 setSepRawat(row)
                 openModalKlaimFeedback = true
@@ -67,6 +70,7 @@
             }], [{
               label: 'Kirim Berkas',
               icon: 'i-tabler-file-export',
+              disabled: !row.no_sep,
               click: () => {
                 setSepRawat(row)
                 openModalLoading = true
@@ -74,8 +78,7 @@
               }
             }]
           ]">
-            <UButton square color="sky" variant="soft" size="sm" :disabled="!row.no_rawat"
-              trailing-icon="i-heroicons-chevron-down-20-solid" />
+            <UButton square color="sky" variant="soft" size="xs" trailing-icon="i-heroicons-chevron-down-20-solid" />
           </UDropdown>
         </div>
       </template>
