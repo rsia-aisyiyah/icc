@@ -109,13 +109,15 @@ const toData = (key: string, subKey: string) => {
           <template #header>
             <div class="flex flex-row items-center justify-between">
               <h1 class="text-xl font-semibold">{{ key }}</h1>
-              <UButton variant="soft" icon="i-tabler-refresh" @click="refresh"
-                :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+              <div class="flex gap-3">
+                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="solid" icon="i-tabler-cloud-download" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+              </div>
             </div>
           </template>
 
           <div class="grid grid-cols-2 gap-4">
-            <UCard class="rounded-xl bg-primary-100/25 dark:bg-primary-500/25">
+            <UCard class="rounded-xl bg-primary-100/25 dark:bg-primary-500/25 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
               <template v-if="status == 'pending'">
                 <!-- skeleton -->
                 <div class="flex flex-row items-center justify-between w-full animate-pulse">
@@ -144,7 +146,7 @@ const toData = (key: string, subKey: string) => {
               </template>
             </UCard>
 
-            <UCard class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25">
+            <UCard class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
               <template v-if="status == 'pending'">
                 <!-- skeleton -->
                 <div class="flex flex-row items-center justify-between w-full animate-pulse">
