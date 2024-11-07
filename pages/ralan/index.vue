@@ -3,7 +3,7 @@
     <!-- Header -->
     <template #header>
       <div class="flex items-start gap-4">
-        <UButton icon="i-healthicons-inpatient" variant="soft" color="sky" square />
+        <UButton icon="i-healthicons-walking" variant="soft" color="sky" square />
         <div>
           <h3 class="text-lg text-sky-600 dark:text-sky-400 font-semibold">Pasien Rawat jalan</h3>
           <p class="text-sm text-cool-500">Daftar pasien rawat jalan berdasarkan nomor sep</p>

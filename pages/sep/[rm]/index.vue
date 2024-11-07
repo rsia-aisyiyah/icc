@@ -21,7 +21,7 @@ const { data, error, refresh, status } = await useFetch(`${config.public.API_V2_
       { "field": "no_rawat", "direction": "desc" }
     ],
     "filters": [
-      { "field": "nomr", "operator": "=", "value": rm },
+      { "field": "nomr", "operator": "=", "value": rm.value },
     ],
     "includes": [
       { "relation": "reg_periksa" },
