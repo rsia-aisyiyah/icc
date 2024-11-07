@@ -20,7 +20,7 @@ const { data: bupel, error: bupelError, refresh: bupelRefresh, status: bupelStat
 );
 
 if (bupelStatus.value === 'success') {
-  if ((bupel.value as any).data?.bulan) { 
+  if ((bupel.value as any).data?.bulan) {
     month.value = (bupel.value as any).data?.bulan;
   }
 }
@@ -48,19 +48,19 @@ const { data: dashboard, error, refresh, status } = await useAsyncData<{
 // watch month value if updated then make a request to update the bupel data
 watch(month, async (newVal) => {
   const { data, error, status } = await useAsyncData(
-      '/klaim/bupel',
-      () => $fetch(`${config.public.API_V2_URL}/klaim/bupel`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token.accessToken}`,
-          accept: 'application/json',
-          ContentType: 'application/json',
-        },
-        body: JSON.stringify({
-          bulan: newVal,
-        })
-      }),
-      { immediate: true }
+    '/klaim/bupel',
+    () => $fetch(`${config.public.API_V2_URL}/klaim/bupel`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token.accessToken}`,
+        accept: 'application/json',
+        ContentType: 'application/json',
+      },
+      body: JSON.stringify({
+        bulan: newVal,
+      })
+    }),
+    { immediate: true }
   );
 });
 
@@ -115,10 +115,70 @@ const toData = (key: string, subKey: string) => {
           </template>
 
           <div class="grid grid-cols-2 gap-4">
-            <template v-for="(subItem, subKey) in item" :key="key">
-              <button
-                class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1"
-                @click="toData(key.toString(), subKey)">
+            <UCard class="rounded-xl bg-primary-100/25 dark:bg-primary-500/25">
+              <template v-if="status == 'pending'">
+                <!-- skeleton -->
+                <div class="flex flex-row items-center justify-between w-full animate-pulse">
+                  <div>
+                    <div class="h-11 dark:bg-gray-700 bg-gray-200 rounded w-[100px]"></div>
+                    <div class="h-4  mt-1 dark:bg-gray-700 bg-gray-200 rounded w-[180px]"></div>
+                  </div>
+                  <div class="flex items-end justify-end h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700">
+                  </div>
+                </div>
+              </template>
+
+              <template v-if="status == 'success'">
+                <div class="flex flex-row-reverse items-center justify-between w-full">
+                  <div>
+                    <div class="text-4xl font-semibold text-primary">
+                      {{ (item as any).total_sep ?? 0 }}
+                    </div>
+                    <div class="text-base capitalize dark:text-gray-400 text-primary">Total SEP</div>
+                  </div>
+
+                  <div class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-primary-400/25 dark:bg-primary-500/25">
+                    <UIcon name="i-tabler-medical-cross-filled" class="text-primary h-7 w-7 leading-none m-0 p-0" />
+                  </div>
+                </div>
+              </template>
+            </UCard>
+
+            <UCard class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25">
+              <template v-if="status == 'pending'">
+                <!-- skeleton -->
+                <div class="flex flex-row items-center justify-between w-full animate-pulse">
+                  <div>
+                    <div class="h-11 dark:bg-gray-700 bg-gray-200 rounded w-[100px]"></div>
+                    <div class="h-4  mt-1 dark:bg-gray-700 bg-gray-200 rounded w-[180px]"></div>
+                  </div>
+                  <div class="flex items-end justify-end h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700">
+                  </div>
+                </div>
+              </template>
+
+              <template v-if="status == 'success'">
+                <div class="flex flex-row-reverse items-center justify-between w-full">
+                  <div>
+                    <div class="text-4xl font-semibold text-indigo-500">
+                      {{ (item as any).total_berkas_terkirim ?? 0 }}
+                    </div>
+                    <div class="text-base capitalize dark:text-gray-400 text-indigo-500">Total Berkas Terkirim</div>
+                  </div>
+
+                  <div class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-indigo-400/25 dark:bg-indigo-500/25">
+                    <UIcon name="i-tabler-send" class="text-indigo-500 h-7 w-7 leading-none m-0 p-0" />
+                  </div>
+                </div>
+              </template>
+            </UCard>
+          </div>
+
+          <hr class="my-7 dark:border-gray-700 border-gray-200" />
+
+          <div class="grid grid-cols-2 gap-4">
+            <template v-for="(subItem, subKey) in item?.status" :key="key">
+              <button class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1" @click="toData(key.toString(), subKey.toString())">
                 <UCard class="rounded-xl">
                   <div class="flex flex-col gap-3 leading-0 items-start m-0 p-0">
                     <template v-if="status == 'pending'">
@@ -137,15 +197,15 @@ const toData = (key: string, subKey: string) => {
                       <div class="flex flex-row items-center justify-between w-full">
                         <div>
                           <div class="text-4xl font-semibold">
-                            {{ subItem.toLocaleString('en-US', { minimumIntegerDigits: 3 }) }}
+                            {{ subItem ?? 0 }}
                           </div>
                           <div class="text-base capitalize dark:text-gray-400">{{ subKey }}</div>
                         </div>
 
                         <div
                           :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey)?.color ?? 'primary']}`">
-                          <UIcon :name="determineStatus(subKey)?.icon ?? `i-tabler-alert-circle`"
-                            :class="`text-${determineStatus(subKey)?.color}-500 h-7 w-7 leading-none m-0 p-0`" />
+                          <UIcon :name="determineStatus(subKey.toString())?.icon ?? `i-tabler-alert-circle`"
+                            :class="`text-${determineStatus(subKey.toString())?.color}-500 h-7 w-7 leading-none m-0 p-0`" />
                         </div>
                       </div>
                     </template>
