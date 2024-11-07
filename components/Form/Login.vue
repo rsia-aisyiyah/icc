@@ -81,7 +81,7 @@ const handleSubmit = async () => {
 <template>
   <div class="rounded-md">
     <h2 class="text-2xl font-semibold mb-1">Login Pegawai</h2>
-    <p class="text-gray-600 dark:text-gray-400 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-primary font-semibold">ICC (INACBG's Cost Comparator)</span>.</p>
+    <p class="text-gray-600 dark:text-gray-400 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-purple-400 font-semibold">ICC (INACBG's Cost Comparator)</span>.</p>
     <hr class="mb-6 dark:border-gray-700" />
 
     <div class="space-y-4 mb-10">
@@ -119,7 +119,7 @@ const handleSubmit = async () => {
     <button
       @click.prevent="handleSubmit"
       type="button"
-      class="btn btn-primary w-full py-2 mt-2 text-lg font-semibold rounded-md bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800"
+      class="btn btn-purple w-full py-2 mt-2 text-lg font-semibold rounded-md bg-purple-500 hover:bg-purple-600 text-white dark:bg-purple-700 dark:hover:bg-purple-800"
     >
       Login
     </button>
