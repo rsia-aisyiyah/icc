@@ -4,7 +4,26 @@ import { determineStatus } from '~/common/helpers/statusHelper';
 const config = useRuntimeConfig();
 const $router = useRouter();
 const token = useAccessTokenStore();
-const month = ref(new Date().toISOString().substr(0, 7));
+const month = ref(new Date().toISOString().slice(0, 7));
+
+const { data: bupel, error: bupelError, refresh: bupelRefresh, status: bupelStatus } = await useAsyncData(
+  '/klaim/bupel',
+  () => $fetch(`${config.public.API_V2_URL}/klaim/bupel`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token.accessToken}`,
+      accept: 'application/json',
+      ContentType: 'application/json',
+    }
+  }),
+  { immediate: true, watch: [month] }
+);
+
+if (bupelStatus.value === 'success') {
+  if ((bupel.value as any).data?.bulan) { 
+    month.value = (bupel.value as any).data?.bulan;
+  }
+}
 
 const { data: dashboard, error, refresh, status } = await useAsyncData<{
   message: string;
@@ -26,8 +45,23 @@ const { data: dashboard, error, refresh, status } = await useAsyncData<{
   watch: [month]
 });
 
-watch(() => dashboard.value, (value) => {
-  console.log(value);
+// watch month value if updated then make a request to update the bupel data
+watch(month, async (newVal) => {
+  const { data, error, status } = await useAsyncData(
+      '/klaim/bupel',
+      () => $fetch(`${config.public.API_V2_URL}/klaim/bupel`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token.accessToken}`,
+          accept: 'application/json',
+          ContentType: 'application/json',
+        },
+        body: JSON.stringify({
+          bulan: newVal,
+        })
+      }),
+      { immediate: true }
+  );
 });
 
 const colorVariant: Record<string, string> = {
@@ -70,17 +104,20 @@ const toData = (key: string, subKey: string) => {
   <template v-if="dashboard">
     <div class="flex flex-col lg:flex-row gap-4">
       <template v-for="(item, key) in dashboard.data">
-        <UCard class="mb-4 w-full rounded-xl overflow-hidden" :ui="{ header: {background: key.toString() == 'Rawat Inap' ? 'bg-indigo-200' : 'bg-pink-200'} }">
+        <UCard class="mb-4 w-full rounded-xl overflow-hidden"
+          :ui="{ header: { background: key.toString() == 'Rawat Inap' ? 'bg-indigo-200' : 'bg-pink-200' } }">
           <template #header>
             <div class="flex flex-row items-center justify-between">
               <h1 class="text-xl font-semibold">{{ key }}</h1>
-              <UButton variant="soft" icon="i-tabler-refresh" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+              <UButton variant="soft" icon="i-tabler-refresh" @click="refresh"
+                :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
             </div>
           </template>
 
           <div class="grid grid-cols-2 gap-4">
             <template v-for="(subItem, subKey) in item" :key="key">
-              <button class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1"
+              <button
+                class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1"
                 @click="toData(key.toString(), subKey)">
                 <UCard class="rounded-xl">
                   <div class="flex flex-col gap-3 leading-0 items-start m-0 p-0">
