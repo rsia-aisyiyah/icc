@@ -13,6 +13,13 @@
 
     <!-- Filter and search -->
     <div class="mb-4 flex flex-col lg:flex-row gap-4 justify-end items-center">
+      <!-- Select Menu -->
+      <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event">
+        <template #leading>
+          <UIcon v-if="selectedStatus.icon" :name="(selectedStatus.icon as string)" class="w-5 h-5" />
+        </template>
+      </USelectMenu>
+
       <!-- tanggal masuk - keluar -->
       <UPopover :popper="{ placement: 'bottom-start' }">
         <UButton icon="i-tabler-calendar-event" variant="soft" color="sky">
@@ -37,7 +44,8 @@
     </div>
 
     <!-- Table -->
-    <TablePasienRalan :data="(data as any)" :error="(error as any)" :refresh="refresh" :status="status" :costStatus="costStatus.value" :realCostData="realCost" :grouppingCostData="grouppingCost" />
+    <TablePasienRalan :data="(data as any)" :error="(error as any)" :refresh="refresh" :status="status"
+      :costStatus="costStatus.value" :realCostData="realCost" :grouppingCostData="grouppingCost" />
 
     <!-- pagination -->
     <div v-if="data && (data as any).meta">
@@ -57,17 +65,30 @@
 
 <script lang="ts" setup>
 import { format } from 'date-fns'
+import { useRouter } from 'vue-router'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
+import { setStatus } from '~/common/helpers/statusHelper';
 
-const config = useRuntimeConfig()
 const token = useAccessTokenStore()
+const config = useRuntimeConfig()
+const router = useRouter()
 const toast = useToast()
 
+const realCost = ref([]);
 const qw = ref<string>('')
 const currentPage = ref(1)
-const realCost = ref([]);
 const grouppingCost = ref([]);
 const costStatus = reactive({ value: 'idle' });
+
+const q_status = router?.currentRoute?.value?.query?.status as string
+const q_month = router?.currentRoute?.value?.query?.month as string
+
+// if id "" not exist, add it to the first index
+if (setStatus[0].id !== "") {
+  setStatus.unshift({ id: "", label: "Semua Data", icon: "i-tabler-align-box-left-stretch", color: "primary", variant: "soft" })
+}
+
+const selectedStatus = ref(setStatus[0])
 
 const date = ref<{
   start: Date | undefined,
@@ -98,6 +119,31 @@ const bodyReqs = ref<any>({
     { "relation": "reg_periksa.dokter.spesialis" },
   ]
 })
+
+if (q_status) {
+  bodyReqs.value.filters = [
+    ...bodyReqs.value.filters,
+    { field: 'status_klaim.status', operator: '=', value: q_status }
+  ]
+}
+
+if (q_month) {
+  const [year, month] = q_month.split('-').map(Number)
+
+  date.value.start = new Date(year, month - 1, 1)
+  date.value.end = new Date(year, month, 0)
+
+  if (date.value.start.toString() != 'Invalid Date' && date.value.end.toString() != 'Invalid Date') {
+    // remove old date filter
+    bodyReqs.value.filters = bodyReqs.value.filters.filter((f: Filter) => f.field !== 'reg_periksa.tgl_registrasi')
+
+    bodyReqs.value.filters = [
+      ...bodyReqs.value.filters,
+      { field: 'reg_periksa.tgl_registrasi', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') },
+      { field: 'reg_periksa.tgl_registrasi', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') }
+    ]
+  }
+}
 
 const { data, error, refresh, status } = await useAsyncData(
   'sep/search',
@@ -139,6 +185,19 @@ watch(date, () => {
   ]
 
   console.log(bodyReqs.value.filters);
+})
+
+// selectedStatus
+watch(() => selectedStatus.value, () => {
+  if (selectedStatus.value.id === "") {
+    bodyReqs.value.filters = bodyReqs.value.filters.filter((f: Filter) => f.field !== 'status_klaim.status')
+  } else {
+    bodyReqs.value.filters = bodyReqs.value.filters.filter((f: Filter) => f.field !== 'status_klaim.status')
+    bodyReqs.value.filters = [
+      ...bodyReqs.value.filters,
+      { field: 'status_klaim.status', operator: '=', value: selectedStatus.value.id }
+    ]
+  }
 })
 
 watch(qw, useDebounceFn((value) => {

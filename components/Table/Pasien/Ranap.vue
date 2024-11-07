@@ -13,6 +13,13 @@
 
     <!-- Filter and search -->
     <div class="mb-4 flex flex-col lg:flex-row gap-4 justify-end items-center">
+      <!-- Select Menu -->
+      <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event">
+        <template #leading>
+          <UIcon v-if="selectedStatus.icon" :name="(selectedStatus.icon as string)" class="w-5 h-5" />
+        </template>
+      </USelectMenu>
+
       <!-- Pulang / Belum Pulang -->
       <div class="p-1.5 px-3 rounded-2xl border border-cool-200 dark:border-cool-700 flex gap-4">
         <URadio v-for="method of methods" :key="method.value" v-model="masukKeluar" v-bind="method" />
@@ -47,8 +54,7 @@
       <template #action-data="{ row }">
         <div class="flex gap-1">
           <UButton :disabled="!row.sep?.no_sep" :to="`/klaim/${row.sep?.no_sep}`" icon="i-tabler-external-link"
-            :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'"
-            size="xs">
+            :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'" size="xs">
             Form Klaim
           </UButton>
 
@@ -90,13 +96,8 @@
               }
             }]
           ]">
-            <UButton 
-              size="xs"
-              :disable="false"
-              :variant="!row.sep?.no_sep ? 'solid' : 'soft'" 
-              :color="!row.sep?.no_sep ? 'gray' : 'primary'"
-              trailing-icon="i-heroicons-chevron-down-20-solid" 
-            />
+            <UButton size="xs" :disable="false" :variant="!row.sep?.no_sep ? 'solid' : 'soft'"
+              :color="!row.sep?.no_sep ? 'gray' : 'primary'" trailing-icon="i-heroicons-chevron-down-20-solid" />
           </UDropdown>
         </div>
       </template>
@@ -134,7 +135,8 @@
       <template #sep.no_sep-data="{ row }">
         <div class="flex flex-col gap-4 w-[310px]">
           <div>
-            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
+            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ??
+              "-" }}</p>
             <div class="flex gap-1 mt-1">
               <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
               <span class="text-gray-500 font-semibold text-sm px-1">|</span>
@@ -334,8 +336,15 @@ import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
 import { determineStatus } from '~/common/helpers/statusHelper';
+import { setStatus } from '~/common/helpers/statusHelper';
 
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
+
+// if id "" not exist, add it to the first index
+if (setStatus[0].id !== "") {
+  setStatus.unshift({ id: "", label: "Semua Data", icon: "i-tabler-align-box-left-stretch", color: "primary", variant: "soft" })
+}
+
 
 const sep = ref('')
 const noRawat = ref('')
@@ -348,6 +357,11 @@ const tokenStore = useAccessTokenStore()
 
 const openModalLoading = ref(false);
 const openModalKlaimFeedback = ref(false);
+const selectedStatus = ref(setStatus[0])
+
+const props = defineProps<{
+  query: any
+}>()
 
 // Watch for SEP changes and update PDF URL
 watch(sep, (val) => {
@@ -385,8 +399,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
 
 const methods = [
   { value: '-', label: 'Belum Pulang' },
-  { value: 'masuk', label: 'Tanggal Masuk' },
-  { value: 'keluar', label: 'Tanggal Keluar' }
+  { value: 'masuk', label: 'Tgl Masuk' },
+  { value: 'keluar', label: 'Tgl Keluar' }
 ]
 
 const rc = ref<RealCostRawatInap[]>([])
@@ -410,6 +424,36 @@ const bodyReqs = ref({
   search: { value: '' },
 })
 
+// watch(() => selectedStatus.value, (val) => {
+//   bodyReqs.value.filters = bodyReqs.value.filters.filter((item: any) => item.field !== 'sep.status_klaim.status')
+//   if (val.id) {
+//     bodyReqs.value.filters.push({ field: 'sep.status_klaim.status', operator: '=', value: val.id })
+//   }
+
+//   refresh()
+// })
+
+if (props?.query?.status) {
+  bodyReqs.value.filters.push({ field: 'sep.status_klaim.status', operator: '=', value: props.query.status })
+  selectedStatus.value = setStatus.find((item) => item.id === props.query.status) ?? setStatus[0]
+}
+
+if (props?.query?.month) {
+  // props?.query?.month is YYYY-MM get start and end date (1 - 29/30/31) from it
+  const [year, month] = props?.query?.month.split('-').map(Number)
+  date.value.start = new Date(year, month - 1, 1)
+  date.value.end = new Date(year, month, 0)
+
+  // if date is valid 
+  if (date.value.start.toString() !== 'Invalid Date' && date.value.end.toString() !== 'Invalid Date') {
+    masukKeluar.value = 'keluar'
+    bodyReqs.value.filters.push(
+      { field: 'tgl_keluar', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') },
+      { field: 'tgl_keluar', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') }
+    )
+  }
+}
+
 // Update filters based on the selected options
 function updateFilters() {
   bodyReqs.value.filters = []
@@ -419,23 +463,34 @@ function updateFilters() {
   if (search.value) {
     filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' })
     currentPage.value = 1
-    return
   }
 
   const dateFilter = masukKeluar.value === 'masuk'
     ? 'regPeriksa.tgl_registrasi'
     : 'tgl_keluar'
 
+  // remove all sort
+  bodyReqs.value.sort = []
+  if (masukKeluar.value == '-') {
+    bodyReqs.value.sort = [{ field: 'no_rawat', direction: 'desc' }]
+    filters.push({ field: 'stts_pulang', operator: '=', value: '-' })
+  } else if (masukKeluar.value == 'masuk') {
+    bodyReqs.value.sort = [{ field: 'regPeriksa.tgl_registrasi', direction: 'desc' }]
+    filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' })
+  } else {
+    bodyReqs.value.sort = [{ field: 'tgl_keluar', direction: 'desc' }]
+    filters.push({ field: 'stts_pulang', operator: '!=', value: 'Pindah Kamar' })
+  }
+
   if (masukKeluar.value !== '-') {
     filters.push({ field: dateFilter, operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') })
     filters.push({ field: dateFilter, operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') })
   }
 
-  filters.push({
-    field: 'stts_pulang',
-    operator: masukKeluar.value === '-' ? '=' : '!=',
-    value: '-'
-  })
+  // set status filter
+  if (selectedStatus.value.id) {
+    filters.push({ field: 'sep.status_klaim.status', operator: '=', value: selectedStatus.value.id })
+  }
 
   filters.push({ field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] })
   currentPage.value = 1
@@ -484,7 +539,7 @@ onMounted(updateShowedData)
 
 watch([showedNoRawat, showedNoSep], fetchData, { immediate: true })
 watch(pasienRanap, updateShowedData)
-watch([date, masukKeluar, bodyReqs.value.search], useDebounceFn(async () => {
+watch([date, masukKeluar, selectedStatus, bodyReqs.value.search], useDebounceFn(async () => {
   status.value = 'pending'
   await new Promise((resolve) => setTimeout(resolve, 1300))
 
