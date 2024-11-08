@@ -14,7 +14,8 @@
     <!-- Filter and search -->
     <div class="mb-4 flex flex-col lg:flex-row gap-4 justify-end items-center">
       <!-- Select Menu -->
-      <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event">
+      <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event"
+        class="w-full md:w-[30%] lg:w-[10%]">
         <template #leading>
           <UIcon v-if="selectedStatus.icon" :name="(selectedStatus.icon as string)" class="w-5 h-5" />
         </template>
@@ -341,8 +342,12 @@ import { setStatus } from '~/common/helpers/statusHelper';
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
 
 // if id "" not exist, add it to the first index
-if (setStatus[0].id !== "") {
+if (!setStatus.find((item) => item.id === '')) {
   setStatus.unshift({ id: "", label: "Semua Data", icon: "i-tabler-align-box-left-stretch", color: "primary", variant: "soft" })
+}
+
+if (!setStatus.find((item) => item.id === 'terkirim')) {
+  setStatus.splice(1, 0, { id: "terkirim", label: "Terkirim", icon: "i-tabler-checks", color: "fuchsia", variant: "soft" })
 }
 
 
@@ -414,7 +419,14 @@ const date = ref({
   start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
 })
-const bodyReqs = ref({
+const bodyReqs = ref<{
+  scopes: { name: string; parameters?: any[] }[];
+  filters: { field: string; operator: string; value: any }[];
+  sort: { field: string; direction: string }[];
+  aggregates: { type: string; relation: string; field: string }[];
+  search: { value: string };
+}>({
+  scopes: [],
   filters: [
     { field: 'stts_pulang', operator: '=', value: '-' },
     { field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] }
@@ -424,20 +436,13 @@ const bodyReqs = ref({
   search: { value: '' },
 })
 
-// watch(() => selectedStatus.value, (val) => {
-//   bodyReqs.value.filters = bodyReqs.value.filters.filter((item: any) => item.field !== 'sep.status_klaim.status')
-//   if (val.id) {
-//     bodyReqs.value.filters.push({ field: 'sep.status_klaim.status', operator: '=', value: val.id })
-//   }
-
-//   refresh()
-// })
-
+// status on query url
 if (props?.query?.status) {
   bodyReqs.value.filters.push({ field: 'sep.status_klaim.status', operator: '=', value: props.query.status })
   selectedStatus.value = setStatus.find((item) => item.id === props.query.status) ?? setStatus[0]
 }
 
+// date on query url
 if (props?.query?.month) {
   // props?.query?.month is YYYY-MM get start and end date (1 - 29/30/31) from it
   const [year, month] = props?.query?.month.split('-').map(Number)
@@ -447,11 +452,20 @@ if (props?.query?.month) {
   // if date is valid 
   if (date.value.start.toString() !== 'Invalid Date' && date.value.end.toString() !== 'Invalid Date') {
     masukKeluar.value = 'keluar'
-    bodyReqs.value.filters.push(
-      { field: 'tgl_keluar', operator: '>=', value: format(date.value.start, 'yyyy-MM-dd') },
-      { field: 'tgl_keluar', operator: '<=', value: format(date.value.end, 'yyyy-MM-dd') }
-    )
+    bodyReqs.value.filters = bodyReqs.value.filters.filter((item: any) => item.field !== 'stts_pulang')
+
+    updateFilters()
   }
+}
+
+// if terkirim on query url
+if (props?.query?.terkirim) {
+  selectedStatus.value = setStatus.find((item) => item.id === 'terkirim') ?? setStatus[0]
+  console.log(selectedStatus.value);
+  
+  masukKeluar.value = 'masuk'
+
+  updateFilters()
 }
 
 // Update filters based on the selected options
@@ -489,7 +503,12 @@ function updateFilters() {
 
   // set status filter
   if (selectedStatus.value.id) {
-    filters.push({ field: 'sep.status_klaim.status', operator: '=', value: selectedStatus.value.id })
+    if (selectedStatus.value.id === 'terkirim') {
+      bodyReqs.value.scopes = []
+      bodyReqs.value.scopes.push({ name: 'hasBerkasPerawatan' })
+    } else {
+      filters.push({ field: 'sep.status_klaim.status', operator: '=', value: selectedStatus.value.id })
+    }
   }
 
   filters.push({ field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] })

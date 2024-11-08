@@ -76,12 +76,23 @@ const colorVariant: Record<string, string> = {
 }
 
 const toData = (key: string, subKey: string) => {
-  console.log(key, subKey);
   if (key == 'Rawat Inap') {
     $router.push(`/ranap?status=${subKey}&month=${month.value}`);
   } else {
     $router.push(`/ralan?status=${subKey}&month=${month.value}`);
   }
+}
+
+const toBerkasTerkirimData = (key: string) => {
+  if (key == 'Rawat Inap') {
+    $router.push(`/ranap?terkirim=1&month=${month.value}`);
+  } else {
+    $router.push(`/ralan?terkirim=1&month=${month.value}`);
+  }
+}
+
+const downloadBatch = (jnspelayanan: number) => {
+  window.open(`${config.public.API_V2_URL}/sep/download/${month.value}/${jnspelayanan}?token=${token.accessToken}`, '_blank', 'noopener,noreferrer');
 }
 </script>
 
@@ -110,14 +121,18 @@ const toData = (key: string, subKey: string) => {
             <div class="flex flex-row items-center justify-between">
               <h1 class="text-xl font-semibold">{{ key }}</h1>
               <div class="flex gap-3">
-                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
-                <UButton variant="solid" icon="i-tabler-cloud-download" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh"
+                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="solid" icon="i-tabler-cloud-download"
+                  @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)"
+                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
               </div>
             </div>
           </template>
 
           <div class="grid grid-cols-2 gap-4">
-            <UCard class="rounded-xl bg-primary-100/25 dark:bg-primary-500/25 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+            <UCard
+              class="rounded-xl bg-primary-100/25 dark:bg-primary-500/25 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden">
               <template v-if="status == 'pending'">
                 <!-- skeleton -->
                 <div class="flex flex-row items-center justify-between w-full animate-pulse">
@@ -131,56 +146,75 @@ const toData = (key: string, subKey: string) => {
               </template>
 
               <template v-if="status == 'success'">
-                <div class="flex flex-row-reverse items-center justify-between w-full">
+                <div class="flex flex-row-reverse items-center justify-between w-full text-right">
                   <div>
-                    <div class="text-4xl font-semibold text-primary">
+                    <div
+                      class="text-4xl font-semibold text-primary group-hover:text-white duration-300 transition-colors ease-in-out">
                       {{ (item as any).total_sep ?? 0 }}
                     </div>
-                    <div class="text-base capitalize dark:text-gray-400 text-primary">Total SEP</div>
+                    <div
+                      class="text-base capitalize dark:text-gray-400 text-primary group-hover:text-white duration-400 transition-colors ease-in-out">
+                      Total SEP</div>
                   </div>
 
-                  <div class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-primary-400/25 dark:bg-primary-500/25">
-                    <UIcon name="i-tabler-medical-cross-filled" class="text-primary h-7 w-7 leading-none m-0 p-0" />
-                  </div>
-                </div>
-              </template>
-            </UCard>
-
-            <UCard class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
-              <template v-if="status == 'pending'">
-                <!-- skeleton -->
-                <div class="flex flex-row items-center justify-between w-full animate-pulse">
-                  <div>
-                    <div class="h-11 dark:bg-gray-700 bg-gray-200 rounded w-[100px]"></div>
-                    <div class="h-4  mt-1 dark:bg-gray-700 bg-gray-200 rounded w-[180px]"></div>
-                  </div>
-                  <div class="flex items-end justify-end h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700">
-                  </div>
-                </div>
-              </template>
-
-              <template v-if="status == 'success'">
-                <div class="flex flex-row-reverse items-center justify-between w-full">
-                  <div>
-                    <div class="text-4xl font-semibold text-indigo-500">
-                      {{ (item as any).total_berkas_terkirim ?? 0 }}
+                  <div
+                    class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-primary-400 group-hover:bg-primary-600 duration-500 transition-colors ease-in-out relative">
+                    <UIcon name="i-tabler-medical-cross" class="text-white h-7 w-7 leading-none m-0 p-0" />
+                    <div
+                      class="absolute h-10 w-10 bg-primary-400 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
                     </div>
-                    <div class="text-base capitalize dark:text-gray-400 text-indigo-500">Total Berkas Terkirim</div>
-                  </div>
-
-                  <div class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-indigo-400/25 dark:bg-indigo-500/25">
-                    <UIcon name="i-tabler-send" class="text-indigo-500 h-7 w-7 leading-none m-0 p-0" />
                   </div>
                 </div>
               </template>
             </UCard>
+
+            <button @click="toBerkasTerkirimData(key.toString())">
+              <UCard
+                class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden">
+                <template v-if="status == 'pending'">
+                  <!-- skeleton -->
+                  <div class="flex flex-row items-center justify-between w-full animate-pulse">
+                    <div>
+                      <div class="h-11 dark:bg-gray-700 bg-gray-200 rounded w-[100px]"></div>
+                      <div class="h-4  mt-1 dark:bg-gray-700 bg-gray-200 rounded w-[180px]"></div>
+                    </div>
+                    <div class="flex items-end justify-end h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700">
+                    </div>
+                  </div>
+                </template>
+
+                <template v-if="status == 'success'">
+                  <div class="flex flex-row-reverse items-center justify-between w-full text-right">
+                    <div>
+                      <div
+                        class="text-4xl font-semibold text-indigo-400 group-hover:text-white duration-300 transition-colors ease-in-out">
+                        {{ (item as any).total_berkas_terkirim ?? 0 }}
+                      </div>
+                      <div
+                        class="text-base capitalize dark:text-gray-400 text-indigo-400 group-hover:text-white duration-400 transition-colors ease-in-out">
+                        Total Berkas Terkirim</div>
+                    </div>
+
+                    <div
+                      class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-indigo-400 group-hover:bg-indigo-600 duration-500 transition-colors ease-in-out relative">
+                      <UIcon name="i-tabler-send" class="text-white h-7 w-7 leading-none m-0 p-0" />
+                      <div
+                        class="absolute h-10 w-10 bg-indigo-400 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </UCard>
+            </button>
           </div>
 
           <hr class="my-7 dark:border-gray-700 border-gray-200" />
 
           <div class="grid grid-cols-2 gap-4">
             <template v-for="(subItem, subKey) in item?.status" :key="key">
-              <button class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1" @click="toData(key.toString(), subKey.toString())">
+              <button
+                class="text-left rounded-xl hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1"
+                @click="toData(key.toString(), subKey.toString())">
                 <UCard class="rounded-xl">
                   <div class="flex flex-col gap-3 leading-0 items-start m-0 p-0">
                     <template v-if="status == 'pending'">
