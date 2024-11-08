@@ -639,7 +639,6 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         </div>
       </div>
 
-      <!-- INFO : Cek `rsia_grouping_chunks` tabel -->
       <!-- TODO : Lanjutkan Pembuatan Forms JAMPERSAL -->
 
       <UDivider />

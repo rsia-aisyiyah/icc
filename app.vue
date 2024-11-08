@@ -29,4 +29,7 @@ router.afterEach((to, from) => {
   // }
 })
 
+// TODO : add shortcut for entering klaim forms using sep
+// TODO : GET CPPT
+
 </script>
