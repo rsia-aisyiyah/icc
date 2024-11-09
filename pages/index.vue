@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { determineStatus } from '~/common/helpers/statusHelper';
 
-const config = useRuntimeConfig();
 const $router = useRouter();
+const config = useRuntimeConfig();
 const token = useAccessTokenStore();
 const month = ref(new Date().toISOString().slice(0, 7));
 
@@ -25,10 +25,7 @@ if (bupelStatus.value === 'success') {
   }
 }
 
-const { data: dashboard, error, refresh, status } = await useAsyncData<{
-  message: string;
-  data: { status: string; total: number }[];
-}>(
+const { data: dashboard, error, refresh, status } = await useAsyncData<{ message: string; data: { status: string; total: number }[] }>(
   '/sep/klaim/status/search',
   () => $fetch(`${config.public.API_V2_URL}/sep/klaim/status/search`, {
     method: 'POST',
@@ -40,10 +37,9 @@ const { data: dashboard, error, refresh, status } = await useAsyncData<{
     body: JSON.stringify({
       month: month.value,
     })
-  }), {
-  immediate: true,
-  watch: [month]
-});
+  }),
+  { immediate: true, watch: [month] }
+);
 
 // watch month value if updated then make a request to update the bupel data
 watch(month, async (newVal) => {
@@ -239,7 +235,7 @@ const downloadBatch = (jnspelayanan: number) => {
                         </div>
 
                         <div
-                          :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey)?.color ?? 'primary']}`">
+                          :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey.toString())?.color ?? 'primary']}`">
                           <UIcon :name="determineStatus(subKey.toString())?.icon ?? `i-tabler-alert-circle`"
                             :class="`text-${determineStatus(subKey.toString())?.color}-500 h-7 w-7 leading-none m-0 p-0`" />
                         </div>

@@ -56,8 +56,7 @@
           of {{ ((data as any).meta as any).total }} entries
         </p>
 
-        <UPagination v-model="currentPage" :page-count="((data as any).meta as any).per_page"
-          :total="((data as any).meta as any).total" />
+        <UPagination v-model="currentPage" :page-count="((data as any).meta as any).per_page" :total="((data as any).meta as any).total" />
       </div>
     </div>
   </UCard>
