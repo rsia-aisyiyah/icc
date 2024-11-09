@@ -58,7 +58,7 @@ const handleSubmit = async () => {
 
     if (response.status === 200) {
       tokenStore.set(data.access_token)
-      router.push('/ranap')
+      router.push('/')
     } else {
       toast.add({
         title: 'Login failed',
