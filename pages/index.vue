@@ -112,16 +112,13 @@ const downloadBatch = (jnspelayanan: number) => {
     <div class="flex flex-col lg:flex-row gap-4">
       <template v-for="(item, key) in dashboard.data">
         <UCard class="mb-4 w-full rounded-xl overflow-hidden"
-          :ui="{ header: { background: key.toString() == 'Rawat Inap' ? 'bg-indigo-200' : 'bg-pink-200' } }">
+          :ui="{ header: { background: key.toString() == 'Rawat Inap' ? 'bg-indigo-200 dark:bg-indigo-900' : 'bg-pink-200 dark:bg-pink-900' } }">
           <template #header>
             <div class="flex flex-row items-center justify-between">
               <h1 class="text-xl font-semibold">{{ key }}</h1>
               <div class="flex gap-3">
-                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh"
-                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
-                <UButton variant="solid" icon="i-tabler-cloud-download"
-                  @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)"
-                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="solid" icon="i-tabler-cloud-download" @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
               </div>
             </div>
           </template>
@@ -157,7 +154,7 @@ const downloadBatch = (jnspelayanan: number) => {
                     class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-primary-400 group-hover:bg-primary-600 duration-500 transition-colors ease-in-out relative">
                     <UIcon name="i-tabler-medical-cross" class="text-white h-7 w-7 leading-none m-0 p-0" />
                     <div
-                      class="absolute h-10 w-10 bg-primary-400 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                      class="absolute h-10 w-10 bg-primary-400 dark:bg-primary-700 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
                     </div>
                   </div>
                 </div>
@@ -195,7 +192,7 @@ const downloadBatch = (jnspelayanan: number) => {
                       class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-indigo-400 group-hover:bg-indigo-600 duration-500 transition-colors ease-in-out relative">
                       <UIcon name="i-tabler-send" class="text-white h-7 w-7 leading-none m-0 p-0" />
                       <div
-                        class="absolute h-10 w-10 bg-indigo-400 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                        class="absolute h-10 w-10 bg-indigo-400 dark:bg-indigo-700 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
                       </div>
                     </div>
                   </div>
