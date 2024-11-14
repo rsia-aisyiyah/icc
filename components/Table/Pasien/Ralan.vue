@@ -5,14 +5,16 @@ import { determineStatus } from '~/common/helpers/statusHelper';
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
+const noRekamMedis = ref('')
 const noRawat = ref('')
 const pdfUrl = ref('')
 const sep = ref('')
 
 const pdfReady = ref(false)
 const openDokumen = ref(false)
-const openModalLoading = ref(false)
+const openModalCPPT = ref(false)
 const localCostStatus = ref('idle')
+const openModalLoading = ref(false)
 const openModalKlaimFeedback = ref(false)
 
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
@@ -20,6 +22,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
 
 const setSepRawat = (row: any) => {
   sep.value = row?.no_sep
+  noRekamMedis.value = row?.pasien?.no_rkm_medis
   noRawat.value = row?.no_rawat
 }
 
@@ -104,6 +107,15 @@ const openNewTab = (url: string) => {
             }
           }],
           [{
+            label: 'CPPT',
+            icon: 'i-tabler-file-text',
+            disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
+            click: () => {
+              setSepRawat(row)
+              openModalCPPT = true
+            }
+          }],
+          [{
             label: 'Status & Note',
             icon: 'i-tabler-note',
             disabled: !row.no_sep,
@@ -134,22 +146,19 @@ const openNewTab = (url: string) => {
     </template>
 
     <template #real_cost-header="{ column }">
-      <span
-        class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+      <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
 
     <template #mining_tarif-header="{ column }">
-      <span
-        class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+      <span class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
 
     <template #groupping_cost-header="{ column }">
-      <span
-        class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+      <span class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
@@ -195,14 +204,16 @@ const openNewTab = (url: string) => {
     <template #status_klaim-data="{ row }">
       <div class="flex flex-row gap-2 items-start">
         <template v-if="row.status_klaim">
-          <UButton :color="(determineStatus(row.status_klaim?.status)?.color as any)"
+          <UButton 
+            @click="setSepRawat(row); openModalKlaimFeedback = true"
+            :color="(determineStatus(row.status_klaim?.status)?.color as any)"
             :variant="(determineStatus(row.status_klaim?.status)?.variant as any)"
             :icon="(determineStatus(row.status_klaim?.status)?.icon as any)" size="2xs" class="uppercase tracking-wide">
             {{ row.status_klaim?.status }}
           </UButton>
         </template>
         <template v-else>
-          <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash">
+          <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash" @click="setSepRawat(row); openModalKlaimFeedback = true">
             Belum Proses
           </UButton>
         </template>
@@ -317,4 +328,6 @@ const openNewTab = (url: string) => {
   <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
   <!-- Modal Loading -->
   <ModalLoading v-model:isOpen="openModalLoading" />
+  <!-- Modal CPPT -->
+  <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ralan"/>
 </template>

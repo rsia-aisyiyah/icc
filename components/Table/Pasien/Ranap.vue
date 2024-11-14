@@ -79,6 +79,15 @@
               }
             }],
             [{
+              label: 'CPPT',
+              icon: 'i-tabler-file-text',
+              disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
+              click: () => {
+                setSepRawat(row)
+                openModalCPPT = true
+              }
+            }],
+            [{
               label: 'Status & Note',
               icon: 'i-tabler-note',
               disabled: !row.sep?.no_sep,
@@ -118,7 +127,8 @@
       <template #status_klaim-data="{ row }">
         <div class="flex flex-row gap-2 items-start">
           <template v-if="row.sep?.status_klaim">
-            <UButton :color="(determineStatus(row.sep?.status_klaim?.status)?.color as any)"
+            <UButton @click="setSepRawat(row); openModalKlaimFeedback = true"
+              :color="(determineStatus(row.sep?.status_klaim?.status)?.color as any)"
               :variant="(determineStatus(row.sep?.status_klaim?.status)?.variant as any)"
               :icon="(determineStatus(row.sep?.status_klaim?.status)?.icon as any)" size="2xs"
               class="uppercase tracking-wide">
@@ -126,7 +136,8 @@
             </UButton>
           </template>
           <template v-else>
-            <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash">
+            <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash"
+              @click="setSepRawat(row); openModalKlaimFeedback = true">
               Belum Proses
             </UButton>
           </template>
@@ -326,9 +337,10 @@
     <!-- Modal Klaim Feedback -->
     <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" :callback="refresh" />
   </template>
-
   <!-- Modal Loading -->
   <ModalLoading v-model:isOpen="openModalLoading" />
+  <!-- Modal CPPT -->
+  <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ranap"/>
 </template>
 
 <script lang="ts" setup>
@@ -350,13 +362,14 @@ if (!setStatus.find((item) => item.id === 'terkirim')) {
   setStatus.splice(1, 0, { id: "terkirim", label: "Terkirim", icon: "i-tabler-checks", color: "fuchsia", variant: "soft" })
 }
 
-
 const sep = ref('')
-const noRawat = ref('')
 const pdfUrl = ref('')
+const noRawat = ref('')
 const toast = useToast()
 const pdfReady = ref(false)
+const noRekamMedis = ref('')
 const openDokumen = ref(false)
+const openModalCPPT = ref(false)
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 
@@ -394,6 +407,7 @@ const doExportBerkas = async () => {
 const setSepRawat = (row: any) => {
   sep.value = row.sep?.no_sep
   noRawat.value = row?.no_rawat
+  noRekamMedis.value = row?.pasien?.no_rkm_medis
 }
 
 const openNewTab = (url: string) => {
@@ -462,7 +476,7 @@ if (props?.query?.month) {
 if (props?.query?.terkirim) {
   selectedStatus.value = setStatus.find((item) => item.id === 'terkirim') ?? setStatus[0]
   console.log(selectedStatus.value);
-  
+
   masukKeluar.value = 'masuk'
 
   updateFilters()
