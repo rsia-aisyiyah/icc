@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  # Layanan untuk stage "build" (misal untuk development)
+  app-build:
+    image: halimkun/icc:latest  # Gunakan image yang sudah dibangun
+    ports:
+      - "9010:3000"  # Port yang berbeda untuk stage build
+    env_file:
+      - .env  # Memuat variabel dari file .env
+    command: ["node", ".output/server/index.mjs"]
