@@ -83,7 +83,6 @@ const q_status = router?.currentRoute?.value?.query?.status as string
 const q_month = router?.currentRoute?.value?.query?.month as string
 const q_terkirim = router?.currentRoute?.value?.query?.terkirim as string
 
-// if id "" not exist, add it to the first index
 if (setStatus[0].id !== "") {
   setStatus.unshift({ id: "", label: "Semua Data", icon: "i-tabler-align-box-left-stretch", color: "primary", variant: "soft" })
 }
@@ -129,7 +128,6 @@ if (q_status) {
 }
 
 if (q_terkirim) {
-  // remove scope
   bodyReqs.value.scopes = bodyReqs.value.scopes.filter((s: any) => s.name !== 'terkirim')
   bodyReqs.value.scopes.push({ name: 'hasBerkasPerawatan' })
 }
