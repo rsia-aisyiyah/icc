@@ -80,14 +80,18 @@ const handleSubmit = async () => {
 
 <template>
   <div class="rounded-md">
-    <div class="flex gap-3">
-      <img src="/public/static/logo.png" alt="Logo" class="w-20 h-20" />
-      <div class="">
+    <div class="flex flex-col items-start justify-start gap-5">
+      <div class="flex items-start justify-start w-full">
+        <img src="/public/static/logo.png" alt="Logo" class="h-20" />
+      </div>
+      
+      <div class="text-left w-full">
         <h2 class="text-2xl font-bold mb-1">Login Petugas</h2>
-        <p class="text-gray-600 dark:text-gray-400 leading-5 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-indigo-800 font-bold">ICC (INACBG's Cost Comparator),</span> <span class="font-semibold underline">RSIA Aisyiyah Pekajangan</span>.</p>
+        <p class="text-gray-600 dark:text-gray-400 leading-5 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-indigo-800 font-bold">ICC (INACBG's Cost Comparator),</span>.</p>
       </div>
     </div>
-    <hr class="mb-6 dark:border-gray-700" />
+
+    <hr class="mb-6 dark:border-gray-700 border-gray-400" />
 
     <div class="space-y-4 mb-10">
       <!-- Username Field -->
