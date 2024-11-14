@@ -2,7 +2,7 @@
 // Middleware ini memastikan bahwa pengguna memiliki token akses yang valid sebelum mengakses rute tertentu
 export default defineNuxtRouteMiddleware(async (to, from) => {
   // Daftar rute yang dikecualikan dari pengecekan otentikasi
-  const ignorePaths = ["/auth/login", "/auth/register"]
+  const ignorePaths = ["/auth/login", "/auth/register", "/public/static"]
 
   // Mengambil token akses dari store (pinia)
   const accessTokenStore = useAccessTokenStore()

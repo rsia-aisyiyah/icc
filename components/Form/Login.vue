@@ -80,47 +80,73 @@ const handleSubmit = async () => {
 
 <template>
   <div class="rounded-md">
-    <h2 class="text-2xl font-semibold mb-1">Login Pegawai</h2>
-    <p class="text-gray-600 dark:text-gray-400 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-purple-400 font-semibold">ICC (INACBG's Cost Comparator)</span>.</p>
+    <div class="flex gap-3">
+      <img src="/public/static/logo.png" alt="Logo" class="w-20 h-20" />
+      <div class="">
+        <h2 class="text-2xl font-bold mb-1">Login Petugas</h2>
+        <p class="text-gray-600 dark:text-gray-400 leading-5 mb-6">Login untuk dapat menggunakan aplikasi <span class="text-indigo-800 font-bold">ICC (INACBG's Cost Comparator),</span> <span class="font-semibold underline">RSIA Aisyiyah Pekajangan</span>.</p>
+      </div>
+    </div>
     <hr class="mb-6 dark:border-gray-700" />
 
     <div class="space-y-4 mb-10">
       <!-- Username Field -->
-      <UFormGroup label="Username (NIK)" v-model="formData.username" v-slot="{ error }" :error="!formData.username && 'Username is required'">
-        <UInput
-          id="username"
-          v-model="formData.username"
-          placeholder="username (nik)"
-          autocomplete="off"
+      <UFormGroup label="Username (NIK)" 
+        v-model="formData.username" 
+        v-slot="{ error }"
+        :ui="{label: { base: 'block font-medium font-bold text-indigo-800' }}"
+        :error="!formData.username && 'Username is required'"
+      >
+        <UInput id="username" 
+          v-model="formData.username" 
+          placeholder="username (nik)" 
+          autocomplete="off" 
           size="lg"
-          icon="i-tabler-user"
+          icon="i-tabler-user" 
           :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined"
-          required
+          :ui="{color: {
+            white: {
+              outline: 'shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+            },
+            gray: {
+              outline: 'shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+            }
+          },}"
+          required 
         />
       </UFormGroup>
 
       <!-- Password Field -->
-      <UFormGroup label="Password" v-model="formData.password" v-slot="{ error }" :error="!formData.password && 'Password is required'">
-        <UInput
-          id="password"
-          v-model="formData.password"
-          placeholder="password"
-          autocomplete="off"
+      <UFormGroup label="Password" 
+        v-model="formData.password" 
+        v-slot="{ error }"
+        :ui="{label: { base: 'block font-medium font-bold text-indigo-800' }}"
+        :error="!formData.password && 'Password is required'"
+      >
+
+        <UInput id="password" 
+          v-model="formData.password" 
+          placeholder="password" 
+          autocomplete="off" 
           size="lg"
-          type="password"
-          icon="i-tabler-lock"
-          :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined"
-          required
+          type="password" icon="i-tabler-lock"
+          :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined" 
+          :ui="{color: {
+            white: {
+              outline: 'shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+            },
+            gray: {
+              outline: 'shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+            }
+          },}"
+          required 
         />
       </UFormGroup>
     </div>
 
     <!-- Submit Button -->
-    <button
-      @click.prevent="handleSubmit"
-      type="button"
-      class="btn btn-purple w-full py-2 mt-2 text-lg font-semibold rounded-md bg-purple-500 hover:bg-purple-600 text-white dark:bg-purple-700 dark:hover:bg-purple-800"
-    >
+    <button @click.prevent="handleSubmit" type="button"
+      class="btn btn-indigo w-full py-2 mt-2 text-lg font-semibold rounded-md bg-indigo-800 hover:bg-indigo-700 text-white dark:bg-indigo-700 dark:hover:bg-indigo-800">
       Login
     </button>
   </div>
@@ -128,7 +154,7 @@ const handleSubmit = async () => {
 
 <style scoped>
 .login-form {
-  max-width: 400px;
+  max-width: 8px;
   margin: auto;
 }
 </style>
