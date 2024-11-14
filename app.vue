@@ -25,7 +25,7 @@
           </div>
   
           <UFormGroup label="Nomor SEP" name="sep">
-            <UInput v-model="keywords" placeholder="nomor sep pasien" icon="i-tabler-sparkles" autofocus
+            <UInput v-model="magickKeywords" placeholder="nomor sep pasien" icon="i-tabler-sparkles" autofocus
               autocomplete="off" />
           </UFormGroup>
   
@@ -45,7 +45,7 @@
             <div class="space-y-8">
               <div class="flex flex-col gap-3">
                 <ULink v-for="item in (data as any)?.data" :key="item.no_sep" class="text-left"
-                  :to="`/klaim/${item.no_sep}`" @click="keywords = ''; isOpen = false">
+                  :to="`/klaim/${item.no_sep}`" @click="magickKeywords = ''; isOpen = false">
                   <div
                     class="p-4 rounded-xl border bg-gray-50 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden">
                     <div class="flex items-top justify-start gap-3">
@@ -94,7 +94,7 @@ const config = useRuntimeConfig()
 const currentPage = ref(1)
 const router = useRouter()
 const isOpen = ref(false)
-const keywords = ref('')
+const magickKeywords = ref('')
 
 // get url
 const url = useRoute()
@@ -111,7 +111,7 @@ router.afterEach((to, from) => {
 const { data, error, refresh, status } = await useAsyncData(
   'sep/search',
   useDebounceFn(() => {
-    if (keywords.value.trim() !== '') {
+    if (magickKeywords.value.trim() !== '') {
       return $fetch(`${config.public.API_V2_URL}/sep/search`, {
         method: 'POST',
         headers: {
@@ -120,14 +120,14 @@ const { data, error, refresh, status } = await useAsyncData(
           ContentType: 'application/json'
         },
         body: JSON.stringify({
-          search: { value: keywords.value }
+          search: { value: magickKeywords.value }
         }),
         query: { page: currentPage.value, limit: 4 }
       })
     }
     return null
   }, 1300),
-  { immediate: true, watch: [keywords, currentPage] }
+  { immediate: true, watch: [magickKeywords, currentPage] }
 );
 
 const parseDate = (date: string) => {
@@ -151,7 +151,4 @@ const dateToAge = (date: string) => {
 
   return age
 }
-
-// TODO : GET CPPT
-
 </script>
