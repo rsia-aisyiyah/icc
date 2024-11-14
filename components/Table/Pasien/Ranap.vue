@@ -28,8 +28,7 @@
 
       <!-- tanggal masuk - keluar -->
       <UPopover :popper="{ placement: 'bottom-start' }">
-        <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'"
-          :color="masukKeluar == '-' ? 'gray' : 'primary'">
+        <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
           <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
           <span v-else-if="typeof date === 'object'">
             {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}

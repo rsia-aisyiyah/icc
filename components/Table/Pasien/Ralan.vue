@@ -93,7 +93,7 @@ const openNewTab = (url: string) => {
             icon: 'i-tabler-pig-money',
             disabled: !row?.pasien?.no_rkm_medis,
             click: () => {
-              openNewTab(buildUrl(row.pasien.no_rkm_medis));
+              openNewTab(buildUrl(row.pasien?.no_rkm_medis));
             }
           }, {
             // berkas
@@ -278,10 +278,8 @@ const openNewTab = (url: string) => {
 
         <UTooltip>
           <div class="flex gap-1">
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar
-              }}</span>
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur
-              }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur }}</span>
           </div>
 
           <template #text>
@@ -325,9 +323,9 @@ const openNewTab = (url: string) => {
   </USlideover>
 
   <!-- Modal Klaim Feedback -->
-  <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
   <!-- Modal Loading -->
-  <ModalLoading v-model:isOpen="openModalLoading" />
   <!-- Modal CPPT -->
+  <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
+  <ModalLoading v-model:isOpen="openModalLoading" />
   <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ralan"/>
 </template>
