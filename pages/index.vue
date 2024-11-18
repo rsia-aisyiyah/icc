@@ -136,11 +136,9 @@ const getPercentage = (num: number, denum: number): string => {
             <div class="flex flex-row items-center justify-between">
               <h1 class="text-xl font-semibold">{{ key }}</h1>
               <div class="flex gap-3">
-                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh"
-                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
                 <UButton variant="solid" icon="i-tabler-cloud-download"
-                  @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)"
-                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                  @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
               </div>
             </div>
           </template>
@@ -201,7 +199,7 @@ const getPercentage = (num: number, denum: number): string => {
                       </div>
 
                       <!-- percentage -->
-                      <div class="text-base duration-300 transition-colors ease-in-out tracking-wide font-semibold" :class="`text-${checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'up' ? 'green' : checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'down' ? 'red' : 'gray'}-500`">
+                      <div class="text-base duration-300 transition-colors ease-in-out tracking-wide font-semibold" :class="`text-${checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'up' ? 'green' : checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'down' ? 'red' : 'gray'}-500 ${checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'up' ? 'group-hover:text-white' : ''}`">
                         {{ getPercentage((item as any).total_sep, (item as any).total_sep_last_month) }}%
                       </div>
                     </div>
