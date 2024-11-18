@@ -101,9 +101,14 @@ const checkUp = (num: number, denum: number) => {
   }
 }
 
-const getPercentage = (num: number, denum: number) => {
-  return ((num / denum) * 100).toFixed(1);
-}
+const getPercentage = (num: number, denum: number): string => {
+  if (denum === 0) {
+    return "N/A"; // Menghindari pembagian dengan nol
+  }
+
+  const percentageChange = ((num - denum) / denum) * 100;
+  return `${percentageChange.toFixed(1)}%`;
+};
 </script>
 
 <template>
