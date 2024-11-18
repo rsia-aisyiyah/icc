@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'nuxt/app'
 import { z } from 'zod'
+import type { FormSubmitEvent } from '#ui/types'
 
+
+const toast = useToast()
+const router = useRouter()
 const config = useRuntimeConfig()
+const tokenStore = useAccessTokenStore()
 
 // Define Zod schema for form validation
 const schema = z.object({
@@ -11,48 +14,23 @@ const schema = z.object({
   password: z.string().min(1, { message: 'Password is required' })
 })
 
+type Schema = z.output<typeof schema>
+
 // Reactive form state
-const formData = ref({
-  username: '',
-  password: ''
+const state = reactive({
+  username: undefined,
+  password: undefined
 })
 
-// Validation errors
-const errors = ref<{ [key: string]: string | null }>({
-  username: null,
-  password: null
-})
 
-onMounted(() => {
-  formData.value.username = config.public.TEST_USERNAME || ''
-  formData.value.password = config.public.TEST_PASSWORD || ''
-})
-
-const validateForm = () => {
-  const result = schema.safeParse(formData.value)
-  if (result.success) {
-    errors.value = { username: null, password: null }
-    return true
-  } else {
-    result.error.errors.forEach(error => {
-      errors.value[error.path[0]] = error.message
-    })
-    return false
-  }
-}
-
-const handleSubmit = async () => {
-  const toast = useToast()
-  const router = useRouter()
-  const tokenStore = useAccessTokenStore()
-
-  if (!validateForm()) return
-
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  console.log('Form submitted:', event);
+  
   try {
     const response = await fetch(`${config.public.API_V2_URL}/user/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData.value)
+      body: JSON.stringify(state)
     })
     const data = await response.json()
 
@@ -93,72 +71,45 @@ const handleSubmit = async () => {
 
     <hr class="mb-6 dark:border-gray-700 border-gray-400" />
 
-    <div class="space-y-4 mb-10">
-      <!-- Username Field -->
-      <UFormGroup label="Username (NIK)" 
-        v-model="formData.username" 
-        v-slot="{ error }"
-        :ui="{label: { base: 'block font-medium font-bold text-indigo-800' }}"
-        :error="!formData.username && 'Username is required'"
-      >
-        <UInput id="username" 
-          v-model="formData.username" 
-          placeholder="username (nik)" 
-          autocomplete="off" 
-          size="lg"
-          icon="i-tabler-user" 
-          :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined"
-          :ui="{color: {
-            white: {
-              outline: 'shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
-            },
-            gray: {
-              outline: 'shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
-            }
-          },}"
-          required 
-        />
-      </UFormGroup>
+    <div class="mb-2">
+      <UForm :schema="schema" :state="state" @submit="onSubmit">
 
-      <!-- Password Field -->
-      <UFormGroup label="Password" 
-        v-model="formData.password" 
-        v-slot="{ error }"
-        :ui="{label: { base: 'block font-medium font-bold text-indigo-800' }}"
-        :error="!formData.password && 'Password is required'"
-      >
+        <div class="space-y-4">
+          <!-- Username Field -->
+          <UFormGroup label="Username (NIK)" name="username" :ui="{label: { base: 'block font-medium font-bold text-indigo-800' }}" >
+            <UInput v-model="state.username" placeholder="username (nik)" autocomplete="off"  size="lg" icon="i-tabler-user" 
+              :ui="{color: {
+                white: {
+                  outline: 'shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+                },
+                gray: {
+                  outline: 'shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+                }
+              }}" 
+            />
+          </UFormGroup>
+    
+          <!-- Password Field -->
+          <UFormGroup label="Password" name="password" :ui="{label: { base: 'block font-medium font-bold text-indigo-800' }}" >
+            <UInput v-model="state.password" placeholder="password" autocomplete="off"  size="lg" type="password" icon="i-tabler-lock"
+              :ui="{color: {
+                white: {
+                  outline: 'shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+                },
+                gray: {
+                  outline: 'shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
+                }
+              },}" 
+            />
+          </UFormGroup>
+        </div>
 
-        <UInput id="password" 
-          v-model="formData.password" 
-          placeholder="password" 
-          autocomplete="off" 
-          size="lg"
-          type="password" icon="i-tabler-lock"
-          :trailing-icon="error ? 'i-heroicons-exclamation-triangle-20-solid' : undefined" 
-          :ui="{color: {
-            white: {
-              outline: 'shadow-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
-            },
-            gray: {
-              outline: 'shadow-sm bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-{color}-500 dark:focus:ring-{color}-400'
-            }
-          },}"
-          required 
-        />
-      </UFormGroup>
+        <!-- Submit Button -->
+        <UButton type="submit" block color="indigo" size="lg" class="mt-10">
+          Login
+        </UButton>
+      </UForm>
     </div>
 
-    <!-- Submit Button -->
-    <button @click.prevent="handleSubmit" type="button"
-      class="btn btn-indigo w-full py-2 mt-2 text-lg font-semibold rounded-md bg-indigo-800 hover:bg-indigo-700 text-white dark:bg-indigo-700 dark:hover:bg-indigo-800">
-      Login
-    </button>
   </div>
 </template>
-
-<style scoped>
-.login-form {
-  max-width: 8px;
-  margin: auto;
-}
-</style>
