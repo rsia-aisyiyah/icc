@@ -9,14 +9,14 @@
 
   <!-- absolut on bottom right -->
   <div v-if="!url.path.includes('/auth')" class="fixed bottom-0 left-0 p-4">
-    <UButton color="sky" @click="isOpen = true" class="w-10 h-10 border-2 border-white shadow-xl rounded-full flex items-center justify-center hover:scale-125 transition-transform">
+    <UButton color="sky" @click="magickModalOpen = true" class="w-10 h-10 border-2 border-white shadow-xl rounded-full flex items-center justify-center hover:scale-125 transition-transform">
       <UIcon class="text-white h-16 w-16" name="i-tabler-sparkles" />
     </UButton>
   </div>
 
   <!-- modal -->
   <template v-if="!url.path.includes('/auth')">
-    <UModal v-model="isOpen">
+    <UModal v-model="magickModalOpen">
       <UCard>
         <div class="space-y-5">
           <div>
@@ -25,29 +25,26 @@
           </div>
   
           <UFormGroup label="Nomor SEP" name="sep">
-            <UInput v-model="magickKeywords" placeholder="nomor sep pasien" icon="i-tabler-sparkles" autofocus
-              autocomplete="off" />
+            <UInput v-model="magickKeywords" placeholder="nomor sep pasien" icon="i-tabler-sparkles" autofocus autocomplete="off" />
           </UFormGroup>
   
-          <template v-if="status == 'pending'">
+          <template v-if="magickStatus == 'pending'">
             <div class="flex justify-center py-5">
               <UIcon name="i-tabler-loader" class="text-gray-500 animate-spin h-8 w-8" />
             </div>
           </template>
   
-          <template v-else-if="status == 'error'">
+          <template v-else-if="magickStatus == 'error'">
             <div class="flex justify-center py-5">
               <UIcon name="i-tabler-alert-triangle" class="text-red-500 h-8 w-8" />
             </div>
           </template>
-  
-          <template v-else-if="status == 'success'">
+
+          <template v-else-if="magickStatus == 'success'">
             <div class="space-y-8">
               <div class="flex flex-col gap-3">
-                <ULink v-for="item in (data as any)?.data" :key="item.no_sep" class="text-left"
-                  :to="`/klaim/${item.no_sep}`" @click="magickKeywords = ''; isOpen = false">
-                  <div
-                    class="p-4 rounded-xl border bg-gray-50 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden">
+                <ULink v-for="item in (magick as any)?.data" :key="item.no_sep" class="text-left" :to="`/klaim/${item.no_sep}`" @click="magickKeywords = ''; magickModalOpen = false">
+                  <div class="p-4 rounded-xl border bg-gray-50 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden">
                     <div class="flex items-top justify-start gap-3">
                       <UIcon class="h-6 w-6" :name="item.jnspelayanan == 1 ? 'i-tabler-bed' : 'i-tabler-walk'" />
                       <div class="w-full">
@@ -73,8 +70,8 @@
                 </ULink>
               </div>
   
-              <div class="flex gap-5 items-center justify-center" v-if="((data as any)?.meta as any)?.total > 4">
-                <UPagination v-model="currentPage" :page-count="((data as any)?.meta as any)?.per_page" :total="((data as any)?.meta as any)?.total" />
+              <div class="flex gap-5 items-center justify-center" v-if="((magick as any)?.meta as any)?.total > 4">
+                <UPagination v-model="magickCurrentPage" :page-count="((magick as any)?.meta as any)?.per_page" :total="((magick as any)?.meta as any)?.total" />
               </div>
             </div>
           </template>
@@ -89,18 +86,18 @@ import { useRouter } from 'vue-router'
 import { logEvent } from '~/utils/firebase'
 import { useDebounceFn } from '@vueuse/core'
 
-const token = useAccessTokenStore()
-const config = useRuntimeConfig()
-const currentPage = ref(1)
-const router = useRouter()
-const isOpen = ref(false)
+const magickToken = useAccessTokenStore()
+const magickConfig = useRuntimeConfig()
+const magickModalOpen = ref(false)
+const magickRouter = useRouter()
+const magickCurrentPage = ref(1)
 const magickKeywords = ref('')
 
 // get url
 const url = useRoute()
 
 // Log page views
-router.afterEach((to, from) => {
+magickRouter.afterEach((to, from) => {
   logEvent('page_view', {
     page_path: to.fullPath,
     page_title: document.title,
@@ -108,26 +105,26 @@ router.afterEach((to, from) => {
 })
 
 // Trigger the API request only when `keywords` is not empty
-const { data, error, refresh, status } = await useAsyncData(
-  'sep/search',
+const { data: magick, error: magickError, refresh: magickRefresh, status: magickStatus } = await useAsyncData(
+  'magick-sep/search',
   useDebounceFn(() => {
     if (magickKeywords.value.trim() !== '') {
-      return $fetch(`${config.public.API_V2_URL}/sep/search`, {
+      return $fetch(`${magickConfig.public.API_V2_URL}/sep/search`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token.accessToken}`,
+          Authorization: `Bearer ${magickToken.accessToken}`,
           Accept: 'application/json',
           ContentType: 'application/json'
         },
         body: JSON.stringify({
           search: { value: magickKeywords.value }
         }),
-        query: { page: currentPage.value, limit: 4 }
+        query: { page: magickCurrentPage.value, limit: 4 }
       })
     }
     return null
   }, 1300),
-  { immediate: true, watch: [magickKeywords, currentPage] }
+  { immediate: true, watch: [magickKeywords, magickCurrentPage] }
 );
 
 const parseDate = (date: string) => {
