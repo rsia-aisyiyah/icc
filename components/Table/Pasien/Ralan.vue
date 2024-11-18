@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { determineStatus } from '~/common/helpers/statusHelper';
+import { getPercentage, getDifference } from '~/utils/costCompare'
 
 const config = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
@@ -134,31 +135,29 @@ const openNewTab = (url: string) => {
             }
           }]
         ]">
-          <UButton
-            size="xs"
-            :disable="false"
-            :variant="!row?.no_sep ? 'solid' : 'soft'"
-            :color="!row?.no_sep ? 'gray' : 'sky'"
-            trailing-icon="i-heroicons-chevron-down-20-solid"
-          />
+          <UButton size="xs" :disable="false" :variant="!row?.no_sep ? 'solid' : 'soft'"
+            :color="!row?.no_sep ? 'gray' : 'sky'" trailing-icon="i-heroicons-chevron-down-20-solid" />
         </UDropdown>
       </div>
     </template>
 
     <template #real_cost-header="{ column }">
-      <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+      <span
+        class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
 
     <template #mining_tarif-header="{ column }">
-      <span class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+      <span
+        class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
 
     <template #groupping_cost-header="{ column }">
-      <span class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+      <span
+        class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
@@ -167,45 +166,104 @@ const openNewTab = (url: string) => {
     <!-- realcost data -->
     <template #real_cost-data="{ row }">
       <template v-if="props.costStatus == 'success'">
-        <span class="font-semibold text-teal-500">{{ new Intl.NumberFormat('id-ID', {
-          style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-        }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</span>
+        <div class="flex flex-row gap-2 items-center justify-start">
+          <template v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 100">
+            <UPopover mode="hover">
+              <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
+              <template #panel>
+                <div class="p-3">
+                  <p class="font-base"><span class="font-bold">Lebih tinggi</span></p>
+                  <p class="font-base">
+                    Real cost melebihi batas nominal groupping.
+                  </p>
+                  <!-- selisih -->
+                  <div class="flex flex-row gap-1 items-center justify-start mt-2">
+                    <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
+                    <p class="font-semibold text-red-400">
+                     {{
+                        new Intl.NumberFormat('id-ID', {
+                          style: 'currency',
+                          currency: 'IDR',
+                          minimumFractionDigits: 0
+                        }).format((props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0) - (props.realCostData?.[row.no_rawat]?.total ?? 0))
+                      }}
+                    </p>
+                </div>
+                </div>
+              </template>
+            </UPopover>
+          </template>
+
+          <template v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 80 && getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0)  < 100">
+            <UPopover mode="hover">
+              <UIcon name="i-tabler-triangle" class="text-amber-400 h-5 w-5" />
+              <template #panel>
+                <div class="p-3">
+                  <p class="font-base"><span class="font-bold">Mendekati</span></p>
+                  <p class="font-base">
+                    Real cost mendekati batas nominal groupping.
+                  </p>
+                </div>
+              </template>
+            </UPopover>
+          </template>
+
+          <template
+            v-else-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) <= 80">
+            <UPopover mode="hover">
+              <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
+              <template #panel>
+                <div class="p-3">
+                  <p class="font-base">
+                    <span class="font-bold">Aman</span>
+                  </p>
+                  <p class="font-base">
+                    Masih dalam batas nominal groupping.
+                  </p>
+                </div>
+              </template>
+            </UPopover>
+          </template>
+
+          <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
+            style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+          }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</p>
+        </div>
       </template>
       <template v-else-if="props.costStatus == 'loading'">
         <div class="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded-md"></div>
       </template>
       <template v-else-if="props.costStatus == 'error'">
-        <span class="text-red-500">Failed to fetch</span>
+        <p class="text-red-500">Failed to fetch</p>
       </template>
       <template v-else>
-        <span class="text-gray-500">-</span>
+        <p class="text-gray-500">-</p>
       </template>
     </template>
 
     <template #groupping_cost-data="{ row }">
       <template v-if="props.costStatus == 'success'">
-        <span class="font-semibold text-indigo-500">{{
+        <p class="font-semibold text-indigo-500">{{
           new Intl.NumberFormat('id-ID', {
             style: 'currency', currency: 'IDR', minimumFractionDigits: 0
           }).format(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0)
-        }}</span>
+        }}</p>
       </template>
       <template v-else-if="props.costStatus == 'loading'">
         <div class="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded-md"></div>
       </template>
       <template v-else-if="props.costStatus == 'error'">
-        <span class="text-red-500">Failed to fetch</span>
+        <p class="text-red-500">Failed to fetch</p>
       </template>
       <template v-else>
-        <span class="text-gray-500">-</span>
+        <p class="text-gray-500">-</p>
       </template>
     </template>
 
     <template #status_klaim-data="{ row }">
       <div class="flex flex-row gap-2 items-start">
         <template v-if="row.status_klaim">
-          <UButton 
-            @click="setSepRawat(row); openModalKlaimFeedback = true"
+          <UButton @click="setSepRawat(row); openModalKlaimFeedback = true"
             :color="(determineStatus(row.status_klaim?.status)?.color as any)"
             :variant="(determineStatus(row.status_klaim?.status)?.variant as any)"
             :icon="(determineStatus(row.status_klaim?.status)?.icon as any)" size="2xs" class="uppercase tracking-wide">
@@ -213,7 +271,8 @@ const openNewTab = (url: string) => {
           </UButton>
         </template>
         <template v-else>
-          <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash" @click="setSepRawat(row); openModalKlaimFeedback = true">
+          <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash"
+            @click="setSepRawat(row); openModalKlaimFeedback = true">
             Belum Proses
           </UButton>
         </template>
@@ -278,8 +337,10 @@ const openNewTab = (url: string) => {
 
         <UTooltip>
           <div class="flex gap-1">
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar }}</span>
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar
+              }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur
+              }}</span>
           </div>
 
           <template #text>
@@ -327,5 +388,5 @@ const openNewTab = (url: string) => {
   <!-- Modal CPPT -->
   <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" />
   <ModalLoading v-model:isOpen="openModalLoading" />
-  <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ralan"/>
+  <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ralan" />
 </template>

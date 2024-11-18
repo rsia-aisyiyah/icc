@@ -230,16 +230,72 @@
 
       <!-- ---------- COST DATA -->
       <template #real_cost-data="{ row }">
-        <span class="text-teal-500 font-semibold">
-          <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
-          <span v-if="!pendingFetchCost">
-            {{ rc?.[row.no_rawat] ? new Intl.NumberFormat('id-ID', {
-              style: 'currency',
-              currency: 'IDR',
-              maximumFractionDigits: 0
-            }).format(rc?.[row.no_rawat].total ?? 0) : '-' }}
-          </span>
-        </span>
+        <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
+        <template v-if="!pendingFetchCost">
+          <div class="flex flex-row gap-2 items-center justify-start">
+            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) >= 100">
+              <UPopover mode="hover">
+                <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
+                <template #panel>
+                  <div class="p-3">
+                    <p class="font-base"><span class="font-bold">Lebih tinggi</span></p>
+                    <p class="font-base">
+                      Real cost melebihi batas nominal groupping.
+                    </p>
+                    <!-- selisih -->
+                    <div class="flex flex-row gap-1 items-center justify-start mt-2">
+                      <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
+                      <p class="font-semibold text-red-400">
+                      {{
+                          new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                          }).format((gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0) - (rc?.[row.no_rawat].total ?? 0))
+                        }}
+                      </p>
+                  </div>
+                  </div>
+                </template>
+              </UPopover>
+            </template>
+
+            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) >= 80 && getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0)  < 100">
+              <UPopover mode="hover">
+                <UIcon name="i-tabler-triangle" class="text-amber-400 h-5 w-5" />
+                <template #panel>
+                  <div class="p-3">
+                    <p class="font-base"><span class="font-bold">Mendekati</span></p>
+                    <p class="font-base">
+                      Real cost mendekati batas nominal groupping.
+                    </p>
+                  </div>
+                </template>
+              </UPopover>
+            </template>
+
+            <template
+              v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) <= 80">
+              <UPopover mode="hover">
+                <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
+                <template #panel>
+                  <div class="p-3">
+                    <p class="font-base">
+                      <span class="font-bold">Aman</span>
+                    </p>
+                    <p class="font-base">
+                      Masih dalam batas nominal groupping.
+                    </p>
+                  </div>
+                </template>
+              </UPopover>
+            </template>
+
+            <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
+              style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+            }).format(rc?.[row.no_rawat].total ?? 0) }}</p>
+          </div>
+        </template>
       </template>
 
       <template #mining_tarif-data="{ row }">
@@ -249,7 +305,7 @@
       </template>
 
       <template #groupping_tarif-data="{ row }">
-        <span class="text-violet-400">
+        <span class="font-semibold leading-none text-violet-400">
           <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
           <span v-if="!pendingFetchCost">
             <span v-if="row.sep">
