@@ -196,7 +196,7 @@ const getPercentage = (num: number, denum: number) => {
                       </div>
 
                       <!-- percentage -->
-                      <div class="text-base text-primary group-hover:text-white duration-300 transition-colors ease-in-out tracking-wide font-semibold">
+                      <div class="text-base duration-300 transition-colors ease-in-out tracking-wide font-semibold" :class="`text-${checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'up' ? 'green' : checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'down' ? 'red' : 'gray'}-500`">
                         {{ getPercentage((item as any).total_sep, (item as any).total_sep_last_month) }}%
                       </div>
                     </div>
