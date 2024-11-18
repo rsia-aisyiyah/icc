@@ -23,8 +23,6 @@ export default defineNuxtConfig({
       TZ: process.env.NUXT_PUBLIC_TZ,
       API_URL: process.env.NUXT_PUBLIC_API_BASE_URL,
       API_V2_URL: process.env.NUXT_PUBLIC_API_V2_URL,
-      TEST_USERNAME: process.env.NUXT_PUBLIC_TEST_USER_USERNAME,
-      TEST_PASSWORD: process.env.NUXT_PUBLIC_TEST_USER_PASSWORD,
 
       firebase: {
         apiKey: process.env.NUXT_FIREBASE_API_KEY,
