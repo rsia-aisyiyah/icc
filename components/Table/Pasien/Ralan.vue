@@ -74,7 +74,7 @@ const openNewTab = (url: string) => {
     { label: 'No. SEP', key: 'no_sep' },
     // { label: 'Pasien', key: 'pasien?.nm_pasien' },
     { label: 'Status', key: 'status_klaim' },
-    { label: 'Diagnosa', key: 'diagawal' },
+    { label: 'Diag Awal', key: 'diagawal' },
     { label: 'DPJP', key: 'nmdpdjp' },
     { label: 'Tgl Periksa', key: 'reg_periksa?.tgl_registrasi' },
     { label: 'Real Cost', key: 'real_cost' },
