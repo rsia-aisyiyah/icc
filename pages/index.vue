@@ -106,8 +106,8 @@ const getPercentage = (num: number, denum: number): string => {
     return "N/A"; // Menghindari pembagian dengan nol
   }
 
-  const percentageChange = ((num - denum) / denum) * 100;
-  return `${percentageChange.toFixed(1)}%`;
+  const percentageChange = Math.abs(((num - denum) / denum) * 100);
+  return `${percentageChange.toFixed(1)}`;
 };
 </script>
 
