@@ -90,6 +90,20 @@ const toBerkasTerkirimData = (key: string) => {
 const downloadBatch = (jnspelayanan: number) => {
   window.open(`${config.public.API_V2_URL}/sep/download/${month.value}/${jnspelayanan}?token=${token.accessToken}`, '_blank', 'noopener,noreferrer');
 }
+
+const checkUp = (num: number, denum: number) => {
+  if (num > denum) {
+    return 'up';
+  } else if (num < denum) {
+    return 'down';
+  } else {
+    return 'same';
+  }
+}
+
+const getPercentage = (num: number, denum: number) => {
+  return ((num / denum) * 100).toFixed(1);
+}
 </script>
 
 <template>
@@ -117,8 +131,11 @@ const downloadBatch = (jnspelayanan: number) => {
             <div class="flex flex-row items-center justify-between">
               <h1 class="text-xl font-semibold">{{ key }}</h1>
               <div class="flex gap-3">
-                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
-                <UButton variant="solid" icon="i-tabler-cloud-download" @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)" :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="soft" icon="i-tabler-refresh" @click="refresh"
+                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
+                <UButton variant="solid" icon="i-tabler-cloud-download"
+                  @click="downloadBatch(key.toString() == 'Rawat Inap' ? 1 : 2)"
+                  :color="key.toString() == 'Rawat Inap' ? 'indigo' : 'pink'" />
               </div>
             </div>
           </template>
@@ -139,22 +156,49 @@ const downloadBatch = (jnspelayanan: number) => {
               </template>
 
               <template v-if="status == 'success'">
-                <div class="flex flex-row-reverse items-center justify-between w-full text-right">
-                  <div>
-                    <div
-                      class="text-4xl font-semibold text-primary group-hover:text-white duration-300 transition-colors ease-in-out">
-                      {{ (item as any).total_sep ?? 0 }}
+                <div class="w-full">
+                  <div class="flex flex-row-reverse items-center justify-between w-full text-right">
+                    <div>
+                      <div
+                        class="text-4xl font-semibold text-primary group-hover:text-white duration-300 transition-colors ease-in-out">
+                        {{ (item as any).total_sep ?? 0 }}
+                      </div>
                     </div>
+
                     <div
-                      class="text-base capitalize dark:text-gray-400 text-primary group-hover:text-white duration-400 transition-colors ease-in-out">
-                      Total SEP</div>
+                      class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-primary-400 group-hover:bg-primary-600 duration-500 transition-colors ease-in-out relative">
+                      <UIcon name="i-tabler-medical-cross" class="text-white h-7 w-7 leading-none m-0 p-0" />
+                      <div
+                        class="absolute h-10 w-10 bg-primary-400 dark:bg-primary-700 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                      </div>
+                    </div>
                   </div>
 
-                  <div
-                    class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-primary-400 group-hover:bg-primary-600 duration-500 transition-colors ease-in-out relative">
-                    <UIcon name="i-tabler-medical-cross" class="text-white h-7 w-7 leading-none m-0 p-0" />
-                    <div
-                      class="absolute h-10 w-10 bg-primary-400 dark:bg-primary-700 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                  <!-- sep last month -->
+                  <div class="flex flex-row items-center justify-between w-full mt-4">
+                    <div class="text-base text-primary group-hover:text-white duration-300 transition-colors ease-in-out font-semibold">
+                      Total Sep
+                    </div>
+
+                    <div class="flex gap-1 items-center justify-start">
+                      <div class="flex items-center justify-center">
+                        <template v-if="checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'up'">
+                          <UIcon name="i-tabler-arrow-up" class="text-green-500 h-5 w-5 group-hover:text-white duration-300 transition-colors ease-in-out" />
+                        </template>
+
+                        <template v-if="checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'down'">
+                          <UIcon name="i-tabler-arrow-down" class="text-red-500 h-5 w-5" />
+                        </template>
+
+                        <template v-if="checkUp((item as any).total_sep, (item as any).total_sep_last_month) == 'same'">
+                          <UIcon name="i-tabler-arrow-right" class="text-gray-500 h-5 w-5" />
+                        </template>
+                      </div>
+
+                      <!-- percentage -->
+                      <div class="text-base text-primary group-hover:text-white duration-300 transition-colors ease-in-out tracking-wide font-semibold">
+                        {{ getPercentage((item as any).total_sep, (item as any).total_sep_last_month) }}%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -162,11 +206,10 @@ const downloadBatch = (jnspelayanan: number) => {
             </UCard>
 
             <button @click="toBerkasTerkirimData(key.toString())">
-              <UCard
-                class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden">
+              <UCard class="rounded-xl bg-indigo-100/25 dark:bg-indigo-500/25 group hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 overflow-hidden h-full">
                 <template v-if="status == 'pending'">
                   <!-- skeleton -->
-                  <div class="flex flex-row items-center justify-between w-full animate-pulse">
+                  <div class="h-full flex flex-row items-center justify-between w-full animate-pulse">
                     <div>
                       <div class="h-11 dark:bg-gray-700 bg-gray-200 rounded w-[100px]"></div>
                       <div class="h-4  mt-1 dark:bg-gray-700 bg-gray-200 rounded w-[180px]"></div>
@@ -177,22 +220,28 @@ const downloadBatch = (jnspelayanan: number) => {
                 </template>
 
                 <template v-if="status == 'success'">
-                  <div class="flex flex-row-reverse items-center justify-between w-full text-right">
-                    <div>
-                      <div
-                        class="text-4xl font-semibold text-indigo-400 group-hover:text-white duration-300 transition-colors ease-in-out">
-                        {{ (item as any).total_berkas_terkirim ?? 0 }}
+                  <div class="w-full">
+                    <div class="h-full flex flex-row-reverse items-center justify-between w-full text-right">
+                      <div>
+                        <div class="text-4xl font-semibold text-indigo-400 group-hover:text-white duration-300 transition-colors ease-in-out">
+                          {{ (item as any).total_berkas_terkirim ?? 0 }}
+                        </div>
                       </div>
-                      <div
-                        class="text-base capitalize dark:text-gray-400 text-indigo-400 group-hover:text-white duration-400 transition-colors ease-in-out">
-                        Total Berkas Terkirim</div>
+  
+                      <div class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-indigo-400 group-hover:bg-indigo-600 duration-500 transition-colors ease-in-out relative">
+                        <UIcon name="i-tabler-send" class="text-white h-7 w-7 leading-none m-0 p-0" />
+                        <div class="absolute h-10 w-10 bg-indigo-400 dark:bg-indigo-700 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                        </div>
+                      </div>
                     </div>
 
-                    <div
-                      class="leading-none rounded-full h-14 w-14 flex items-center justify-center bg-indigo-400 group-hover:bg-indigo-600 duration-500 transition-colors ease-in-out relative">
-                      <UIcon name="i-tabler-send" class="text-white h-7 w-7 leading-none m-0 p-0" />
-                      <div
-                        class="absolute h-10 w-10 bg-indigo-400 dark:bg-indigo-700 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full -z-10 group-hover:scale-[30] transition-all duration-500 ease-in-out">
+                    <div class="flex flex-row items-center justify-between w-full mt-4">
+                      <div class="text-base text-indigo-400 group-hover:text-white duration-300 transition-colors ease-in-out font-semibold">
+                        Total Berkas Terkirim
+                      </div>
+
+                      <div class="flex gap-1 items-center justify-start">
+                        <!-- percentage with icon -->
                       </div>
                     </div>
                   </div>
@@ -231,10 +280,8 @@ const downloadBatch = (jnspelayanan: number) => {
                           <div class="text-base capitalize dark:text-gray-400">{{ subKey }}</div>
                         </div>
 
-                        <div
-                          :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey.toString())?.color ?? 'primary']}`">
-                          <UIcon :name="determineStatus(subKey.toString())?.icon ?? `i-tabler-alert-circle`"
-                            :class="`text-${determineStatus(subKey.toString())?.color}-500 h-7 w-7 leading-none m-0 p-0`" />
+                        <div :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey.toString())?.color ?? 'primary']}`">
+                          <UIcon :name="determineStatus(subKey.toString())?.icon ?? `i-tabler-alert-circle`" :class="`text-${determineStatus(subKey.toString())?.color}-500 h-7 w-7 leading-none m-0 p-0`" />
                         </div>
                       </div>
                     </template>
