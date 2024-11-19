@@ -34,7 +34,7 @@
       <!------------ Action ------------>
       <template #action-data="{ row }">
         <div class="flex gap-1.5">
-          <UButton square :to="`/klaim/${row.no_sep}`" :disabled="!row.no_rawat" icon="i-tabler-edit-circle"
+          <UButton square :to="`/klaim/${row.no_sep}`" target="_blank" :disabled="!row.no_rawat" icon="i-tabler-edit-circle"
             :color="!row.no_rawat ? 'gray' : 'sky'" size="xs" variant="soft">
             Form Klaim
           </UButton>

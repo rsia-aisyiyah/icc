@@ -53,7 +53,7 @@
       <!-- Action -->
       <template #action-data="{ row }">
         <div class="flex gap-1">
-          <UButton :disabled="!row.sep?.no_sep" :to="`/klaim/${row.sep?.no_sep}`" icon="i-tabler-external-link"
+          <UButton :disabled="!row.sep?.no_sep" :to="`/klaim/${row.sep?.no_sep}`" target="_blank" icon="i-tabler-external-link"
             :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'" size="xs">
             Form Klaim
           </UButton>

@@ -83,7 +83,7 @@ const openNewTab = (url: string) => {
   ]">
     <template #action-data="{ row }">
       <div class="flex items-start gap-1">
-        <UButton :disabled="!row?.no_sep" :to="`/klaim/${row?.no_sep}`" icon="i-tabler-external-link"
+        <UButton :disabled="!row?.no_sep" :to="`/klaim/${row?.no_sep}`" target="_blank" icon="i-tabler-external-link"
           :variant="!row?.no_sep ? 'solid' : 'soft'" :color="!row?.no_sep ? 'gray' : 'sky'" size="xs">
           Form Klaim
         </UButton>
