@@ -24,7 +24,8 @@ definePageMeta({
 const messages = [
   'Logging you out, please wait...',
   'Almost there, please be patient...',
-  'Just a moment, we are finishing up...'
+  'Just a moment, we are finishing up...',
+  'Thank you for using our services, see you soon!'
 ]
 
 const currentMessage = ref('')
