@@ -1,76 +1,8 @@
-# Nuxt 3 Minimal Starter
+# INACBG's Cost Compare (ICC)
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Deskripsi  
+**INACBG's Cost Compare (ICC)** adalah aplikasi berbasis web yang dirancang untuk mempermudah analisis dan perbandingan biaya INACBG (Indonesia Case-Based Groups).  
 
-## Setup
+Aplikasi ini membantu rumah sakit dan pihak terkait lainnya untuk membuat klaim BPJS sekaligus membandingkan tarif dari klaim BPJS dengan biaya riil (real cost) di rumah sakit. Pengguna dapat memanfaatkan visualisasi data yang interaktif dan informatif untuk analisis yang lebih mendalam.
 
-Make sure to install the dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm run dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-# icc
+---
