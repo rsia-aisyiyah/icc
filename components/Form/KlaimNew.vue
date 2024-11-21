@@ -70,7 +70,7 @@ const state = reactive<FormData>({
   upgrade_class_ind: !!sep?.klsnaik,
   icu_indikator: false,
   executive_class_ind: false,
-  tariff_class: parseInt(`${sep?.klsrawat}`),
+  kelas_rawat: parseInt(`${sep?.klsrawat}`),
   tgl_masuk: new Date(regPeriksa?.tgl_registrasi + ' ' + regPeriksa?.jam_reg),
   tgl_pulang: undefined,
   age: regPeriksa?.umurdaftar,
@@ -213,6 +213,29 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     isLoading.value = false
   }
 
+  if (state.upgrade_class_ind) {
+    // state.upgrade_class_class
+    if (!state.upgrade_class_class) {
+      addToaster('Kelas Pelayanan tidak boleh kosong', 'Kelas Pelayanan tidak boleh kosong', 'red', 'i-heroicons-information-circle')
+      isLoading.value = false
+      return
+    }
+
+    // state.upgrade_class_payor
+    if (!state.upgrade_class_payor) {
+      addToaster('Pembiayaan tidak boleh kosong', 'Pembiayaan tidak boleh kosong', 'red', 'i-heroicons-information-circle')
+      isLoading.value = false
+      return
+    }
+
+    // state.upgrade_class_los
+    if (!state.upgrade_class_los) {
+      addToaster('Lama upgrade kelas tidak boleh kosong', 'Lama upgrade kelas tidak boleh kosong', 'red', 'i-heroicons-information-circle')
+      isLoading.value = false
+      return
+    }
+  }
+
   // map the data and remove the undefined values from data
   const mappedData = prepareKlaimData(event.data)
 
@@ -294,8 +317,8 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
           </div>
 
           <div v-if="state.jenis_rawat == 1">
-            <UFormGroup label="Kelas Hak" name="tariff_class" class="min-w-[250px]">
-              <URadioGroup v-model="state.tariff_class" :loading="optionLoading" value-attribute="value"
+            <UFormGroup label="Kelas Hak" name="kelas_rawat" class="min-w-[250px]">
+              <URadioGroup v-model="state.kelas_rawat" :loading="optionLoading" value-attribute="value"
                 :options="[{ value: 3, label: 'Kelas 3' }, { value: 2, label: 'Kelas 2' }, { value: 1, label: 'Kelas 1' }]"
                 :ui="{ fieldset: 'flex flex-row gap-4' }" disabled />
             </UFormGroup>
@@ -359,7 +382,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
           <UFormGroup name="upgrade_class_class">
             <URadioGroup v-model="state.upgrade_class_class" legend="Kelas Pelayanan" :loading="optionLoading"
               value-attribute="value"
-              :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.tariff_class && state.tariff_class <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.tariff_class && state.tariff_class <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.tariff_class && state.tariff_class <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]"
+              :options="[{ value: 'kelas_3', label: 'Kelas 3', disabled: state.kelas_rawat && state.kelas_rawat <= 3 }, { value: 'kelas_2', label: 'Kelas 2', disabled: state.kelas_rawat && state.kelas_rawat <= 2 }, { value: 'kelas_1', label: 'Kelas 1', disabled: state.kelas_rawat && state.kelas_rawat <= 1 }, { value: 'vip', label: 'Diatas kelas 1' }]"
               :ui="{ fieldset: 'flex flex-row gap-4' }" />
           </UFormGroup>
 

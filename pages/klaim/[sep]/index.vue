@@ -62,8 +62,22 @@
             <p>{{ klaimData?.data?.tarif ? formatRupiah(klaimData?.data?.tarif) : '-' }}</p>
           </div>
         </div>
+
+        <template v-if="(klaimData?.data as any)?.naik_kelas">
+          <UDivider class="my-5" label="Tambahan Biaya" />
+
+          <div class="flex flex-col xl:flex-row justify-between">
+            <div class="font-mono">
+              {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_1) }} - {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_2) }} + ( {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_1) }} x {{ (klaimData?.data as any)?.naik_kelas.presentase }}% )
+            </div>
+            <div class="">
+              = {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_akhir) }}
+            </div>
+          </div>
+        </template>
       </UCard>
     </template>
+
 
   </UContainer>
 
@@ -80,8 +94,8 @@
     </div>
   </USlideover>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import type { ResponseSepData, ResponseTensi, ResponseRegPeriksa, KamarInapResponse, BillingPasienResponse, ResourcePagination } from '~/types';
 
 const route = useRoute();
@@ -215,6 +229,8 @@ if (error.value) {
     timeout: 2000
   })
 }
+
+console.log('klaimData : ', klaimData.value);
 
 const formatRupiah = (value: number): string => {
   return new Intl.NumberFormat('id-ID', {

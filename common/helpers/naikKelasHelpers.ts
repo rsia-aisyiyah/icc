@@ -7,7 +7,7 @@ const setKelas = [
   { code: 5, label: 'Kelas 3', value: "kelas_3" },
   { code: 6, label: 'ICCU', value: "iccu" },
   { code: 7, label: 'ICU', value: "icu" },
-  { code: 8, label: 'Diatas Kelas 1', value: "diatas_kelas_1" },
+  { code: 8, label: 'Diatas Kelas 1', value: "vip" },
 ];
 
 const determineKelas = (kelas: number|string|undefined) => {
