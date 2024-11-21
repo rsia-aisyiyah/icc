@@ -53,15 +53,15 @@
                           </h1>
                           <UBadge size="sm" color="gray">{{ item.nomr }}</UBadge>
                         </div>
-                        <div class="flex flex-col gap-1">
+                        <div class="flex flex-col gap-1.5">
                           <div class="flex gap-1">
                             <UBadge size="sm" color="gray" variant="subtle">{{ parseDate(item.tanggal_lahir) }}</UBadge>
-                            <UBadge size="sm" color="gray" variant="subtle">{{ dateToAge(item.tanggal_lahir) }} Th
-                            </UBadge>
+                            <UBadge size="sm" color="gray" variant="subtle">{{ dateToAge(item.tanggal_lahir) }} Th</UBadge>
                           </div>
                           <div class="flex gap-1">
                             <UBadge size="sm" color="indigo" variant="subtle">{{ item.no_kartu }}</UBadge>
                             <UBadge size="sm" color="primary" variant="subtle">{{ item.no_sep }}</UBadge>
+                            <UBadge size="sm" color="rose" variant="subtle">{{ item.no_rawat }}</UBadge>
                           </div>
                         </div>
                       </div>
