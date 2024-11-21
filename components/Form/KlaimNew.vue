@@ -4,6 +4,7 @@ import { reactive, onMounted } from 'vue'
 import { Sortable } from "sortablejs-vue3"
 import { getTotalTarifRS } from '~/common/helpers/tarifHelper'
 import { FormDataSchema } from '~/common/schema/formData'
+import { useDebounceFn } from '@vueuse/core'
 
 import type { FormSubmitEvent, NotificationColor } from '#ui/types'
 import type { BillingPasien, Diagnosa, KamarInap, Prosedur, RegPeriksa, SepData, TensiData, FormData } from '~/types';
@@ -16,10 +17,12 @@ import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 import { getCaraPulangByLabel } from '~/utils/labelToValue'
 import { determineKelas } from '~/common/helpers/naikKelasHelpers'
+import config from 'v-calendar/dist/types/src/utils/config/index.js'
 
 const toast = useToast()
 const isLoading = ref(false)
 const optionLoading = ref(false)
+const runtimeConfig = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
 const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim } = defineProps<{
   sep?: SepData
@@ -50,10 +53,10 @@ const moveItemInArray = (arr: any[], from: number, to: number) => {
 // Initialize an array to hold the options
 const caraPulangOptions = reactive<{ label: string; value: string }[]>([])
 const jenisTarifOptions = reactive<{ label: string; value: string }[]>([])
-const carabayarOptions = reactive<{ label: string; value: string }[]>([])
-const caraMasukOptions = reactive<{ label: string; value: string }[]>([])
-const dpjpOptions = reactive<{ label: string; value: string }[]>([])
-const cobOptions = reactive<{ label: string; value: string }[]>([])
+const carabayarOptions  = reactive<{ label: string; value: string }[]>([])
+const caraMasukOptions  = reactive<{ label: string; value: string }[]>([])
+// const dpjpOptions       = reactive<{ label: string; value: string }[]>([])
+const cobOptions        = reactive<{ label: string; value: string }[]>([])
 
 // Define the reactive state for the form
 const state = reactive<FormData>({
@@ -79,7 +82,8 @@ const state = reactive<FormData>({
   adl_chronic: undefined,
   // @ts-ignore
   discharge_status: parseInt(`${sep?.jnspelayanan}`) == 1 ? ((await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? null) : 1,
-  nama_dokter: (await getDpjp(regPeriksa?.dokter?.nm_dokter))?.value ?? '',
+  nama_dokter: '',
+  kd_dokter: '',
   kode_tarif: "CS",
   jkn_sitb_checked_ind: false,
   co_insidence_ind_jkn: false,
@@ -124,8 +128,39 @@ const state = reactive<FormData>({
   onset_kontraksi: sep?.chunk?.onset_kontraksi ?? null,
 })
 
+const { data: dpjp, error: dpjpError, refresh: dpjpRefresh, status: dpjpStatus } = await useAsyncData(
+    `${runtimeConfig.public.API_V2_URL}/dokter/search`,
+    useDebounceFn(() => $fetch(`${runtimeConfig.public.API_V2_URL}/dokter/search`, {
+      method: 'POST',
+      query: { limit: 100 },
+      headers: {
+        'Authorization': `Bearer ${tokenStore?.accessToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+      filters: [
+        { field: 'status', operator: '=', value: "1" }
+      ],
+      })
+    }), 1000)
+);
+
+watch(() => [state.kd_dokter, state.nama_dokter], ([kd_dokter, nama_dokter]) => {
+  if (kd_dokter && (dpjp?.value as any)?.data) {
+    const dokter = (dpjp?.value as any)?.data.find((d: any) => d.kd_dokter === kd_dokter)
+    if (dokter) state.nama_dokter = dokter.nm_dokter
+    else state.nama_dokter = ''
+  } else {
+    state.nama_dokter = ''
+  }
+})
+
 // Fetch the COB data on component mount
 onMounted(async () => {
+  state.kd_dokter = regPeriksa?.kd_dokter ?? ''
+  state.nama_dokter = regPeriksa?.dokter?.nm_dokter ?? ''
+
   optionLoading.value = true
   let tgl_keluar = ref('')
   if (kamarInap && kamarInap.detail.length > 0) {
@@ -136,13 +171,13 @@ onMounted(async () => {
 
   setTimeout(async () => {
     try {
-      const [cob, cbo, cms, cpo, jto, dpjpo] = await Promise.all([
+      const [cob, cbo, cms, cpo, jto] = await Promise.all([
         getEnabledCobData(),
         getCaraBayarData(),
         getCaraMasukData(),
         getCaraPulangData(),
         getJenisTarifData(),
-        getDpjpData()
+        // getDpjpData()
       ]);
 
       state.payor_label = cbo[0].label
@@ -154,7 +189,7 @@ onMounted(async () => {
       caraMasukOptions.push(...cms);
       caraPulangOptions.push(...cpo);
       jenisTarifOptions.push(...jto);
-      dpjpOptions.push(...dpjpo);
+      // dpjpOptions.push(...dpjpo);
     } catch (error) {
       console.error('Failed to load COB options:', error)
     }
@@ -171,7 +206,6 @@ const onChangePayorCd = (payor: CarabayarData) => {
 
 // Handle form submission
 async function onSubmit(event: FormSubmitEvent<FormData>) {
-  const config = useRuntimeConfig()
   isLoading.value = true
 
   if (sep?.no_sep == '' || sep?.no_sep == undefined) {
@@ -185,7 +219,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   mappedData.diagnosa = diagnosa?.map(d => d.kd_penyakit) ?? ["#"]
   mappedData.procedure = prosedur?.map(p => p.kode) ?? ["#"]
 
-  const { data, error, refresh, status } = await useFetch(`${config.public.API_V2_URL}/eklaim/${sep?.no_sep}`, {
+  const { data, error, refresh, status } = await useFetch(`${runtimeConfig.public.API_V2_URL}/eklaim/${sep?.no_sep}`, {
     headers: {
       'Authorization': `Bearer ${tokenStore?.accessToken}`,
       'Content-Type': 'application/json',
@@ -433,8 +467,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
         <div class="flex flex-col lg:flex-row gap-4">
           <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:min-w-[18.3em]">
-            <USelectMenu v-model="state.nama_dokter" :loading="optionLoading" value-attribute="value"
-              :options="dpjpOptions" placeholder="DPJP" searchable />
+            <USelectMenu v-model="state.kd_dokter" :loading="dpjpStatus == 'pending'" option-attribute="nm_dokter" value-attribute="kd_dokter" :options="(dpjp as any).data" placeholder="DPJP" searchable />
           </UFormGroup>
 
           <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:min-w-[18.3em]">
@@ -600,7 +633,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       </div>
 
       <div v-if="state.jenis_rawat == 1">
-        <UDivider />
+        <UDivider class="mb-7" />
 
         <div class="flex flex-col xl:flex-row gap-5 xl:gap-0 items-start justify-between">
           <div class="flex flex-col gap-2 w-full lg:w-[58%] lg:mx-auto xl:mx-0 xl:max-w-max">
