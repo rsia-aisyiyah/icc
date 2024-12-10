@@ -17,7 +17,6 @@ import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 import { getCaraPulangByLabel } from '~/utils/labelToValue'
 import { determineKelas } from '~/common/helpers/naikKelasHelpers'
-import config from 'v-calendar/dist/types/src/utils/config/index.js'
 
 const toast = useToast()
 const isLoading = ref(false)
@@ -27,7 +26,7 @@ const tokenStore = useAccessTokenStore()
 const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa,
-  kamarInap?: KamarInap,
+  kamarInap?: KamarInap
   billing?: BillingPasien,
   diagnosa?: Diagnosa[],
   prosedur?: Prosedur[],
@@ -490,7 +489,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
         <div class="flex flex-col lg:flex-row gap-4">
           <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:min-w-[18.3em]">
-            <USelectMenu v-model="state.kd_dokter" :loading="dpjpStatus == 'pending'" option-attribute="nm_dokter" value-attribute="kd_dokter" :options="(dpjp as any).data" placeholder="DPJP" searchable />
+            <USelectMenu v-model="state.kd_dokter" :loading="dpjpStatus == 'pending'" option-attribute="nm_dokter" value-attribute="kd_dokter" :options="(dpjp as any)?.data" placeholder="DPJP" searchable />
           </UFormGroup>
 
           <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:min-w-[18.3em]">

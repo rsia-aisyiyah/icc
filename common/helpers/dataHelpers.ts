@@ -39,11 +39,11 @@ export const currencyToInt = (value: string): number => {
 };
 
 export const getTanggalKeluar = (kamarInap: KamarInap) => {
-  if (kamarInap.detail[0].tgl_keluar == "0000-00-00") {
+  if (kamarInap?.detail[0]?.tgl_keluar == "0000-00-00") {
     return new Date().toISOString().split('T')[0] + ' ' + new Date().toLocaleTimeString().replaceAll('.', ':');
   }
 
-  return kamarInap.detail[0].tgl_keluar + ' ' + kamarInap.detail[0].jam_keluar;
+  return kamarInap?.detail[0]?.tgl_keluar + ' ' + kamarInap?.detail[0]?.jam_keluar;
 }
 
 export const parseCaraPulang = (label: string) => {

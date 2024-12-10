@@ -30,12 +30,15 @@
 
     <UCard class="mb-5">
       <ClientOnly fallback="Loading Forms . . .">
-        <FormKlaimNew :refreshLatestKlaim="refreshLatestKlaim" :sep="bridgingSep?.data"
-          :regPeriksa="allData.regPeriksa?.data" :kamarInap="allData.kamarInap?.data" :billing="allData.billing?.data"
-          :diagnosa="allData.diagnosa?.data" :prosedur="allData.prosedur?.data" :tensi="allData.sisDiastole?.data" />
-
-        <!-- <FormKlaim :sep="bridgingSep?.data" :regPeriksa="allData.regPeriksa?.data" :kamarInap="allData.kamarInap?.data"
-          :billing="allData.billing?.data" :diagnosa="allData.diagnosa?.data" :tensi="allData.sisDiastole?.data" /> -->
+        <FormKlaimNew 
+            :refreshLatestKlaim="refreshLatestKlaim" 
+            :sep="bridgingSep?.data"  
+            :regPeriksa="allData.regPeriksa?.data" 
+            :kamarInap="allData.kamarInap?.data" 
+            :billing="allData.billing?.data"
+            :diagnosa="allData.diagnosa?.data" 
+            :prosedur="allData.prosedur?.data" 
+            :tensi="allData.sisDiastole?.data" />
       </ClientOnly>
     </UCard>
 
