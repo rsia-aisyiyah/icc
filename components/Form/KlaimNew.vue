@@ -69,7 +69,7 @@ const state = reactive<FormData>({
   upgrade_class_ind: !!sep?.klsnaik,
   icu_indikator: false,
   executive_class_ind: false,
-  kelas_rawat: parseInt(`${sep?.klsrawat}`),
+  kelas_rawat: parseInt(`${sep?.jnspelayanan}`) == 1 ? parseInt(`${sep?.klsrawat}`) : 3,
   tgl_masuk: new Date(regPeriksa?.tgl_registrasi + ' ' + regPeriksa?.jam_reg),
   tgl_pulang: undefined,
   age: regPeriksa?.umurdaftar,
