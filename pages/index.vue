@@ -180,7 +180,7 @@ const getPercentage = (num: number, denum: number): string => {
                   <!-- sep last month -->
                   <div class="flex flex-row items-center justify-between w-full mt-4">
                     <div class="text-base text-primary group-hover:text-white duration-300 transition-colors ease-in-out font-semibold">
-                      Total Sep
+                      Total Sep Klaim
                     </div>
 
                     <div class="flex gap-1 items-center justify-start">
