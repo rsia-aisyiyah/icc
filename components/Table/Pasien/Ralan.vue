@@ -351,7 +351,8 @@ const openNewTab = (url: string) => {
     </template>
 
     <template #nmdpdjp-data="{ row }">
-      <span class="font-semibold">{{ row?.reg_periksa?.dokter?.nm_dokter }}</span>
+      <p class="font-semibold">{{ row?.reg_periksa?.dokter?.nm_dokter }}</p>
+      <p class="font-normal text-sm mt-1">{{ row?.reg_periksa?.poliklinik?.nm_poli }}</p>
     </template>
 
     <template #reg_periksa?.tgl_registrasi-data="{ row }">

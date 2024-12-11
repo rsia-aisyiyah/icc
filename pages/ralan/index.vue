@@ -55,6 +55,7 @@ const bodyReqs = ref<any>({
     { "relation": "status_klaim" },
     { "relation": "berkasPerawatan" },
     { "relation": "reg_periksa.dokter.spesialis" },
+    { "relation": "reg_periksa.poliklinik" },
   ]
 })
 
