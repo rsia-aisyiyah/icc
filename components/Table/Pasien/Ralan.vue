@@ -76,7 +76,7 @@ const openNewTab = (url: string) => {
     { label: 'Status', key: 'status_klaim' },
     { label: 'Diag Awal', key: 'diagawal' },
     { label: 'DPJP', key: 'nmdpdjp' },
-    { label: 'Tgl Periksa', key: 'reg_periksa?.tgl_registrasi' },
+    { label: 'Tgl Registrasi', key: 'reg_periksa?.tgl_registrasi' },
     { label: 'Real Cost', key: 'real_cost' },
     { label: 'Groupping', key: 'groupping_cost' },
     { label: 'Action', key: 'action' },

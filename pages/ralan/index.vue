@@ -45,7 +45,10 @@ const bodyReqs = ref<any>({
     { field: 'reg_periksa.tgl_registrasi', operator: '>=', value: date.value.start ? format(date.value.start, 'yyyy-MM-dd') : undefined },
     { field: 'reg_periksa.tgl_registrasi', operator: '<=', value: date.value.end ? format(date.value.end, 'yyyy-MM-dd') : undefined }
   ],
-  sort: [{ field: 'no_rawat', direction: 'desc' }],
+  sort: [
+    { field: 'reg_periksa.tgl_registrasi', direction: 'asc' },
+    { field: 'reg_periksa.jam_reg', direction: 'asc' },
+  ],
   search: { value: '' },
   includes: [
     { "relation": "pasien" },
