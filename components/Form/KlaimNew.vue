@@ -23,7 +23,7 @@ const isLoading = ref(false)
 const optionLoading = ref(false)
 const runtimeConfig = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
-const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim } = defineProps<{
+const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim, setTotalTarifRs } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa,
   kamarInap?: KamarInap
@@ -32,7 +32,8 @@ const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshL
   prosedur?: Prosedur[],
   tensi?: TensiData,
 
-  refreshLatestKlaim: () => void
+  refreshLatestKlaim: () => void,
+  setTotalTarifRs: (tarif: number) => void
 }>();
 
 const addToaster = (title: string, description: string, color: NotificationColor, icon: string) => {
@@ -195,6 +196,8 @@ onMounted(async () => {
 
     optionLoading.value = false
   }, 1300)
+
+  setTotalTarifRs(getTotalTarifRS(state))
 })
 
 const onChangePayorCd = (payor: CarabayarData) => {

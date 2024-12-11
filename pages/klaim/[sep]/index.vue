@@ -31,14 +31,17 @@
     <UCard class="mb-5">
       <ClientOnly fallback="Loading Forms . . .">
         <FormKlaimNew 
-            :refreshLatestKlaim="refreshLatestKlaim" 
-            :sep="bridgingSep?.data"  
-            :regPeriksa="allData.regPeriksa?.data" 
-            :kamarInap="allData.kamarInap?.data" 
-            :billing="allData.billing?.data"
-            :diagnosa="allData.diagnosa?.data" 
-            :prosedur="allData.prosedur?.data" 
-            :tensi="allData.sisDiastole?.data" />
+          :sep="bridgingSep?.data"  
+          :regPeriksa="allData.regPeriksa?.data" 
+          :kamarInap="allData.kamarInap?.data" 
+          :billing="allData.billing?.data"
+          :diagnosa="allData.diagnosa?.data" 
+          :prosedur="allData.prosedur?.data" 
+          :tensi="allData.sisDiastole?.data" 
+
+          :refreshLatestKlaim="refreshLatestKlaim" 
+          :setTotalTarifRs="setTotalTarifRs"
+        />
       </ClientOnly>
     </UCard>
 
@@ -65,6 +68,11 @@
             <p>{{ klaimData?.data?.tarif ? formatRupiah(klaimData?.data?.tarif) : '-' }}</p>
           </div>
         </div>
+
+        <template v-if="totalTarifRs && totalTarifRs < klaimData?.data?.tarif">
+          <UDivider class="my-5" label="Tambahan Biaya" />
+          <p class="text-red-500">Tambahan biaya tidak berlaku, karena total tarif RS lebih kecil dari tarif klaim ({{ formatRupiah(totalTarifRs) }} < {{ formatRupiah(klaimData?.data?.tarif) }})</p>
+        </template>
 
         <template v-if="(klaimData?.data as any)?.naik_kelas">
           <UDivider class="my-5" label="Tambahan Biaya" />
@@ -101,14 +109,19 @@
 <script lang="ts" setup>
 import type { ResponseSepData, ResponseTensi, ResponseRegPeriksa, KamarInapResponse, BillingPasienResponse, ResourcePagination } from '~/types';
 
-const route = useRoute();
-const config = useRuntimeConfig();
-const tokenStore = useAccessTokenStore();
 const toast = useToast();
+const route = useRoute();
+const totalTarifRs = ref(0);
 const pdfReady = ref(false);
-const no_sep = ref(route.params.sep);
 const openDokumen = ref(false);
+const config = useRuntimeConfig();
+const no_sep = ref(route.params.sep);
+const tokenStore = useAccessTokenStore();
 const pdfUrl = `${config.public.API_V2_URL}/sep/${no_sep.value}/print?token=${tokenStore.accessToken}`;
+
+const setTotalTarifRs = (tarif: number) => {
+  totalTarifRs.value = tarif;
+};
 
 // Fungsi untuk membangun URL tensi
 const buildUrlTensi = (noRm: string, noRawat: string, status: number) => {
