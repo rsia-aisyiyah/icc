@@ -77,7 +77,7 @@ const state = reactive<FormData>({
   cara_masuk: sep?.chunk?.cara_masuk ?? undefined,
   los: parseInt(`${sep?.jnspelayanan}`) == 1 ? kamarInap?.lama_inap : 1,
   los_in_hour: kamarInap?.lama_jam,
-  birth_weight: regPeriksa?.umurdaftar == 0 ? regPeriksa?.pasien_bayi?.berat_badan : 0,
+  birth_weight: regPeriksa?.umurdaftar == 0 ? parseInt(`${regPeriksa?.pasien_bayi?.berat_badan}`) : 0,
   adl_sub_acute: undefined,
   adl_chronic: undefined,
   // @ts-ignore
