@@ -23,7 +23,7 @@ const isLoading = ref(false)
 const optionLoading = ref(false)
 const runtimeConfig = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
-const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim, setTotalTarifRs } = defineProps<{
+const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim, setTotalTarifRs, setIsVip } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa,
   kamarInap?: KamarInap
@@ -33,7 +33,8 @@ const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshL
   tensi?: TensiData,
 
   refreshLatestKlaim: () => void,
-  setTotalTarifRs: (tarif: number) => void
+  setTotalTarifRs: (tarif: number) => void,
+  setIsVip: (vip: boolean) => void
 }>();
 
 const addToaster = (title: string, description: string, color: NotificationColor, icon: string) => {
@@ -198,6 +199,7 @@ onMounted(async () => {
   }, 1300)
 
   setTotalTarifRs(getTotalTarifRS(state))
+  setIsVip(determineKelas(sep?.klsnaik)?.code == 8)
 })
 
 const onChangePayorCd = (payor: CarabayarData) => {

@@ -41,6 +41,7 @@
 
           :refreshLatestKlaim="refreshLatestKlaim" 
           :setTotalTarifRs="setTotalTarifRs"
+          :setIsVip="setIsVip"
         />
       </ClientOnly>
     </UCard>
@@ -69,7 +70,7 @@
           </div>
         </div>
 
-        <template v-if="totalTarifRs && totalTarifRs < klaimData?.data?.tarif">
+        <template v-if="isVip && totalTarifRs && totalTarifRs < klaimData?.data?.tarif">
           <UDivider class="my-5" label="Tambahan Biaya" />
           <p class="text-red-500">Tambahan biaya tidak berlaku, karena total tarif RS lebih kecil dari tarif klaim ({{ formatRupiah(totalTarifRs) }} < {{ formatRupiah(klaimData?.data?.tarif) }})</p>
         </template>
@@ -112,6 +113,7 @@ import type { ResponseSepData, ResponseTensi, ResponseRegPeriksa, KamarInapRespo
 const toast = useToast();
 const route = useRoute();
 const totalTarifRs = ref(0);
+const isVip = ref(false);
 const pdfReady = ref(false);
 const openDokumen = ref(false);
 const config = useRuntimeConfig();
@@ -121,6 +123,10 @@ const pdfUrl = `${config.public.API_V2_URL}/sep/${no_sep.value}/print?token=${to
 
 const setTotalTarifRs = (tarif: number) => {
   totalTarifRs.value = tarif;
+};
+
+const setIsVip = (vip: boolean) => {
+  isVip.value = vip;
 };
 
 // Fungsi untuk membangun URL tensi
