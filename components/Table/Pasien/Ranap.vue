@@ -146,8 +146,7 @@
       <template #sep.no_sep-data="{ row }">
         <div class="flex flex-col gap-4 w-[310px]">
           <div>
-            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ??
-              "-" }}</p>
+            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
             <div class="flex gap-1 mt-1">
               <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
               <span class="text-gray-500 font-semibold text-sm px-1">|</span>
@@ -165,6 +164,14 @@
           </div>
 
           <div class="flex flex-col gap-1">
+            <div class="flex gap-1">
+              <UBadge variant="subtle" si color="gray" class="w-fit">
+                <p class="truncate text-xs text-ellipsis whitespace-nowrap overflow-hidden"><span class="font-normal"></span>{{ row.reg_periksa.dpjp ?? "-" }}</p>
+              </UBadge>
+              <UBadge variant="subtle" si color="purple" class="w-fit">
+                <p class="truncate text-xs text-ellipsis whitespace-nowrap overflow-hidden"><span class="font-normal"></span>{{ row.reg_periksa.poliklinik ?? "-" }}</p>
+              </UBadge>
+            </div>
             <UBadge :color="row.sep?.no_sep ? 'primary' : 'primary'" variant="soft">
               <div class="flex gap-2 items-center justify-between w-full pl-1">
                 {{ row.sep?.no_sep ?? "-" }}
@@ -494,6 +501,7 @@ const bodyReqs = ref<{
   sort: { field: string; direction: string }[];
   aggregates: { type: string; relation: string; field: string }[];
   search: { value: string };
+  includes?: { relation: string }[];
 }>({
   scopes: [],
   filters: [
