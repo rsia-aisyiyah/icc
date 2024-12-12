@@ -252,8 +252,6 @@ if (error.value) {
   })
 }
 
-console.log('klaimData : ', klaimData.value);
-
 const formatRupiah = (value: number): string => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',

@@ -23,9 +23,7 @@ const state = reactive({
 })
 
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log('Form submitted:', event);
-  
+async function onSubmit(event: FormSubmitEvent<Schema>) {  
   try {
     const response = await fetch(`${config.public.API_V2_URL}/user/auth/login`, {
       method: 'POST',

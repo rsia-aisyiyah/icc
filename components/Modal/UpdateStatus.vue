@@ -133,10 +133,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       timeout: 2000
     })
     return
-  }
-
-  console.log(status.value);
-  
+  }  
 
   if (status.value == 'success') {
     loadButton.value = false

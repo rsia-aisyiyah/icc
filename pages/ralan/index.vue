@@ -125,8 +125,6 @@ watch(date, () => {
     { field: 'reg_periksa.tgl_registrasi', operator: '>=', value: date.value.start ? format(date.value.start, 'yyyy-MM-dd') : undefined },
     { field: 'reg_periksa.tgl_registrasi', operator: '<=', value: date.value.end ? format(date.value.end, 'yyyy-MM-dd') : undefined }
   ]
-
-  console.log(bodyReqs.value.filters);
 })
 
 watch(() => selectedStatus.value, () => {

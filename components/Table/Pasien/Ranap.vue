@@ -538,8 +538,6 @@ if (props?.query?.month) {
 // if terkirim on query url
 if (props?.query?.terkirim) {
   selectedStatus.value = setStatus.find((item) => item.id === 'terkirim') ?? setStatus[0]
-  console.log(selectedStatus.value);
-
   masukKeluar.value = 'masuk'
 
   updateFilters()
