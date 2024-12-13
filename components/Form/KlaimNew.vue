@@ -252,8 +252,8 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   // map the data and remove the undefined values from data
   const mappedData = prepareKlaimData(event.data)
 
-  mappedData.diagnosa = diagnosa?.map(d => d.kd_penyakit) ?? ["#"]
-  mappedData.procedure = prosedur?.map(p => p.kode) ?? ["#"]
+  mappedData.diagnosa = diagnosa?.length == 0 ? ["#"] : diagnosa?.map(d => d.kd_penyakit)
+  mappedData.procedure = prosedur?.length == 0 ? ["#"] : prosedur?.map(p => p.kode)
 
   const { data, error, refresh, status } = await useFetch(`${runtimeConfig.public.API_V2_URL}/eklaim/${sep?.no_sep}`, {
     headers: {
