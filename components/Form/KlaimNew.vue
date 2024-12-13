@@ -156,6 +156,12 @@ watch(() => [state.kd_dokter, state.nama_dokter], ([kd_dokter, nama_dokter]) => 
   }
 })
 
+watch(() => state.tgl_masuk, (tgl_masuk) => {
+  if (tgl_masuk) {
+    state.tgl_pulang = new Date(tgl_masuk)
+  }
+})
+
 // Fetch the COB data on component mount
 onMounted(async () => {
   state.kd_dokter = regPeriksa?.kd_dokter ?? ''
@@ -170,7 +176,7 @@ onMounted(async () => {
   if (state.jenis_rawat == 1) {
     state.tgl_pulang = new Date(tgl_keluar.value)
   } else {
-    state.tgl_pulang = new Date(regPeriksa?.tgl_registrasi + ' ' + regPeriksa?.jam_reg) 
+    state.tgl_pulang = state.tgl_masuk 
   }
 
   setTimeout(async () => {
