@@ -167,7 +167,11 @@ onMounted(async () => {
     tgl_keluar = computed(() => getTanggalKeluar(kamarInap));
   }
 
-  if (state.jenis_rawat == 1) state.tgl_pulang = new Date(tgl_keluar.value)
+  if (state.jenis_rawat == 1) {
+    state.tgl_pulang = new Date(tgl_keluar.value)
+  } else {
+    state.tgl_pulang = new Date(regPeriksa?.tgl_registrasi + ' ' + regPeriksa?.jam_reg) 
+  }
 
   setTimeout(async () => {
     try {
@@ -345,19 +349,17 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
               </UPopover>
             </UFormGroup>
 
-            <div v-if="state.jenis_rawat == 1">
-              <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
-                <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                  <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
-                    :label="state.tgl_pulang ? new Date(state.tgl_pulang).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Keluar'"
-                    :disabled="state.jenis_rawat == 2" />
+            <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
+              <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
+                <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
+                  :label="state.tgl_pulang ? new Date(state.tgl_pulang).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Keluar'"
+                  :disabled="state.jenis_rawat == 2" />
 
-                  <template #panel="{ close }">
-                    <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_pulang" />
-                  </template>
-                </UPopover>
-              </UFormGroup>
-            </div>
+                <template #panel="{ close }">
+                  <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_pulang" />
+                </template>
+              </UPopover>
+            </UFormGroup>
           </div>
 
           <UFormGroup label="Umur Pasien" name="age">
