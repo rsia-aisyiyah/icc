@@ -108,7 +108,7 @@ const state = reactive<FormData>({
   rehabilitasi: `${billing?.rehabilitasi ?? "0"}`,
   kamar: `${billing?.kamar ?? "0"}`,
   rawat_intensif: `${billing?.rawat_intensif ?? "0"}`,
-  obat: `${billing?.obat ?? "0"}`.replaceAll('.', ','),
+  obat: `${Math.ceil(billing?.obat ?? 0).toString()}`,
   obat_kronis: `${billing?.obat_kronis ?? "0"}`,
   obat_kemoterapi: `${billing?.obat_kemoterapi ?? "0"}`,
   alkes: `${billing?.alkes ?? "0"}`,
