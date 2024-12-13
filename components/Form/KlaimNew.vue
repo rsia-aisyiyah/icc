@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { format } from 'date-fns'
 import { reactive, onMounted } from 'vue'
 import { Sortable } from "sortablejs-vue3"
-import { getTotalTarifRS } from '~/common/helpers/tarifHelper'
-import { FormDataSchema } from '~/common/schema/formData'
 import { useDebounceFn } from '@vueuse/core'
+import { FormDataSchema } from '~/common/schema/formData'
+import { getTotalTarifRS } from '~/common/helpers/tarifHelper'
 
 import type { FormSubmitEvent, NotificationColor } from '#ui/types'
 import type { BillingPasien, Diagnosa, KamarInap, Prosedur, RegPeriksa, SepData, TensiData, FormData } from '~/types';
 
 import { moneyMask } from '~/common/masks'
 import { tarifFields } from '~/data/tarifFields'
-import { getTanggalKeluar, getDpjp } from '~/common/helpers/dataHelpers'
-import { prepareKlaimData } from '~/common/helpers/PrepareKlaimData'
-import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
-import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 import { getCaraPulangByLabel } from '~/utils/labelToValue'
 import { determineKelas } from '~/common/helpers/naikKelasHelpers'
+import { prepareKlaimData } from '~/common/helpers/PrepareKlaimData'
+import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
+import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
+import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 
 const toast = useToast()
 const isLoading = ref(false)
@@ -109,7 +108,7 @@ const state = reactive<FormData>({
   rehabilitasi: `${billing?.rehabilitasi ?? "0"}`,
   kamar: `${billing?.kamar ?? "0"}`,
   rawat_intensif: `${billing?.rawat_intensif ?? "0"}`,
-  obat: `${billing?.obat ?? "0"}`,
+  obat: `${billing?.obat ?? "0"}`.replaceAll('.', ','),
   obat_kronis: `${billing?.obat_kronis ?? "0"}`,
   obat_kemoterapi: `${billing?.obat_kemoterapi ?? "0"}`,
   alkes: `${billing?.alkes ?? "0"}`,
@@ -339,7 +338,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
             <UFormGroup label="Tanggal Masuk" name="tgl_masuk" class="w-full md:w-max min-w-[180px]">
               <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
                 <UButton variant="link" color="green" icon="i-heroicons-calendar-days-20-solid"
-                  :label="state.tgl_masuk ? format(new Date(state.tgl_masuk), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Masuk'" />
+                  :label="state.tgl_masuk ? new Date(state.tgl_masuk).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Masuk'" />
                 <template #panel="{ close }">
                   <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_masuk" />
                 </template>
@@ -350,7 +349,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
               <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
                 <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
                   <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
-                    :label="state.tgl_pulang ? format(new Date(state.tgl_pulang), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Keluar'"
+                    :label="state.tgl_pulang ? new Date(state.tgl_pulang).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Keluar'"
                     :disabled="state.jenis_rawat == 2" />
 
                   <template #panel="{ close }">
@@ -415,7 +414,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
               <UFormGroup label="Intubasi" name="start_dttm" class="w-full md:w-max min-w-[180px]">
                 <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
                   <UButton variant="link" color="sky" icon="i-heroicons-calendar-days-20-solid"
-                    :label="state.start_dttm ? format(new Date(state.start_dttm), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Intubasi'" />
+                    :label="state.start_dttm ? new Date(state.start_dttm).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Intubasi'" />
 
                   <template #panel="{ close }">
                     <DatePicker is-required @close="close" mode="dateTime" v-model="state.start_dttm" />
@@ -426,7 +425,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
               <UFormGroup label="Ekstubasi" name="stop_dttm" class="w-full md:w-max min-w-[180px]">
                 <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
                   <UButton variant="link" color="blue" icon="i-heroicons-calendar-days-20-solid"
-                    :label="state.stop_dttm ? format(new Date(state.stop_dttm), 'dd MMMM yyyy HH:ii') : 'Pilih Tanggal Ekstubasi'" />
+                    :label="state.stop_dttm ? new Date(state.stop_dttm).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Ekstubasi'" />
 
                   <template #panel="{ close }">
                     <DatePicker is-required @close="close" mode="dateTime" v-model="state.stop_dttm" />
