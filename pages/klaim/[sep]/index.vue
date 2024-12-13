@@ -80,7 +80,10 @@
 
           <div class="flex flex-col xl:flex-row justify-between">
             <div class="font-mono">
-              {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_1) }} - {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_2) }} + ( {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_1) }} x {{ (klaimData?.data as any)?.naik_kelas.presentase }}% )
+              {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_1) }} - {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_2) }} 
+              <template v-if="(klaimData?.data as any)?.naik_kelas.presentase > 0">
+                + ( {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_1) }} x {{ (klaimData?.data as any)?.naik_kelas.presentase }}% )
+              </template>
             </div>
             <div class="">
               = {{ formatRupiah((klaimData?.data as any)?.naik_kelas.tarif_akhir) }}
