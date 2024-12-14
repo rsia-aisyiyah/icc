@@ -7,8 +7,39 @@ export const prepareKlaimData = (data: object) => {
   );
 
   // Helper function for date formatting
-  const formatDateTime = (date: Date) =>
-    date.toISOString().split('T')[0] + ' ' + date.toLocaleTimeString().replaceAll('.', ':');
+  // const formatDateTime = (date: Date) =>
+  //   date.toISOString().split('T')[0] + ' ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+  const formatDateTime = (date: Date) => {
+    try {
+      // Validasi apakah date adalah instance dari Date dan valid
+      if (!(date instanceof Date) || isNaN(date.getTime())) {
+          throw new Error('Invalid date object');
+      }
+
+      // Format tanggal dan waktu menggunakan toLocaleTimeString
+      const fullDate = date
+          .toLocaleTimeString('id-ID', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+          })
+          .replace(/\./g, ':'); // Ganti semua titik dengan tanda titik dua
+
+      // Pisahkan menjadi waktu dan tanggal
+      const [datePart, timePart] = fullDate.split(' ');
+
+      // Format ulang tanggal (dmy) menjadi YYYY-MM-DD
+      const dmy = datePart.replace(',', '').split('/').reverse().join('-');
+
+      return `${dmy} ${timePart}`; // Gabungkan tanggal dan waktu
+  } catch (error: any) {
+      console.error('Error formatting date:', error.message);
+      return date; // Kembalikan nilai asli jika terjadi kesalahan
+  }
+  }
 
   // Format specific date fields
   ['tgl_masuk', 'tgl_pulang', 'start_dttm', 'stop_dttm'].forEach((key) => {
