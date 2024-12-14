@@ -157,7 +157,7 @@ watch(() => [state.kd_dokter, state.nama_dokter], ([kd_dokter, nama_dokter]) => 
 })
 
 watch(() => state.tgl_masuk, (tgl_masuk) => {
-  if (tgl_masuk) {
+  if (state.jenis_rawat == 2) {
     state.tgl_pulang = new Date(tgl_masuk)
   }
 })
