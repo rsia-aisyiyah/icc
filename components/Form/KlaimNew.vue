@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
 import { Sortable } from "sortablejs-vue3"
-import { useDebounceFn } from '@vueuse/core'
 import { FormDataSchema } from '~/common/schema/formData'
 import { addToaster } from '~/common/helpers/toasterHelper'
 import { getTotalTarifRS } from '~/common/helpers/tarifHelper'
 
-import type { FormSubmitEvent, NotificationColor } from '#ui/types'
+import type { FormSubmitEvent } from '#ui/types'
 import type { BillingPasien, Diagnosa, KamarInap, Prosedur, RegPeriksa, SepData, TensiData, FormData } from '~/types';
 
 import { moneyMask } from '~/common/masks'
@@ -14,12 +13,10 @@ import { tarifFields } from '~/data/tarifFields'
 import { getCaraPulangByLabel } from '~/utils/labelToValue'
 import { determineKelas } from '~/common/helpers/naikKelasHelpers'
 import { prepareKlaimData } from '~/common/helpers/PrepareKlaimData'
-import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
 import { fetchDpjp, getTanggalKeluar, kirimOnlineIndividual, moveItemInArray, caraPulangData, caraMasukData } from '~/common/helpers/dataHelpers'
 
-const toast = useToast()
 const isLoading = ref(false)
 const optionLoading = ref(false)
 const openModalSync = ref(false);
@@ -41,27 +38,12 @@ const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, sudahDiG
   setIsVip: (vip: boolean) => void
 }>();
 
-const addToaster = (title: string, description: string, color: NotificationColor, icon: string) => {
-  toast.add({
-    title: title,
-    description: description,
-    color: color,
-    icon: icon
-  })
-}
-
-const moveItemInArray = (arr: any[], from: number, to: number) => {
-  const item = arr.splice(from, 1)[0]
-  arr.splice(to, 0, item)
-}
-
 // Initialize an array to hold the options
-const caraPulangOptions = reactive<{ label: string; value: string }[]>([])
 const jenisTarifOptions = reactive<{ label: string; value: string }[]>([])
-const carabayarOptions  = reactive<{ label: string; value: string }[]>([])
-const caraMasukOptions  = reactive<{ label: string; value: string }[]>([])
-// const dpjpOptions       = reactive<{ label: string; value: string }[]>([])
-const cobOptions        = reactive<{ label: string; value: string }[]>([])
+const carabayarOptions = reactive<{ label: string; value: string }[]>([])
+const cobOptions = reactive<{ label: string; value: string }[]>([])
+
+const { data: dpjp, status: dpjpStatus } = await fetchDpjp(runtimeConfig, tokenStore);
 
 // Define the reactive state for the form
 const state = reactive<FormData>({
@@ -133,24 +115,6 @@ const state = reactive<FormData>({
   onset_kontraksi: sep?.chunk?.onset_kontraksi ?? null,
 })
 
-const { data: dpjp, error: dpjpError, refresh: dpjpRefresh, status: dpjpStatus } = await useAsyncData(
-    `${runtimeConfig.public.API_V2_URL}/dokter/search`,
-    useDebounceFn(() => $fetch(`${runtimeConfig.public.API_V2_URL}/dokter/search`, {
-      method: 'POST',
-      query: { limit: 100 },
-      headers: {
-        'Authorization': `Bearer ${tokenStore?.accessToken}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-      filters: [
-        { field: 'status', operator: '=', value: "1" }
-      ],
-      })
-    }), 1000)
-);
-
 watch(() => [state.kd_dokter, state.nama_dokter], ([kd_dokter, nama_dokter]) => {
   if (kd_dokter && (dpjp?.value as any)?.data) {
     const dokter = (dpjp?.value as any)?.data.find((d: any) => d.kd_dokter === kd_dokter)
@@ -169,42 +133,37 @@ watch(() => state.tgl_masuk, (tgl_masuk) => {
 
 // Fetch the COB data on component mount
 onMounted(async () => {
+  optionLoading.value = true
+  
   state.kd_dokter = regPeriksa?.kd_dokter ?? ''
   state.nama_dokter = regPeriksa?.dokter?.nm_dokter ?? ''
 
-  optionLoading.value = true
-  let tgl_keluar = ref('')
+  // Set Tanggal Keluar
+  let tgl_keluar = ref('') 
   if (kamarInap && kamarInap.detail.length > 0) {
     tgl_keluar = computed(() => getTanggalKeluar(kamarInap));
   }
 
-  if (state.jenis_rawat == 1) {
+  if (state.jenis_rawat == 1) { // Set Tanggal Pulang by jenis rawat (1 = Rawat Inap, 2 = Rawat Jalan)
     state.tgl_pulang = new Date(tgl_keluar.value)
   } else {
-    state.tgl_pulang = state.tgl_masuk 
+    state.tgl_pulang = state.tgl_masuk
   }
 
   setTimeout(async () => {
     try {
-      const [cob, cbo, cms, cpo, jto] = await Promise.all([
+      const [cob, cbo, jto] = await Promise.all([
         getEnabledCobData(),
         getCaraBayarData(),
-        getCaraMasukData(),
-        getCaraPulangData(),
         getJenisTarifData(),
-        // getDpjpData()
       ]);
 
-      state.payor_label = cbo[0].label
+      state.payor_label = state.payor_cd = cbo[0].label
       state.payor_id = cbo[0].value
-      state.payor_cd = cbo[0].label
 
       cobOptions.push(...cob);
       carabayarOptions.push(...cbo);
-      caraMasukOptions.push(...cms);
-      caraPulangOptions.push(...cpo);
       jenisTarifOptions.push(...jto);
-      // dpjpOptions.push(...dpjpo);
     } catch (error) {
       console.error('Failed to load COB options:', error)
     }
@@ -226,56 +185,50 @@ const onChangePayorCd = (payor: CarabayarData) => {
 async function onSubmit(event: FormSubmitEvent<FormData>) {
   isLoading.value = true
 
-  if (sep?.no_sep == '' || sep?.no_sep == undefined) {
-    addToaster('Nomor SEP tidak ada', 'Nomor SEP tidak ada, silahkan cek kembali data pasien', 'red', 'i-heroicons-information-circle')
+  try {
+    if (sep?.no_sep == '' || sep?.no_sep == undefined) {
+      throw new Error('Nomor SEP tidak ada, silahkan cek kembali data pasien')
+    }
+
+    if (state.upgrade_class_ind) {
+      if (!state.upgrade_class_class) {
+        throw new Error('Kelas pelayanan tidak boleh kosong')
+      } else if (!state.upgrade_class_payor) {
+        throw new Error('Pembiayaan tidak boleh kosong')
+      } else if (!state.upgrade_class_los) {
+        throw new Error('Lama upgrade kelas tidak boleh kosong')
+      }
+    }
+
+    const mappedData = prepareKlaimData(event.data)
+
+    mappedData.diagnosa = diagnosa?.length == 0 ? ["#"] : diagnosa?.map(d => d.kd_penyakit)
+    mappedData.procedure = prosedur?.length == 0 ? ["#"] : prosedur?.map(p => p.kode)
+
+    const { data, error, refresh, status } = await useFetch(`${runtimeConfig.public.API_V2_URL}/eklaim/${sep?.no_sep}`, {
+      headers: {
+        'Authorization': `Bearer ${tokenStore?.accessToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      method: 'POST',
+      body: mappedData
+    })
+
+    if (error.value) {
+      throw new Error(error.value.data.message)
+    }
+
+    if (status.value == 'success') {
+      refreshLatestKlaim()
+      addToaster('Success', 'Data berhasil disimpan & di grouping', 'green', 'i-heroicons-check-badge')
+    }
+  } catch (error: any) {
+    addToaster('Error', error.message, 'red', 'i-heroicons-information-circle');
+  } finally {
     isLoading.value = false
   }
-
-  if (state.upgrade_class_ind) {
-    // state.upgrade_class_class
-    if (!state.upgrade_class_class) {
-      addToaster('Kelas Pelayanan tidak boleh kosong', 'Kelas Pelayanan tidak boleh kosong', 'red', 'i-heroicons-information-circle')
-      isLoading.value = false
-      return
-    }
-
-    // state.upgrade_class_payor
-    if (!state.upgrade_class_payor) {
-      addToaster('Pembiayaan tidak boleh kosong', 'Pembiayaan tidak boleh kosong', 'red', 'i-heroicons-information-circle')
-      isLoading.value = false
-      return
-    }
-
-    // state.upgrade_class_los
-    if (!state.upgrade_class_los) {
-      addToaster('Lama upgrade kelas tidak boleh kosong', 'Lama upgrade kelas tidak boleh kosong', 'red', 'i-heroicons-information-circle')
-      isLoading.value = false
-      return
-    }
-  }
-
-  // map the data and remove the undefined values from data
-  const mappedData = prepareKlaimData(event.data)
-
-  mappedData.diagnosa = diagnosa?.length == 0 ? ["#"] : diagnosa?.map(d => d.kd_penyakit)
-  mappedData.procedure = prosedur?.length == 0 ? ["#"] : prosedur?.map(p => p.kode)
-
-  const { data, error, refresh, status } = await useFetch(`${runtimeConfig.public.API_V2_URL}/eklaim/${sep?.no_sep}`, {
-    headers: {
-      'Authorization': `Bearer ${tokenStore?.accessToken}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    method: 'POST',
-    body: mappedData
-  })
-
-  if (error.value) {
-    refreshLatestKlaim()
-    addToaster('Failed to submit', `${error?.value?.data?.message ?? error?.value}, please check the logs for more details`, 'red', 'i-heroicons-information-circle')
-    isLoading.value = false
-    return
-  }
+}
 
 const kirimOnline = async () => {
   openModalSync.value = true
@@ -403,8 +356,7 @@ const kirimOnline = async () => {
       <div class="p-6 rounded-xl dark:bg-cool-800/75 bg-cool-100 space-y-8">
         <div class="flex flex-col lg:flex-row gap-4 justify-between">
           <UFormGroup label="Cara Masuk" name="cara_masuk" class="w-full md:w-min md:min-w-[26.6em]">
-            <USelectMenu v-model="state.cara_masuk" :loading="optionLoading" value-attribute="value"
-              :options="caraMasukOptions" placeholder="cara masuk pasien" searchable />
+            <USelectMenu v-model="state.cara_masuk" :loading="optionLoading" value-attribute="value" :options="caraMasukData" placeholder="cara masuk pasien" searchable />
           </UFormGroup>
         </div>
 
@@ -513,14 +465,14 @@ const kirimOnline = async () => {
           </div>
 
           <UFormGroup label="Cara Pulang" name="discharge_status" class="w-full lg:w-[25%]">
-            <USelectMenu v-model="state.discharge_status" :loading="optionLoading" value-attribute="value"
-              :options="caraPulangOptions" placeholder="cara pulang pasien" searchable />
+            <USelectMenu v-model="state.discharge_status" value-attribute="value" :options="caraPulangData" placeholder="cara pulang pasien" searchable />
           </UFormGroup>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-4">
           <UFormGroup label="DPJP" name="nama_dokter" class="w-full lg:min-w-[18.3em]">
-            <USelectMenu v-model="state.kd_dokter" :loading="dpjpStatus == 'pending'" option-attribute="nm_dokter" value-attribute="kd_dokter" :options="(dpjp as any)?.data" placeholder="DPJP" searchable />
+            <USelectMenu v-model="state.kd_dokter" :loading="dpjpStatus == 'pending'" option-attribute="nm_dokter"
+              value-attribute="kd_dokter" :options="(dpjp as any)?.data" placeholder="DPJP" searchable />
           </UFormGroup>
 
           <UFormGroup label="Jenis Tarif" name="kode_tarif" class="w-full lg:min-w-[18.3em]">
