@@ -3,6 +3,7 @@ import { reactive, onMounted } from 'vue'
 import { Sortable } from "sortablejs-vue3"
 import { useDebounceFn } from '@vueuse/core'
 import { FormDataSchema } from '~/common/schema/formData'
+import { addToaster } from '~/common/helpers/toasterHelper'
 import { getTotalTarifRS } from '~/common/helpers/tarifHelper'
 
 import type { FormSubmitEvent, NotificationColor } from '#ui/types'
@@ -16,13 +17,15 @@ import { prepareKlaimData } from '~/common/helpers/PrepareKlaimData'
 import { getTanggalKeluar } from '~/common/helpers/dataHelpers'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
+import { fetchDpjp, getTanggalKeluar, kirimOnlineIndividual, moveItemInArray, caraPulangData, caraMasukData } from '~/common/helpers/dataHelpers'
 
 const toast = useToast()
 const isLoading = ref(false)
 const optionLoading = ref(false)
+const openModalSync = ref(false);
 const runtimeConfig = useRuntimeConfig()
 const tokenStore = useAccessTokenStore()
-const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshLatestKlaim, setTotalTarifRs, setIsVip } = defineProps<{
+const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, sudahDiGrouping, refreshLatestKlaim, setTotalTarifRs, setIsVip } = defineProps<{
   sep?: SepData
   regPeriksa?: RegPeriksa,
   kamarInap?: KamarInap
@@ -30,6 +33,8 @@ const { sep, regPeriksa, kamarInap, billing, diagnosa, prosedur, tensi, refreshL
   diagnosa?: Diagnosa[],
   prosedur?: Prosedur[],
   tensi?: TensiData,
+
+  sudahDiGrouping?: boolean,
 
   refreshLatestKlaim: () => void,
   setTotalTarifRs: (tarif: number) => void,
@@ -272,12 +277,26 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     return
   }
 
-  if (status.value == 'success') {
-    refreshLatestKlaim()
-    addToaster('Success', 'Data berhasil disimpan & di grouping', 'green', 'i-heroicons-check-badge')
-  }
+const kirimOnline = async () => {
+  openModalSync.value = true
 
-  isLoading.value = false
+  try {
+    if (!sep?.no_sep) {
+      throw new Error('Nomor SEP tidak ada, silahkan cek kembali data pasien')
+    }
+
+    const { error, status } = await kirimOnlineIndividual(runtimeConfig, tokenStore, sep.no_sep);
+
+    if (error.value) {
+      throw new Error(error.value.data.message)
+    } else if (status.value === 'success') {
+      addToaster('Success', 'Data berhasil dikirim', 'green', 'i-heroicons-check-badge');
+    }
+  } catch (e: any) {
+    addToaster('Error', e.message, 'red', 'i-heroicons-information-circle');
+  } finally {
+    openModalSync.value = false;
+  }
 }
 </script>
 
@@ -711,8 +730,17 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       <UDivider />
 
       <div class="flex justify-end gap-3 pt-5">
-        <UButton color="indigo" type="submit" :loading="isLoading" icon="i-heroicons-check-badge">Submit</UButton>
+        <template v-if="sudahDiGrouping">
+          <UButton color="lime" type="button" icon="i-heroicons-check-badge" @click="kirimOnline">
+            Kirim Online
+          </UButton>
+        </template>
+
+        <UButton color="indigo" type="submit" :loading="isLoading" icon="i-tabler-send">Submit</UButton>
       </div>
     </UForm>
   </div>
+
+  <!-- Modal Loading -->
+  <ModalLoading v-model:isOpen="openModalSync" />
 </template>

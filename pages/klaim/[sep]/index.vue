@@ -39,6 +39,8 @@
           :prosedur="allData.prosedur?.data" 
           :tensi="allData.sisDiastole?.data" 
 
+          :sudahDiGrouping="klaimData?.data ? true : false"
+
           :refreshLatestKlaim="refreshLatestKlaim" 
           :setTotalTarifRs="setTotalTarifRs"
           :setIsVip="setIsVip"
