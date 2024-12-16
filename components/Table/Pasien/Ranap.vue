@@ -317,7 +317,7 @@
                 }).format(rc?.[row.no_rawat].total ?? 0) }}</p>
               </UTooltip>
               
-              <div class="font-semibold leading-none text-violet-400 {{ rc?.[row.no_rawat].total == 0 ? '' : 'pl-7' }}">
+              <div class="font-semibold leading-none text-violet-400">
                 <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-violet-900',}">
                   <p v-if="row.sep">
                     {{

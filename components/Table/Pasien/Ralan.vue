@@ -77,8 +77,8 @@ const openNewTab = (url: string) => {
     { label: 'Diag Awal', key: 'diagawal' },
     { label: 'DPJP', key: 'nmdpdjp' },
     { label: 'Tgl Registrasi', key: 'reg_periksa?.tgl_registrasi' },
-    { label: 'Real Cost', key: 'real_cost' },
-    { label: 'Groupping', key: 'groupping_cost' },
+    { label: 'Cost Pasien', key: 'patient_cost' },
+    // { label: 'Groupping', key: 'groupping_cost' },
     { label: 'Action', key: 'action' },
   ]">
     <template #action-data="{ row }">
@@ -141,32 +141,18 @@ const openNewTab = (url: string) => {
       </div>
     </template>
 
-    <template #real_cost-header="{ column }">
+    <template #patient_cost-header="{ column }">
       <span
         class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
         {{ column.label }}
       </span>
     </template>
 
-    <template #mining_tarif-header="{ column }">
-      <span
-        class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
-        {{ column.label }}
-      </span>
-    </template>
-
-    <template #groupping_cost-header="{ column }">
-      <span
-        class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
-        {{ column.label }}
-      </span>
-    </template>
-
 
     <!-- realcost data -->
-    <template #real_cost-data="{ row }">
+    <template #patient_cost-data="{ row }">
       <template v-if="props.costStatus == 'success'">
-        <div class="flex flex-row gap-2 items-center justify-start">
+        <div class="flex flex-row gap-4 items-center justify-start">
           <template v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 100">
             <UPopover mode="hover">
               <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
@@ -208,8 +194,7 @@ const openNewTab = (url: string) => {
             </UPopover>
           </template>
 
-          <template
-            v-else-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) <= 80">
+          <template v-else-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) <= 80">
             <UPopover mode="hover">
               <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
               <template #panel>
@@ -225,29 +210,22 @@ const openNewTab = (url: string) => {
             </UPopover>
           </template>
 
-          <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
-            style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-          }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</p>
-        </div>
-      </template>
-      <template v-else-if="props.costStatus == 'loading'">
-        <div class="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded-md"></div>
-      </template>
-      <template v-else-if="props.costStatus == 'error'">
-        <p class="text-red-500">Failed to fetch</p>
-      </template>
-      <template v-else>
-        <p class="text-gray-500">-</p>
-      </template>
-    </template>
+          <div class="flex flex-col gap-2">
+            <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-teal-900',}">
+              <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
+                style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+              }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</p>
+            </UTooltip>
 
-    <template #groupping_cost-data="{ row }">
-      <template v-if="props.costStatus == 'success'">
-        <p class="font-semibold text-indigo-500">{{
-          new Intl.NumberFormat('id-ID', {
-            style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-          }).format(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0)
-        }}</p>
+            <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-violet-900',}">
+              <p class="font-semibold text-violet-500 leading-none">{{
+                new Intl.NumberFormat('id-ID', {
+                  style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+                }).format(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0)
+              }}</p>
+            </UTooltip>
+          </div>
+        </div>
       </template>
       <template v-else-if="props.costStatus == 'loading'">
         <div class="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-24 rounded-md"></div>
@@ -282,8 +260,19 @@ const openNewTab = (url: string) => {
     <template #no_sep-data="{ row }">
       <div class="flex flex-col gap-4 w-[310px]">
         <div>
-          <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-"
-            }}</p>
+          <div class="flex gap-2 items-center">
+            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
+            <template v-if="row.terkirim_online">
+              <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-blue-900' }">
+                <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
+              </UTooltip>
+            </template>
+            <template v-else>
+              <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-rose-900' }">
+                <UIcon name="i-tabler-circle-dashed-x" class="text-rose-400 h-5 w-5" />
+              </UTooltip>
+            </template>
+          </div>
           <div class="flex gap-1 mt-1">
             <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
             <template v-if="row?.berkas_perawatan">

@@ -53,6 +53,7 @@ const bodyReqs = ref<any>({
   includes: [
     { "relation": "pasien" },
     { "relation": "status_klaim" },
+    { "relation": "terkirim_online" },
     { "relation": "berkasPerawatan" },
     { "relation": "reg_periksa.dokter.spesialis" },
     { "relation": "reg_periksa.poliklinik" },
