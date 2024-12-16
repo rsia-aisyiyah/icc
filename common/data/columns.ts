@@ -5,8 +5,8 @@ export const pasienRanapColumns = [
   { label: "Diag Awal", key: "diagnosa" },
   { label: "Tgl Masuk", key: "reg_periksa?.tgl_registrasi" },
   { label: "Tgl Keluar", key: "tgl_keluar" },
-  { label: "Real Cost", key: "real_cost" },
-  { label: "Hasil Group", key: "groupping_tarif" },
+  { label: "Cost Pasien", key: "patient_cost" },
+  // { label: "Hasil Group", key: "groupping_tarif" },
   // { label: "Mining tarif", key: "mining_tarif" },
   { label: "Action", key: "action" },
 ];

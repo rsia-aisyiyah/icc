@@ -1,5 +1,5 @@
 <template>
-  <UCard>
+  <UCard :ui="{ background: 'bg-white dark:bg-cool-900' }">
     <!-- Header -->
     <template #header>
       <div class="flex items-start gap-4">
@@ -146,7 +146,19 @@
       <template #sep.no_sep-data="{ row }">
         <div class="flex flex-col gap-4 w-[310px]">
           <div>
-            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
+            <div class="flex gap-2 items-center">
+              <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
+              <template v-if="row.sep.terkirim_online">
+                <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-blue-900' }">
+                  <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
+                </UTooltip>
+              </template>
+              <template v-else>
+                <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-rose-900' }">
+                  <UIcon name="i-tabler-circle-dashed-x" class="text-rose-400 h-5 w-5" />
+                </UTooltip>
+              </template>
+            </div>
             <div class="flex gap-1 mt-1">
               <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
               <span class="text-gray-500 font-semibold text-sm px-1">|</span>
@@ -236,10 +248,10 @@
       </template>
 
       <!-- ---------- COST DATA -->
-      <template #real_cost-data="{ row }">
+      <template #patient_cost-data="{ row }">
         <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
         <template v-if="!pendingFetchCost">
-          <div class="flex flex-row gap-2 items-center justify-start">
+          <div class="flex flex-row gap-4 items-center justify-start">
             <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) >= 100">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
@@ -281,8 +293,7 @@
               </UPopover>
             </template>
 
-            <template
-              v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) <= 80">
+            <template v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) <= 80">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
                 <template #panel>
@@ -298,9 +309,32 @@
               </UPopover>
             </template>
 
-            <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
-              style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-            }).format(rc?.[row.no_rawat].total ?? 0) }}</p>
+
+            <div class="flex flex-col gap-2">
+              <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-teal-900',}">
+                <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
+                  style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+                }).format(rc?.[row.no_rawat].total ?? 0) }}</p>
+              </UTooltip>
+              
+              <div class="font-semibold leading-none text-violet-400 {{ rc?.[row.no_rawat].total == 0 ? '' : 'pl-7' }}">
+                <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-violet-900',}">
+                  <p v-if="row.sep">
+                    {{
+                      gc?.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif
+                        ? new Intl.NumberFormat('id-ID', {
+                          style: 'currency',
+                          currency: 'IDR',
+                          maximumFractionDigits: 0
+                        }).format(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0)
+                        : '-'
+                    }}
+                  </p>
+        
+                  <p v-else>-</p>
+                </UTooltip>
+              </div>
+            </div>
           </div>
         </template>
       </template>
