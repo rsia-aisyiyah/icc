@@ -148,7 +148,7 @@
           <div>
             <div class="flex gap-2 items-center">
               <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
-              <template v-if="row.sep.terkirim_online">
+              <template v-if="row.sep?.terkirim_online">
                 <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-blue-900' }">
                   <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
                 </UTooltip>
@@ -210,7 +210,7 @@
         <div class="flex flex-col gap-2">
           <UBadge color="red" variant="soft">
             <div class="flex gap-2 items-center justify-center">
-              {{ row.sep ? row.sep.diagawal : "-" }}
+              {{ row.sep?.diagawal ?? "-" }}
             </div>
           </UBadge>
         </div>
@@ -368,23 +368,9 @@
 
 
       <!-- ---------- TABLE HEADER -->
-      <template #real_cost-header="{ column }">
+      <template #patient_cost-header="{ column }">
         <span
           class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
-          {{ column.label }}
-        </span>
-      </template>
-
-      <template #mining_tarif-header="{ column }">
-        <span
-          class="text-indigo-500 bg-indigo-100/70 dark:text-indigo-400 dark:bg-indigo-500/20 dark:border-indigo-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
-          {{ column.label }}
-        </span>
-      </template>
-
-      <template #groupping_tarif-header="{ column }">
-        <span
-          class="text-violet-500 bg-violet-100/70 dark:text-violet-400 dark:bg-violet-500/20 dark:border-violet-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>

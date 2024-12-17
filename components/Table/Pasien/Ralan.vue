@@ -262,7 +262,7 @@ const openNewTab = (url: string) => {
         <div>
           <div class="flex gap-2 items-center">
             <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
-            <template v-if="row.terkirim_online">
+            <template v-if="row?.terkirim_online">
               <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-blue-900' }">
                 <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
               </UTooltip>
