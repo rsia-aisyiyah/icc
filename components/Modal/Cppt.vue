@@ -180,28 +180,44 @@ watch(() => props.isOpen, (newValue) => {
 // Watcher to trigger requests when conditions are met
 const { data: pasien, error: pasienError, refresh: pasienRefresh, status: pasienStatus } = await useAsyncData(
   `${config.public.API_V2_URL}/pasien/${props.noRekamMedis}`,
-  () => $fetch(`${config.public.API_V2_URL}/pasien/${props.noRekamMedis}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token.accessToken}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  }),
+  () => {
+    pasien.value = null;
+    
+    if (props.noRekamMedis) {
+      return $fetch(`${config.public.API_V2_URL}/pasien/${props.noRekamMedis}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token.accessToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+    } 
+
+    return Promise.resolve(null);
+  },
   { immediate: true, watch: [() => props.noRekamMedis, () => props.statusLanjut], lazy: true }
 );
 
 // Watcher to trigger requests when conditions are met
 const { data: cppt, error: cpptError, refresh: cpptRefresh, status: cpptStatus } = await useAsyncData(
   `${config.public.API_V2_URL}/pasien/${props.noRekamMedis}/riwayat/${btoa(props.noRawat)}/${props.statusLanjut}?interval=1`,
-  () => $fetch(`${config.public.API_V2_URL}/pasien/${props.noRekamMedis}/riwayat/${btoa(props.noRawat)}/${props.statusLanjut}?interval=1`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token.accessToken}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+  () => {
+    cppt.value = null;
+
+    if (props.noRekamMedis && props.noRawat) {
+      return $fetch(`${config.public.API_V2_URL}/pasien/${props.noRekamMedis}/riwayat/${btoa(props.noRawat)}/${props.statusLanjut}?interval=1`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token.accessToken}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
     }
-  }),
+
+    return Promise.resolve(null);
+  },
   { immediate: true, watch: [() => props.noRekamMedis, () => props.noRawat, () => props.statusLanjut], lazy: true }
 );
 
