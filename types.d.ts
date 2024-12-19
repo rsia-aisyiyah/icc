@@ -279,3 +279,15 @@ type ResourcePaginationMetaLink = {
 import { FormDataSchema } from '~/common/schema/formData'
 
 export type FormData = z.infer<typeof FormDataSchema>
+
+
+// ============================== ORION
+interface OrionFilterInterface {
+  field: string;
+  operator: string;
+  value: string | Date | undefined;
+}
+
+interface OrionSearchInterface {
+  value: string;
+}

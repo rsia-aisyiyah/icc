@@ -81,9 +81,21 @@ const toData = (key: string, subKey: string) => {
 
 const toBerkasTerkirimData = (key: string) => {
   if (key == 'Rawat Inap') {
-    $router.push(`/ranap?terkirim=1&month=${month.value}`);
+    $router.push({
+      path: '/ranap',
+      query: {
+        terkirim: 1,
+        month: month.value
+      }
+    });
   } else {
-    $router.push(`/ralan?terkirim=1&month=${month.value}`);
+    $router.push({
+      path: '/ralan',
+      query: {
+        terkirim: 1,
+        month: month.value
+      }
+    });
   }
 }
 
@@ -283,9 +295,9 @@ const getPercentage = (num: number, denum: number): string => {
                           <div class="text-base capitalize dark:text-gray-400">{{ subKey }}</div>
                         </div>
 
-                        <div :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey.toString())?.color ?? 'primary']}`">
+                        <!-- <div :class="`leading-none rounded-full h-14 w-14 flex items-center justify-center ${colorVariant[determineStatus(subKey.toString())?.color ?? 'primary']}`">
                           <UIcon :name="determineStatus(subKey.toString())?.icon ?? `i-tabler-alert-circle`" :class="`text-${determineStatus(subKey.toString())?.color}-500 h-7 w-7 leading-none m-0 p-0`" />
-                        </div>
+                        </div> -->
                       </div>
                     </template>
                   </div>
