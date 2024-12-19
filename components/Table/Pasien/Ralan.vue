@@ -70,7 +70,7 @@ const openNewTab = (url: string) => {
 
 <template>
 
-  <UTable :rows="(data as any).data" :loading="props.status == 'pending'" :columns="[
+  <UTable :rows="(data as any)?.data" :loading="props.status == 'pending'" :columns="[
     { label: 'No. SEP', key: 'no_sep' },
     // { label: 'Pasien', key: 'pasien?.nm_pasien' },
     { label: 'Status', key: 'status_klaim' },
