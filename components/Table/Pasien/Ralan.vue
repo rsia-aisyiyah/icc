@@ -211,13 +211,13 @@ const openNewTab = (url: string) => {
           </template>
 
           <div class="flex flex-col gap-2">
-            <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-teal-900',}">
+            <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-teal-200 dark:bg-teal-900',}">
               <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
                 style: 'currency', currency: 'IDR', minimumFractionDigits: 0
               }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</p>
             </UTooltip>
 
-            <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-white dark:bg-violet-900',}">
+            <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
               <p class="font-semibold text-violet-500 leading-none">{{
                 new Intl.NumberFormat('id-ID', {
                   style: 'currency', currency: 'IDR', minimumFractionDigits: 0
@@ -263,12 +263,12 @@ const openNewTab = (url: string) => {
           <div class="flex gap-2 items-center">
             <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
             <template v-if="row?.terkirim_online">
-              <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-blue-900' }">
+              <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-blue-200 dark:bg-blue-900' }">
                 <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
               </UTooltip>
             </template>
             <template v-else>
-              <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-white dark:bg-rose-900' }">
+              <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-rose-200 dark:bg-rose-900' }">
                 <UIcon name="i-tabler-circle-dashed-x" class="text-rose-400 h-5 w-5" />
               </UTooltip>
             </template>
@@ -277,7 +277,7 @@ const openNewTab = (url: string) => {
             <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
             <template v-if="row?.berkas_perawatan">
               <span class="text-gray-500 font-semibold text-sm px-1">|</span>
-              <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }">
+              <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }" :ui="{ background: 'bg-fuchsia-200 dark:bg-fuchsia-900' }">
                 <UBadge size="xs" color="fuchsia" variant="subtle" class="flex items-center gap-1">
                   <UIcon name="i-tabler-checks" class="text-fuchsia-400 h-4.5 w-4.5" />
                   Terkirim
@@ -326,10 +326,8 @@ const openNewTab = (url: string) => {
 
         <UTooltip>
           <div class="flex gap-1">
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar
-              }}</span>
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur
-              }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur }}</span>
           </div>
 
           <template #text>
