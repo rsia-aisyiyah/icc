@@ -1,4 +1,8 @@
 const setStatus = [
+  { id: "", label: "Semua Data", icon: "i-tabler-align-box-left-stretch", color: "primary", variant: "soft" },
+
+  { id: "belum", label: "Belum Proses", icon: "i-tabler-hash", color: "fuchsia", variant: "soft" },
+
   { id: "verifikasi resume", label: "verifikasi resume", icon: "i-tabler-checklist", color: "blue", variant: "soft" },
   { id: "lengkap", label: "lengkap", icon: "i-tabler-checkbox", color: "lime", variant: "soft" },
   { id: "pengajuan", label: "pengajuan", icon: "i-tabler-cube-send", color: "amber", variant: "soft" },
