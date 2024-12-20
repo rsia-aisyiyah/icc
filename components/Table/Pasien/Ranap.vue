@@ -12,149 +12,97 @@
     </template>
 
     <!-- Filter and search -->
-    <div class="mb-4 flex flex-col lg:flex-row gap-4 justify-end items-center">
-      <!-- Select Menu -->
-      <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event"
-        class="w-full md:w-[30%] lg:w-[10%]">
-        <template #leading>
-          <UIcon v-if="selectedStatus.icon" :name="(selectedStatus.icon as string)" class="w-5 h-5" />
-        </template>
-      </USelectMenu>
+    <ClientOnly fallback="Loading filters...">
+      <div class="mb-10 flex flex-col lg:flex-row gap-4 justify-center items-center">
+        <div class="flex flex-col gap-4 xl:flex-row">
+          <!-- Status Berkas Terkirim -->
+          <div class="flex gap-0.5 flex-col">
+            <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Status Kirim Berkas</div>
+            <div class="p-1.5 px-3 rounded-2xl border border-cool-200 dark:border-cool-700 flex gap-4">
+              <URadio v-for="method of [
+                { value: '', label: 'Semua' },
+                { value: 'terkirim', label: 'Terkirim' },
+                { value: 'belum', label: 'Belum' }
+              ]" :key="method.value" v-model="statusTerkirim" v-bind="method" />
+            </div>
+          </div>
 
-      <!-- Pulang / Belum Pulang -->
-      <div class="p-1.5 px-3 rounded-2xl border border-cool-200 dark:border-cool-700 flex gap-4">
-        <URadio v-for="method of methods" :key="method.value" v-model="masukKeluar" v-bind="method" />
+          <!-- Pulang / Belum Pulang -->
+          <div class="flex gap-0.5 flex-col">
+            <UTooltip text="Terkait dengan tanggal registrasi disamping" :popper="{ placement: 'top' }" :ui="{ background: 'bg-amber-200 dark:bg-amber-700' }">
+              <div class="flex gap-2 items-center justify-start">
+                <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Filter Status</div>
+                <UIcon name="i-tabler-info-circle" class="text-blue-500 dark:text-blue-400 h-4 w-4 animate-pulse" />
+              </div>
+            </UTooltip>
+
+            <div class="p-1.5 px-3 rounded-2xl border border-cool-200 dark:border-cool-700 flex gap-4">
+              <URadio v-for="method of [
+                { value: '-', label: 'Belum Pulang' },
+                { value: 'masuk', label: 'Masuk' },
+                { value: 'keluar', label: 'Keluar' }
+              ]" :key="method.value" v-model="masukKeluar" v-bind="method" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 xl:flex-row">
+          <!-- tanggal masuk - keluar -->
+          <div class="flex gap-0.5 flex-col">
+            <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Tanggal Registrasi</div>
+            <UPopover :popper="{ placement: 'bottom-start' }">
+              <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
+                <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
+                <span v-else-if="typeof date === 'object'">
+                  {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
+                </span>
+                <span v-else>
+                  {{ format(date, 'd MMM, yyy') }}
+                </span>
+              </UButton>
+  
+              <template #panel="{ close }">
+                <DatePicker v-model="date" @close="close" isRange />
+              </template>
+            </UPopover>
+          </div>
+  
+          <!-- Status Klaim -->
+          <div class="flex gap-0.5 flex-col xl:w-[250px]">
+            <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Status Klaim</div>
+            <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event" class="w-full" :searchable="true">
+              <template #leading>
+                <UIcon v-if="selectedStatus.icon" :name="(selectedStatus.icon as string)" class="w-5 h-5" />
+              </template>
+            </USelectMenu>
+          </div>
+        </div>
+
+        <!-- Search field -->
+        <div class="w-full md:w-[50%] lg:w-[20%] xl:w-[15%] 2xl:w-[13%]">
+          <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Cari Pasien</div>
+          <UInput placeholder="Search..." class="w-full" v-model="bodyReqs.search.value" />
+        </div>
       </div>
-
-      <!-- tanggal masuk - keluar -->
-      <UPopover :popper="{ placement: 'bottom-start' }">
-        <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
-          <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
-          <span v-else-if="typeof date === 'object'">
-            {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
-          </span>
-          <span v-else>
-            {{ format(date, 'd MMM, yyy') }}
-          </span>
-        </UButton>
-
-        <template #panel="{ close }">
-          <DatePicker v-model="date" @close="close" isRange />
-        </template>
-
-      </UPopover>
-
-      <!-- search -->
-      <UInput v-model="bodyReqs.search.value" placeholder="Search..." class="w-full md:w-[50%] lg:w-[20%]" />
-    </div>
+    </ClientOnly>
 
     <!-- Table -->
     <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="status == 'pending'">
-      <!-- Action -->
-      <template #action-data="{ row }">
-        <div class="flex gap-1">
-          <UButton :disabled="!row.sep?.no_sep" :to="`/klaim/${row.sep?.no_sep}`" target="_blank" icon="i-tabler-external-link"
-            :variant="!row.sep?.no_sep ? 'solid' : 'soft'" :color="!row.sep?.no_sep ? 'gray' : 'primary'" size="xs">
-            Form Klaim
-          </UButton>
-
-          <UDropdown :items="[
-            [{
-              label: 'Riawayat Klaim',
-              icon: 'i-tabler-pig-money',
-              disabled: !row?.pasien?.no_rkm_medis,
-              click: () => {
-                openNewTab(buildUrl(row.pasien.no_rkm_medis));
-              }
-            }, {
-              // berkas
-              label: 'Berkas Klaim',
-              icon: 'i-tabler-file-text',
-              disabled: !row.sep?.no_sep,
-              click: () => {
-                openDokumen = true;
-                pdfReady = false;
-                sep = row.sep?.no_sep
-              }
-            }],
-            [{
-              label: 'CPPT',
-              icon: 'i-tabler-file-text',
-              disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
-              click: () => {
-                setSepRawat(row)
-                openModalCPPT = true
-              }
-            }],
-            [{
-              label: 'Status & Note',
-              icon: 'i-tabler-note',
-              disabled: !row.sep?.no_sep,
-              click: () => {
-                setSepRawat(row)
-                openModalKlaimFeedback = true
-              }
-            }], [{
-              label: 'Kirim Berkas',
-              icon: 'i-tabler-file-export',
-              disabled: !row.sep?.no_sep,
-              click: () => {
-                setSepRawat(row)
-                openModalLoading = true
-                doExportBerkas()
-              }
-            }]
-          ]">
-            <UButton size="xs" :disable="false" :variant="!row.sep?.no_sep ? 'solid' : 'soft'"
-              :color="!row.sep?.no_sep ? 'gray' : 'primary'" trailing-icon="i-heroicons-chevron-down-20-solid" />
-          </UDropdown>
-        </div>
-      </template>
-
       <!-- Data -->
-      <template #no_rawat-data="{ row }">
-        <UBadge color="sky" variant="soft">
-          <div class="flex gap-2 items-center justify-center pl-1">
-            {{ row.no_rawat ?? "-" }}
-            <template v-if="row.no_rawat && isSupported">
-              <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
-            </template>
-          </div>
-        </UBadge>
-      </template>
-
-      <template #status_klaim-data="{ row }">
-        <div class="flex flex-row gap-2 items-start">
-          <template v-if="row.sep?.status_klaim">
-            <UButton @click="setSepRawat(row); openModalKlaimFeedback = true"
-              :color="(determineStatus(row.sep?.status_klaim?.status)?.color as any)"
-              :variant="(determineStatus(row.sep?.status_klaim?.status)?.variant as any)"
-              :icon="(determineStatus(row.sep?.status_klaim?.status)?.icon as any)" size="2xs"
-              class="uppercase tracking-wide">
-              {{ row.sep?.status_klaim?.status }}
-            </UButton>
-          </template>
-          <template v-else>
-            <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash"
-              @click="setSepRawat(row); openModalKlaimFeedback = true">
-              Belum Proses
-            </UButton>
-          </template>
-        </div>
-      </template>
-
       <template #sep.no_sep-data="{ row }">
         <div class="flex flex-col gap-4 w-[310px]">
           <div>
             <div class="flex gap-2 items-center">
               <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
-              <template v-if="row.sep?.terkirim_online">
-                <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-blue-200 dark:bg-blue-900' }">
+              <template v-if="row.sep_simple?.terkirim_online">
+                <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }"
+                  :ui="{ background: 'bg-blue-200 dark:bg-blue-900' }">
                   <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
                 </UTooltip>
               </template>
               <template v-else>
-                <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-rose-200 dark:bg-rose-900' }">
+                <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }"
+                  :ui="{ background: 'bg-rose-200 dark:bg-rose-900' }">
                   <UIcon name="i-tabler-circle-dashed-x" class="text-rose-400 h-5 w-5" />
                 </UTooltip>
               </template>
@@ -165,7 +113,8 @@
               <span class="text-gray-500 font-semibold text-sm">{{ row.sum_lama }} Hari</span>
               <template v-if="row?.berkas_perawatan">
                 <span class="text-gray-500 font-semibold text-sm px-1">|</span>
-                <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }" :ui="{ background: 'bg-fuchsia-200 dark:bg-fuchsia-900' }">
+                <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }"
+                  :ui="{ background: 'bg-fuchsia-200 dark:bg-fuchsia-900' }">
                   <UBadge size="xs" color="fuchsia" variant="subtle" class="flex items-center gap-1">
                     <UIcon name="i-tabler-checks" class="text-fuchsia-400 h-4.5 w-4.5" />
                     Terkirim
@@ -178,18 +127,21 @@
           <div class="flex flex-col gap-1">
             <div class="flex gap-1">
               <UBadge variant="subtle" si color="gray" class="w-fit">
-                <p class="truncate text-xs text-ellipsis whitespace-nowrap overflow-hidden"><span class="font-normal"></span>{{ row.reg_periksa.dpjp ?? "-" }}</p>
+                <p class="truncate text-xs text-ellipsis whitespace-nowrap overflow-hidden">
+                  {{ row.reg_periksa_simple?.dokter?.nm_dokter ?? "-" }}
+                </p>
               </UBadge>
               <UBadge variant="subtle" si color="purple" class="w-fit">
-                <p class="truncate text-xs text-ellipsis whitespace-nowrap overflow-hidden"><span class="font-normal"></span>{{ row.reg_periksa.poliklinik ?? "-" }}</p>
+                <p class="truncate text-xs text-ellipsis whitespace-nowrap overflow-hidden">
+                  {{ row.reg_periksa_simple?.poliklinik?.nm_poli ?? "-" }}
+                </p>
               </UBadge>
             </div>
-            <UBadge :color="row.sep?.no_sep ? 'primary' : 'primary'" variant="soft">
+            <UBadge :color="row.sep_simple?.no_sep ? 'primary' : 'primary'" variant="soft">
               <div class="flex gap-2 items-center justify-between w-full pl-1">
-                {{ row.sep?.no_sep ?? "-" }}
-                <template v-if="row.sep?.no_sep && isSupported">
-                  <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs"
-                    @click="copy(row.sep?.no_sep)" />
+                {{ row.sep_simple?.no_sep ?? "-" }}
+                <template v-if="row.sep_simple?.no_sep && isSupported">
+                  <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.sep_simple?.no_sep)" />
                 </template>
               </div>
             </UBadge>
@@ -206,31 +158,42 @@
         </div>
       </template>
 
+      <template #status_klaim-data="{ row }">
+        <div class="flex flex-row gap-2 items-start">
+          <template v-if="row.sep_simple?.status_klaim">
+            <UButton @click="setSepRawat(row); openModalKlaimFeedback = true"
+              :color="(determineStatus(row.sep_simple?.status_klaim?.status)?.color as any)"
+              :variant="(determineStatus(row.sep_simple?.status_klaim?.status)?.variant as any)"
+              :icon="(determineStatus(row.sep_simple?.status_klaim?.status)?.icon as any)" size="2xs"
+              class="uppercase tracking-wide">
+              {{ row.sep_simple?.status_klaim?.status }}
+            </UButton>
+          </template>
+          <template v-else>
+            <UButton color="gray" variant="solid" size="2xs" class="uppercase tracking-wide" icon="i-tabler-hash"
+              @click="setSepRawat(row); openModalKlaimFeedback = true" :disabled="!row.sep_simple?.no_sep">
+              Belum Proses
+            </UButton>
+          </template>
+        </div>
+      </template>
+
       <template #diagnosa-data="{ row }">
         <div class="flex flex-col gap-2">
-          <UBadge color="red" variant="soft">
+          <UBadge color="red" variant="soft" class="w-fit">
             <div class="flex gap-2 items-center justify-center">
-              {{ row.sep?.diagawal ?? "-" }}
+              {{ row.sep_simple?.diagawal ?? "-" }}
             </div>
           </UBadge>
         </div>
       </template>
 
-      <template #pasien.nm_pasien-data="{ row }">
-        <span class="font-bold">{{ row.pasien?.nm_pasien ?? "-" }}</span>
-        <div class="flex gap-1 mt-1">
-          <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
-          <span class="text-gray-500 font-semibold text-sm px-1">|</span>
-          <span class="text-gray-500 font-semibold text-sm">{{ row.sum_lama }} Hari</span>
-        </div>
-      </template>
-
       <template #reg_periksa?.tgl_registrasi-data="{ row }">
-        <div class="font-semibold">{{ new Date(row.reg_periksa?.tgl_registrasi).toLocaleDateString('id-ID', {
+        <div class="font-semibold">{{ new Date(row.reg_periksa_simple?.tgl_registrasi).toLocaleDateString('id-ID', {
           weekday: 'short', year: 'numeric',
           month: 'short', day: 'numeric'
         }) }}</div>
-        <div>{{ row.reg_periksa?.jam_reg }}</div>
+        <div>{{ row.reg_periksa_simple?.jam_reg }}</div>
       </template>
 
       <template #tgl_keluar-data="{ row }">
@@ -247,12 +210,11 @@
         </template>
       </template>
 
-      <!-- ---------- COST DATA -->
       <template #patient_cost-data="{ row }">
         <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
         <template v-if="!pendingFetchCost">
           <div class="flex flex-row gap-4 items-center justify-start">
-            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) >= 100">
+            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) >= 100">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
                 <template #panel>
@@ -270,7 +232,7 @@
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
-                          }).format((gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0) - (rc?.[row.no_rawat].total ?? 0))
+                          }).format((gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0) - (rc?.[row.no_rawat]?.total ?? 0))
                         }}
                       </p>
                   </div>
@@ -279,7 +241,7 @@
               </UPopover>
             </template>
 
-            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) >= 80 && getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0)  < 100">
+            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) >= 80 && getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0)  < 100">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-triangle" class="text-amber-400 h-5 w-5" />
                 <template #panel>
@@ -293,7 +255,7 @@
               </UPopover>
             </template>
 
-            <template v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat].total ?? 0) <= 80">
+            <template v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) <= 80">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
                 <template #panel>
@@ -309,24 +271,23 @@
               </UPopover>
             </template>
 
-
             <div class="flex flex-col gap-2">
               <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-teal-200 dark:bg-teal-900',}">
                 <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
                   style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-                }).format(rc?.[row.no_rawat].total ?? 0) }}</p>
+                }).format(rc?.[row.no_rawat]?.total ?? 0) }}</p>
               </UTooltip>
               
               <div class="font-semibold leading-none text-violet-400">
                 <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
                   <p v-if="row.sep">
                     {{
-                      gc?.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif
+                      gc?.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif
                         ? new Intl.NumberFormat('id-ID', {
                           style: 'currency',
                           currency: 'IDR',
                           maximumFractionDigits: 0
-                        }).format(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0)
+                        }).format(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0)
                         : '-'
                     }}
                   </p>
@@ -339,38 +300,81 @@
         </template>
       </template>
 
-      <template #mining_tarif-data="{ row }">
-        <span class="text-indigo-400">
-          <USkeleton class="h-4 w-[100px]" />
-        </span>
+      <template #action-data="{ row }">
+        <div class="flex gap-1">
+          <UButton 
+            :disabled="!row.sep_simple?.no_sep" 
+            :to="`/klaim/${row.sep_simple?.no_sep}`"
+            :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" 
+            :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" 
+            icon="i-tabler-external-link"
+            target="_blank" 
+            size="xs"
+          >
+            Form Klaim
+          </UButton>
+
+          <UDropdown :items="[
+            [{
+              label: 'Riawayat Klaim',
+              icon: 'i-tabler-pig-money',
+              disabled: !row?.pasien?.no_rkm_medis,
+              click: () => {
+                openNewTab(buildUrl(row.pasien?.no_rkm_medis));
+              }
+            }, {
+              // berkas
+              label: 'Berkas Klaim',
+              icon: 'i-tabler-file-text',
+              disabled: !row.sep_simple?.no_sep,
+              click: () => {
+                pdfReady = false;
+                openDokumen = true;
+                sep = row.sep_simple?.no_sep
+              }
+            }],
+            [{
+              label: 'CPPT',
+              icon: 'i-tabler-file-text',
+              disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
+              click: () => {
+                setSepRawat(row)
+                openModalCPPT = true
+              }
+            }],
+            [{
+              icon: 'i-tabler-note',
+              label: 'Status & Note',
+              disabled: !row.sep_simple?.no_sep,
+              click: () => {
+                setSepRawat(row)
+                openModalKlaimFeedback = true
+              }
+            }], [{
+              label: 'Kirim Berkas',
+              icon: 'i-tabler-file-export',
+              disabled: !row.sep_simple?.no_sep,
+              click: () => {
+                setSepRawat(row)
+                openModalLoading = true
+                doExportBerkas()
+              }
+            }]
+          ]">
+            <UButton 
+              size="xs" 
+              :disable="false" 
+              :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" 
+              :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" 
+              trailing-icon="i-heroicons-chevron-down-20-solid"
+            />
+          </UDropdown>
+        </div>
       </template>
 
-      <template #groupping_tarif-data="{ row }">
-        <span class="font-semibold leading-none text-violet-400">
-          <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
-          <span v-if="!pendingFetchCost">
-            <span v-if="row.sep">
-              {{
-                gc?.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif
-                  ? new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    maximumFractionDigits: 0
-                  }).format(gc.find((item: any) => item.no_sep === row.sep?.no_sep)?.tarif ?? 0)
-                  : '-'
-              }}
-            </span>
-
-            <span v-else>-</span>
-          </span>
-        </span>
-      </template>
-
-
-      <!-- ---------- TABLE HEADER -->
+      <!-- Header -->
       <template #patient_cost-header="{ column }">
-        <span
-          class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+        <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
@@ -383,15 +387,18 @@
     </UTable>
 
     <!-- pagination -->
-    <div v-if="pasienRanap && pasienRanap.meta">
+    <div v-if="pasienRanap && pasienRanap?.meta">
       <div class="mt-5 flex flex-col md:flex-row items-center justify-between">
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Showing : {{ (pasienRanap.meta as any).from }}
-          to {{ (pasienRanap.meta as any).to }}
-          of {{ (pasienRanap.meta as any).total }} entries
+          Showing : {{ (pasienRanap?.meta as any)?.from }}
+          to {{ (pasienRanap?.meta as any)?.to }}
+          of {{ (pasienRanap?.meta as any)?.total }} entries
         </p>
-        <UPagination v-model="currentPage" :page-count="(pasienRanap.meta as any).per_page"
-          :total="(pasienRanap.meta as any).total" />
+        <UPagination 
+          v-model="currentPage" 
+          :total="(pasienRanap?.meta as any)?.total" 
+          :page-count="(pasienRanap?.meta as any)?.per_page"
+        />
       </div>
     </div>
   </UCard>
@@ -416,17 +423,16 @@
   </USlideover>
 
   <template v-if="sep">
-    <!-- Modal Klaim Feedback -->
     <ModalKlaimFeedback v-model:isOpen="openModalKlaimFeedback" :sep="sep" :noRawat="noRawat" :callback="refresh" />
   </template>
   <!-- Modal Loading -->
   <ModalLoading v-model:isOpen="openModalLoading" />
   <!-- Modal CPPT -->
-  <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ranap"/>
+  <ModalCppt v-model:isOpen="openModalCPPT" :noRekamMedis="noRekamMedis" :noRawat="noRawat" statusLanjut="ranap" />
 </template>
 
 <script lang="ts" setup>
-import type { GroupingCostRawatInap, RealCostRawatInap, ResourcePagination } from '~/types'
+import type { GroupingCostRawatInap, OrionFilterInterface, RealCostRawatInap, ResourcePagination } from '~/types'
 import { pasienRanapColumns } from '~/common/data/columns'
 import { useClipboard, useDebounceFn } from '@vueuse/core'
 import { format } from 'date-fns'
@@ -435,21 +441,13 @@ import { setStatus } from '~/common/helpers/statusHelper';
 
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
 
-// if id "" not exist, add it to the first index
-if (!setStatus.find((item) => item.id === '')) {
-  setStatus.unshift({ id: "", label: "Semua Data", icon: "i-tabler-align-box-left-stretch", color: "primary", variant: "soft" })
-}
-
-if (!setStatus.find((item) => item.id === 'terkirim')) {
-  setStatus.splice(1, 0, { id: "terkirim", label: "Terkirim", icon: "i-tabler-checks", color: "fuchsia", variant: "soft" })
-}
-
 const sep = ref('')
 const pdfUrl = ref('')
 const noRawat = ref('')
 const toast = useToast()
 const pdfReady = ref(false)
 const noRekamMedis = ref('')
+const statusTerkirim = ref('')
 const openDokumen = ref(false)
 const openModalCPPT = ref(false)
 const config = useRuntimeConfig()
@@ -487,7 +485,7 @@ const doExportBerkas = async () => {
 }
 
 const setSepRawat = (row: any) => {
-  sep.value = row.sep?.no_sep
+  sep.value = row.sep_simple?.no_sep
   noRawat.value = row?.no_rawat
   noRekamMedis.value = row?.pasien?.no_rkm_medis
 }
@@ -497,12 +495,6 @@ const openNewTab = (url: string) => {
 }
 
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
-
-const methods = [
-  { value: '-', label: 'Belum Pulang' },
-  { value: 'masuk', label: 'Tgl Masuk' },
-  { value: 'keluar', label: 'Tgl Keluar' }
-]
 
 const rc = ref<RealCostRawatInap[]>([])
 const gc = ref<GroupingCostRawatInap[]>([])
@@ -519,7 +511,6 @@ const bodyReqs = ref<{
   scopes: { name: string; parameters?: any[] }[];
   filters: { field: string; operator: string; value: any }[];
   sort: { field: string; direction: string }[];
-  aggregates: { type: string; relation: string; field: string }[];
   search: { value: string };
   includes?: { relation: string }[];
 }>({
@@ -529,8 +520,17 @@ const bodyReqs = ref<{
     { field: 'regPeriksa.kd_pj', operator: 'in', value: ['A01', 'A05'] }
   ],
   sort: [{ field: 'no_rawat', direction: 'desc' }],
-  aggregates: [{ type: "sum", relation: "lamaInap", field: "lama" }],
   search: { value: '' },
+  includes: [
+    { "relation": "regPeriksaSimple" },
+    { "relation": "regPeriksaSimple.dokter" },
+    { "relation": "regPeriksaSimple.poliklinik" },
+
+    { "relation": "sepSimple" },
+    { "relation": "sepSimple.status_klaim" },
+    { "relation": "sepSimple.terkirim_online" },
+    { "relation": "sepSimple.berkasPerawatan" }
+  ]
 })
 
 // status on query url
@@ -557,14 +557,19 @@ if (props?.query?.month) {
 
 // if terkirim on query url
 if (props?.query?.terkirim) {
-  selectedStatus.value = setStatus.find((item) => item.id === 'terkirim') ?? setStatus[0]
+  statusTerkirim.value = 'terkirim'
   masukKeluar.value = 'masuk'
+  
+  if (!bodyReqs.value.scopes.some((s: any) => s.name === 'hasBerkasPerawatan')) {
+    bodyReqs.value.scopes.push({ name: 'hasBerkasPerawatan' })
+  }
 
   updateFilters()
 }
 
 // Update filters based on the selected options
 function updateFilters() {
+  bodyReqs.value.sort = []
   bodyReqs.value.filters = []
 
   const { search, filters } = bodyReqs.value
@@ -578,8 +583,6 @@ function updateFilters() {
     ? 'regPeriksa.tgl_registrasi'
     : 'tgl_keluar'
 
-  // remove all sort
-  bodyReqs.value.sort = []
   if (masukKeluar.value == '-') {
     bodyReqs.value.sort = [{ field: 'no_rawat', direction: 'desc' }]
     filters.push({ field: 'stts_pulang', operator: '=', value: '-' })
@@ -598,11 +601,20 @@ function updateFilters() {
 
   // set status filter
   if (selectedStatus.value.id) {
-    if (selectedStatus.value.id === 'terkirim') {
-      bodyReqs.value.scopes = []
-      bodyReqs.value.scopes.push({ name: 'hasBerkasPerawatan' })
+    bodyReqs.value.scopes = bodyReqs.value.scopes.filter((s: any) => s.name !== 'notHasStatusKlaim')
+
+    if (selectedStatus.value.id == "") {
+      bodyReqs.value.filters = bodyReqs.value.filters.filter((f: OrionFilterInterface) => f.field != 'sep.status_klaim.status')
+    } else if (selectedStatus.value.id == "belum") {
+      if (!bodyReqs.value.scopes.some((s: any) => s.name === 'notHasStatusKlaim')) {
+        bodyReqs.value.scopes.push({ name: 'notHasStatusKlaim' })
+      }
     } else {
-      filters.push({ field: 'sep.status_klaim.status', operator: '=', value: selectedStatus.value.id })
+      bodyReqs.value.filters = bodyReqs.value.filters.filter((f: OrionFilterInterface) => f.field != 'sep.status_klaim.status')
+      bodyReqs.value.filters = [
+        ...bodyReqs.value.filters,
+        { field: 'sep.status_klaim.status', operator: '=', value: selectedStatus.value.id }
+      ]
     }
   }
 
@@ -624,7 +636,7 @@ const { data: pasienRanap, status, refresh } = await useAsyncData<ResourcePagina
 // Update displayed data based on pasienRanap changes
 function updateShowedData() {
   showedNoRawat.value = pasienRanap.value?.data.map((item: any) => item.no_rawat) ?? []
-  showedNoSep.value = pasienRanap.value?.data.map((item: any) => item.sep?.no_sep).filter(Boolean) ?? []
+  showedNoSep.value = pasienRanap.value?.data.map((item: any) => item.sep_simple?.no_sep).filter(Boolean) ?? []
 }
 
 // Fetch real and grouping costs
@@ -651,10 +663,26 @@ async function fetchData() {
 
 onMounted(updateShowedData)
 
-watch([showedNoRawat, showedNoSep], fetchData, { immediate: true })
 watch(pasienRanap, updateShowedData)
-watch([date, masukKeluar, selectedStatus, bodyReqs.value.search], useDebounceFn(async () => {
+watch([showedNoRawat, showedNoSep], fetchData, { immediate: true })
+watch(statusTerkirim, (val) => {
+  bodyReqs.value.scopes = bodyReqs.value.scopes.filter((s: any) => s.name !== 'hasBerkasPerawatan')
+  bodyReqs.value.scopes = bodyReqs.value.scopes.filter((s: any) => s.name !== 'notHasBerkasPerawatan')
+
+  if (statusTerkirim.value == 'terkirim') {
+    if (!bodyReqs.value.scopes.some((s: any) => s.name === 'hasBerkasPerawatan')) {
+      bodyReqs.value.scopes.push({ name: 'hasBerkasPerawatan' })
+    }
+  } else if (statusTerkirim.value == 'belum') {
+    if (!bodyReqs.value.scopes.some((s: any) => s.name === 'notHasBerkasPerawatan')) {
+      bodyReqs.value.scopes.push({ name: 'notHasBerkasPerawatan' })
+    }
+  }
+});
+
+watch([date, masukKeluar, selectedStatus, bodyReqs.value.search, statusTerkirim], useDebounceFn(async () => {
   status.value = 'pending'
+  pasienRanap.value = null
   await new Promise((resolve) => setTimeout(resolve, 1300))
 
   updateFilters()

@@ -233,8 +233,8 @@ async function fetchRealCost() {
       </div>
     </template>
 
-    <div class="mb-10 flex flex-col lg:flex-row gap-4 justify-end items-center">
-      <ClientOnly fallback="Loading filters...">
+    <ClientOnly fallback="Loading filters...">
+      <div class="mb-10 flex flex-col lg:flex-row gap-4 justify-center items-center">
         <div class="flex flex-col-reverse lg:flex-row gap-4 items-center justify-center">
           <div class="flex gap-0.5 flex-col">
             <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Status Kirim Berkas</div>
@@ -285,8 +285,8 @@ async function fetchRealCost() {
           <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Cari Pasien</div>
           <UInput placeholder="Search..." class="w-full" v-model="qw" />
         </div>        
-      </ClientOnly>
-    </div>
+      </div>
+    </ClientOnly>
 
     <TablePasienRalan :data="(data as any)" :error="(error as any)" :refresh="refresh" :status="status"
       :costStatus="costStatus?.value" :realCostData="realCost" :grouppingCostData="grouppingCost" />
