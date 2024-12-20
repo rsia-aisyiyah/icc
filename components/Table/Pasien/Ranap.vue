@@ -111,7 +111,7 @@
               <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
               <span class="text-gray-500 font-semibold text-sm px-1">|</span>
               <span class="text-gray-500 font-semibold text-sm">{{ row.sum_lama }} Hari</span>
-              <template v-if="row?.berkas_perawatan">
+              <template v-if="row.sep_simple?.berkas_perawatan">
                 <span class="text-gray-500 font-semibold text-sm px-1">|</span>
                 <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }"
                   :ui="{ background: 'bg-fuchsia-200 dark:bg-fuchsia-900' }">
