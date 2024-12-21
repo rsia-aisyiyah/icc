@@ -24,7 +24,6 @@ export const FormDataSchema = z.object({
   discharge_status: z.number().int().optional().nullable(),
   nama_dokter: z.string().optional().nullable(),
   kode_tarif: z.string().optional().nullable(),
-  jkn_sitb_checked_ind: z.boolean().optional().nullable(),
   co_insidence_ind_jkn: z.boolean().optional().nullable(),
   upgrade_class_class: z.string().optional().nullable(),
   upgrade_class_payor: z.string().optional().nullable(),
@@ -34,6 +33,11 @@ export const FormDataSchema = z.object({
   stop_dttm: z.date().optional().nullable(),
   icu_los: z.number().int().min(0).optional().nullable(),
   tarif_poli_eks: z.number().int().min(0),
+
+  // ===== SITB START
+  jkn_sitb_checked_ind: z.boolean().optional().nullable(),
+  jkn_sitb_noreg: z.string().optional().nullable(),
+  // ===== SITB END
 
   prosedur_non_bedah: z.string().min(0).optional().nullable(),
   prosedur_bedah: z.string().min(0).optional().nullable(),

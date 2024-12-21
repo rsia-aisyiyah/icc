@@ -15,6 +15,7 @@ import { determineKelas } from '~/common/helpers/naikKelasHelpers'
 import { prepareKlaimData } from '~/common/helpers/PrepareKlaimData'
 import { getEnabledCobData, getCaraBayarData } from '~/utils/getStaticData'
 import { fetchDiagnosaUnu, fetchProsedurUnu, dul, pul } from '~/utils/searchDiagnosis'
+import { validasiSITB, inValidasiSITB, sitbState } from '~/services/eklaim/sitbValidation';
 import { fetchDpjp, getTanggalKeluar, kirimOnlineIndividual, moveItemInArray, caraPulangData, caraMasukData } from '~/common/helpers/dataHelpers'
 
 const isLoading = ref(false)
@@ -67,12 +68,10 @@ const state = reactive<FormData>({
   birth_weight: regPeriksa?.umurdaftar == 0 ? parseInt(`${regPeriksa?.pasien_bayi?.berat_badan}`) : 0,
   adl_sub_acute: undefined,
   adl_chronic: undefined,
-  // @ts-ignore
   discharge_status: parseInt(`${sep?.jnspelayanan}`) == 1 ? ((await getCaraPulangByLabel(kamarInap?.detail?.[0]?.stts_pulang)).value ?? null) : 1,
   nama_dokter: '',
   kd_dokter: '',
   kode_tarif: "CS",
-  jkn_sitb_checked_ind: false,
   co_insidence_ind_jkn: false,
   upgrade_class_class: determineKelas(sep?.klsnaik)?.value,
   upgrade_class_payor: sep?.pembiayaan ?? undefined,
@@ -82,6 +81,11 @@ const state = reactive<FormData>({
   stop_dttm: undefined,
   icu_los: undefined,
   tarif_poli_eks: 0,
+  
+  // ===== SITB START
+  jkn_sitb_checked_ind: sep?.chunk?.noreg_sitb ? true : false,
+  jkn_sitb_noreg: sep?.chunk?.noreg_sitb ?? undefined,
+  // ===== SITB END
 
   prosedur_non_bedah: `${billing?.prosedur_non_bedah ?? "0"}`,
   prosedur_bedah: `${billing?.prosedur_bedah ?? "0"}`,
@@ -173,6 +177,11 @@ onMounted(async () => {
 
   setTotalTarifRs(getTotalTarifRS(state))
   setIsVip(determineKelas(sep?.klsnaik)?.code == 8)
+
+  // if state.jkn_noreg_sitb is truly make sitbState.valid = true
+  if (state.jkn_sitb_checked_ind) {
+    sitbState.valid = true
+  }
 })
 
 const onChangePayorCd = (payor: CarabayarData) => {
@@ -484,18 +493,35 @@ const kirimOnline = async () => {
 
       <UDivider />
 
-      <div class="flex flex-col md:flex-row gap-7" v-if="state.payor_cd != 'JPS'">
+      <div class="flex flex-col items-center md:flex-row gap-7" v-if="state.payor_cd != 'JPS'">
         <UFormGroup label="Pasien TB" name="jkn_sitb_checked_ind">
-          <UCheckbox v-model="state.jkn_sitb_checked_ind" name="jkn_sitb_checked_ind" label="Ya" />
+          <div class="flex items-center gap-8">
+            <UCheckbox v-model="state.jkn_sitb_checked_ind" name="jkn_sitb_checked_ind" label="Ya" />
+            
+            <div class="flex gap-2" v-if="state.jkn_sitb_checked_ind">
+              <UFormGroup name="jkn_sitb_noreg">
+                <UInput placeholder="nomor register sitb" v-model="state.jkn_sitb_noreg" :readonly="sitbState.valid" class="w-full lg:w-min lg:min-w-[300px]" />
+              </UFormGroup>
+    
+              <template v-if="sitbState.valid">
+                <UButton color="gray" @click="inValidasiSITB(state.nomor_sep)" :loading="sitbState.validasiStatus == 'pending'">
+                  Ubah
+                </UButton>
+              </template>
+              <template v-else>
+                <UButton variant="soft" color="blue" @click="validasiSITB(state)" :loading="sitbState.validasiStatus == 'pending'">
+                  Validasi
+                </UButton>
+              </template>
+            </div>
+            
+            <template v-if="sitbState.valid">
+              <div>Nomor register SITB valid</div>
+            </template>
+          </div>
         </UFormGroup>
 
-        <div class="flex gap-2 mt-3" v-if="state.jkn_sitb_checked_ind">
-          <UFormGroup name="jkn_sitb_checked_ind">
-            <UInput placeholder="nomor register sitb" class="w-full lg:w-min lg:min-w-[300px]" />
-          </UFormGroup>
 
-          <UButton variant="soft" color="blue">Validasi</UButton>
-        </div>
       </div>
 
       <div class="flex flex-col md:flex-row gap-7" v-if="state.executive_class_ind">

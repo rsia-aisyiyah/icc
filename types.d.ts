@@ -111,6 +111,7 @@ export type SepData = {
     cara_masuk?: string;
     usia_kehamilan?: string;
     onset_kontraksi?: string;
+    noreg_sitb?: string;
   }
 }
 
