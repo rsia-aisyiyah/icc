@@ -6,10 +6,6 @@ interface SITBValidationState {
   nomor_sep: string;
 }
 
-const toast = useToast();
-const tokenStore = useAccessTokenStore();
-const runtimeConfig = useRuntimeConfig();
-
 // Exported reactive references for data
 export const sitbState = reactive({
   validasiStatus: null as string | null,
@@ -18,6 +14,10 @@ export const sitbState = reactive({
 
 // Exported validation function
 export const validasiSITB = async (state: SITBValidationState): Promise<void> => {
+  const toast = useToast();
+  const tokenStore = useAccessTokenStore();
+  const runtimeConfig = useRuntimeConfig();
+
   try {
     if (!state.jkn_sitb_noreg) {
       throw new Error('Nomor register SITB tidak boleh kosong');
@@ -78,6 +78,10 @@ export const validasiSITB = async (state: SITBValidationState): Promise<void> =>
 
 
 export const inValidasiSITB = async (sep: string): Promise<void> => {
+  const toast = useToast();
+  const tokenStore = useAccessTokenStore();
+  const runtimeConfig = useRuntimeConfig();
+
   try {
     if (!sep) {
       throw new Error('Nomor SEP tidak boleh kosong');
