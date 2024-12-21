@@ -280,7 +280,7 @@
               
               <div class="font-semibold leading-none text-violet-400">
                 <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
-                  <p v-if="row.sep">
+                  <p v-if="row.sep_simple">
                     {{
                       gc?.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif
                         ? new Intl.NumberFormat('id-ID', {
