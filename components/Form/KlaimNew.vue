@@ -209,7 +209,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       }
     }
 
-    state.birth_weight = parseInt(state.birth_weight as string)
+    state.birth_weight = isNaN(parseInt(state.birth_weight)) ? 0 : parseInt(state.birth_weight)
 
     const mappedData = prepareKlaimData(event.data)
 
