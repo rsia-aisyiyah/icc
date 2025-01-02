@@ -209,6 +209,8 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       }
     }
 
+    state.birth_weight = parseInt(state.birth_weight as string)
+
     const mappedData = prepareKlaimData(event.data)
 
     mappedData.diagnosa = diagnosa?.length == 0 ? ["#"] : diagnosa?.map(d => d.kd_penyakit)
