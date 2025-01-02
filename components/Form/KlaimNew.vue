@@ -451,8 +451,7 @@ const kirimOnline = async () => {
           </div>
 
           <UFormGroup label="Berat Lahir" name="birth_weight">
-            <UInput placeholder="Berat Lahir" v-model="state.birth_weight" :readonly="true"
-              class="w-full md:w-max min-w-[18.3em]">
+            <UInput placeholder="Berat Lahir" v-model="state.birth_weight" class="w-full md:w-max min-w-[18.3em]">
               <template #trailing>
                 <span class="text-gray-500 dark:text-gray-400 text-xs">gram</span>
               </template>
