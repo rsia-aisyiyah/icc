@@ -548,12 +548,14 @@ const kirimOnline = async () => {
 
       <UDivider label="Tarif Rumah Sakit" />
 
-      <div class="p-4 rounded-xl text-center bg-indigo-100 text-indigo-600 dark:bg-indigo-800/50 dark:text-indigo-300">
-        <p class="font-semibold">Total Tarif RS</p>
-        <p class="text-xl font-semibold font-mono">
-          Rp {{ getTotalTarifRS(state).toLocaleString('id-ID') }}
-        </p>
-      </div>
+      <ClientOnly fallback="Loading Tarif RS ...">
+        <div class="p-4 rounded-xl text-center bg-indigo-100 text-indigo-600 dark:bg-indigo-800/50 dark:text-indigo-300">
+          <p class="font-semibold">Total Tarif RS</p>
+          <p class="text-xl font-semibold font-mono">
+            Rp {{ getTotalTarifRS(state).toLocaleString('id-ID') }}
+          </p>
+        </div>
+      </ClientOnly>
 
       <div class="p-3 lg:p-6 rounded dark:bg-cool-800/75 bg-cool-100 shadow-inner">
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">

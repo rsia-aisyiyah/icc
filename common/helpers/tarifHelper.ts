@@ -23,8 +23,11 @@ export const getTotalTarifRS = (state: FormData) => {
   ];
 
   // get nominal value from state and sum it
-  return nominalKey.reduce((acc, key) => {
+  const nominal = nominalKey.reduce((acc, key) => {
     const value = state[key];
-    return acc + (value !== undefined && value !== '' ? Number(value.replace(/\.|,/g, '')) : 0);
+    const numberValue = Number(value.replaceAll(".", "").replaceAll(",", "."));
+    return acc + (!isNaN(numberValue) ? numberValue : 0);
   }, 0);
+
+  return nominal;
 }

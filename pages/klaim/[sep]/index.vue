@@ -180,6 +180,15 @@ async function fetchAllData(noRawat: string, noRm: string, statusPasien: any) {
 
   allData.value.billing = await fetchDataOrNull(`${config.public.API_V2_URL}/pasien/ranap/${btoa(noRawat)}/billing`, {
     headers: { Authorization: `Bearer ${tokenStore.accessToken}` }
+  }).then((res) => {
+    if (res) {
+      Object.keys(res.data).forEach((key) => {
+        if (typeof res.data[key] === 'number') {
+          res.data[key] = Math.round(res.data[key]);
+        }
+      });
+      return res;
+    }
   });
 
   allData.value.diagnosa = await fetchDataOrNull(`${config.public.API_V2_URL}/pasien/diagnosa/search`, {
@@ -258,10 +267,12 @@ if (error.value) {
 }
 
 const formatRupiah = (value: number): string => {
+  console.log('formatRupiah', value);
+  
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
-    minimumFractionDigits: 0
+    minimumFractionDigits: 1
   }).format(value);
 }
 </script>
