@@ -13,8 +13,7 @@
           <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
             CPPT Pasien ( {{ statusLanjut == 'ralan' ? 'Rawat Jalan' : 'Rawat Inap' }} )
           </h3>
-          <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1"
-            @click="localIsOpen = false" />
+          <UButton color="gray" variant="ghost" icon="i-tabler-x" class="-my-1" @click="localIsOpen = false" />
         </div>
       </template>
 
@@ -23,7 +22,7 @@
         <div class="flex items-center justify-between mt-2">
           <div class="flex items-center space-x-3">
             <div class="flex items-center justify-center w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full">
-              <UIcon name="i-heroicons-user-20-solid" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <UIcon name="i-tabler-user" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </div>
 
             <div class="animate-pulse" v-if="pasienStatus == 'pending'">
@@ -182,7 +181,7 @@ const { data: pasien, error: pasienError, refresh: pasienRefresh, status: pasien
   `${config.public.API_V2_URL}/pasien/${props.noRekamMedis}`,
   () => {
     pasien.value = null;
-    
+
     if (props.noRekamMedis) {
       return $fetch(`${config.public.API_V2_URL}/pasien/${props.noRekamMedis}`, {
         method: 'GET',
@@ -192,7 +191,7 @@ const { data: pasien, error: pasienError, refresh: pasienRefresh, status: pasien
           'Accept': 'application/json'
         }
       });
-    } 
+    }
 
     return Promise.resolve(null);
   },
@@ -222,7 +221,7 @@ const { data: cppt, error: cpptError, refresh: cpptRefresh, status: cpptStatus }
 );
 
 // Function to add a toaster
-const addToaster = (title: string, description: string, color: string, icon: string) => {
+const addToaster = (title: string, description: string, color: any, icon: string) => {
   toast.add({ title, description, color, icon, timeout: 3000 });
 }
 
@@ -253,7 +252,7 @@ const syncCppt = async (noRawat: string, tglPerawatan: string, jamRawat: string)
 
   if (status.value === 'error') {
     console.error('Error syncing CPPT:', error.value);
-    addToaster('Gagal Sync CPPT', error.value?.data?.message || 'Terjadi kesalahan saat menyinkronisasi CPPT', 'red', 'i-tabler-circle-x');
+    addToaster('Gagal Sync CPPT', (error.value?.data as any)?.message || 'Terjadi kesalahan saat menyinkronisasi CPPT', 'red', 'i-tabler-circle-x');
   }
 }
 
@@ -284,7 +283,7 @@ const deleteCppt = async (noRawat: string, tglPerawatan: string, jamRawat: strin
 
   if (status.value === 'error') {
     console.error('Error deleting CPPT:', error.value);
-    addToaster('Gagal Hapus CPPT', error.value?.data?.message || 'Terjadi kesalahan saat menghapus CPPT', 'red', 'i-tabler-circle-x');
+    addToaster('Gagal Hapus CPPT', (error.value?.data as any)?.message || 'Terjadi kesalahan saat menghapus CPPT', 'red', 'i-tabler-circle-x');
   }
 }
 </script>

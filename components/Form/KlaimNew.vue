@@ -232,10 +232,10 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
     if (status.value == 'success') {
       refreshLatestKlaim()
-      addToaster('Success', 'Data berhasil disimpan & di grouping', 'green', 'i-heroicons-check-badge')
+      addToaster('Success', 'Data berhasil disimpan & di grouping', 'green', 'i-tabler-discount-check-filled')
     }
   } catch (error: any) {
-    addToaster('Error', error.message, 'red', 'i-heroicons-information-circle');
+    addToaster('Error', error.message, 'red', 'i-tabler-info-circle-filled');
   } finally {
     isLoading.value = false
   }
@@ -254,10 +254,10 @@ const kirimOnline = async () => {
     if (error.value) {
       throw new Error(error.value.data.message)
     } else if (status.value === 'success') {
-      addToaster('Success', 'Data berhasil dikirim', 'green', 'i-heroicons-check-badge');
+      addToaster('Success', 'Data berhasil dikirim', 'green', 'i-tabler-discount-check-filled');
     }
   } catch (e: any) {
-    addToaster('Error', e.message, 'red', 'i-heroicons-information-circle');
+    addToaster('Error', e.message, 'red', 'i-tabler-info-circle-filled');
   } finally {
     openModalSync.value = false;
   }
@@ -330,7 +330,7 @@ const kirimOnline = async () => {
           <div class="flex flex-col md:flex-row gap-3">
             <UFormGroup label="Tanggal Masuk" name="tgl_masuk" class="w-full md:w-max min-w-[180px]">
               <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                <UButton variant="link" color="green" icon="i-heroicons-calendar-days-20-solid"
+                <UButton variant="link" color="green" icon="i-tabler-calendar"
                   :label="state.tgl_masuk ? new Date(state.tgl_masuk).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Masuk'" />
                 <template #panel="{ close }">
                   <DatePicker is-required @close="close" mode="dateTime" v-model="state.tgl_masuk" />
@@ -340,7 +340,7 @@ const kirimOnline = async () => {
 
             <UFormGroup label="Tanggal Keluar" name="tgl_pulang" class="w-full md:w-max min-w-[180px]">
               <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                <UButton variant="link" color="lime" icon="i-heroicons-calendar-days-20-solid"
+                <UButton variant="link" color="lime" icon="i-tabler-calendar"
                   :label="state.tgl_pulang ? new Date(state.tgl_pulang).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Keluar'"
                   :disabled="state.jenis_rawat == 2" />
 
@@ -403,7 +403,7 @@ const kirimOnline = async () => {
             <div class="flex flex-col md:flex-row gap-3" v-if="state.use_ind">
               <UFormGroup label="Intubasi" name="start_dttm" class="w-full md:w-max min-w-[180px]">
                 <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                  <UButton variant="link" color="sky" icon="i-heroicons-calendar-days-20-solid"
+                  <UButton variant="link" color="sky" icon="i-tabler-calendar"
                     :label="state.start_dttm ? new Date(state.start_dttm).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Intubasi'" />
 
                   <template #panel="{ close }">
@@ -414,7 +414,7 @@ const kirimOnline = async () => {
 
               <UFormGroup label="Ekstubasi" name="stop_dttm" class="w-full md:w-max min-w-[180px]">
                 <UPopover :popper="{ placement: 'bottom-start' }" class="mt-1.5">
-                  <UButton variant="link" color="blue" icon="i-heroicons-calendar-days-20-solid"
+                  <UButton variant="link" color="blue" icon="i-tabler-calendar"
                     :label="state.stop_dttm ? new Date(state.stop_dttm).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Pilih Tanggal Ekstubasi'" />
 
                   <template #panel="{ close }">
@@ -527,7 +527,7 @@ const kirimOnline = async () => {
 
       <div class="flex flex-col md:flex-row gap-7" v-if="state.executive_class_ind">
         <UFormGroup label="Tarif Poli Eks.">
-          <UInput v-model="state.tarif_poli_eks" icon="i-heroicons-banknotes"
+          <UInput v-model="state.tarif_poli_eks" icon="i-tabler-cash-banknote"
             class="w-full lg:w-min lg:min-w-[300px]" />
         </UFormGroup>
       </div>
@@ -608,7 +608,7 @@ const kirimOnline = async () => {
                     </div>
                     <!-- button close -->
                     <UButton variant="soft" color="red" @click="diagnosa?.splice(index, 1)"
-                      icon="i-heroicons-x-mark-solid" />
+                      icon="i-tabler-x" />
                   </div>
                 </template>
               </Sortable>
@@ -641,7 +641,7 @@ const kirimOnline = async () => {
                     </div>
                     <!-- button close -->
                     <UButton variant="soft" color="red" @click="prosedur?.splice(index, 1)"
-                      icon="i-heroicons-x-mark-solid" />
+                      icon="i-tabler-x" />
                   </div>
                 </template>
               </Sortable>
@@ -712,7 +712,7 @@ const kirimOnline = async () => {
 
       <div class="flex justify-end gap-3 pt-5">
         <template v-if="sudahDiGrouping">
-          <UButton color="lime" type="button" icon="i-heroicons-check-badge" @click="kirimOnline">
+          <UButton color="lime" type="button" icon="i-tabler-discount-check-filled" @click="kirimOnline">
             Kirim Online
           </UButton>
         </template>

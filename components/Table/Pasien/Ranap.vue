@@ -366,7 +366,7 @@
               :disable="false" 
               :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" 
               :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" 
-              trailing-icon="i-heroicons-chevron-down-20-solid"
+              trailing-icon="i-tabler-chevron-down"
             />
           </UDropdown>
         </div>
@@ -405,7 +405,7 @@
 
   <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
     <div class="p-4 flex-1">
-      <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
+      <UButton color="gray" variant="ghost" size="sm" icon="i-tabler-x"
         class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
       <div v-if="!pdfReady"
         class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">

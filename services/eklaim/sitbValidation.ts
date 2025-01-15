@@ -50,7 +50,7 @@ export const validasiSITB = async (state: SITBValidationState): Promise<void> =>
         title: 'Success',
         description: 'Data SITB berhasil divalidasi',
         color: 'green',
-        icon: 'i-heroicons-check-badge'
+        icon: 'i-tabler-discount-check-filled'
       });
 
       sitbState.valid = true;
@@ -59,7 +59,7 @@ export const validasiSITB = async (state: SITBValidationState): Promise<void> =>
         title: 'Error',
         description: 'Data SITB tidak valid',
         color: 'red',
-        icon: 'i-heroicons-information-circle'
+        icon: 'i-tabler-info-circle-filled'
       });
 
       sitbState.valid = false;
@@ -69,7 +69,7 @@ export const validasiSITB = async (state: SITBValidationState): Promise<void> =>
       title: 'Error',
       description: error.message,
       color: 'red',
-      icon: 'i-heroicons-information-circle'
+      icon: 'i-tabler-info-circle-filled'
     });
 
     sitbState.validasiStatus = 'error';
@@ -110,7 +110,7 @@ export const inValidasiSITB = async (sep: string): Promise<void> => {
         title: 'Success',
         description: 'Data SITB berhasil diinvalidasi',
         color: 'green',
-        icon: 'i-heroicons-check-badge'
+        icon: 'i-tabler-discount-check-filled'
       });
 
       sitbState.valid = false;
@@ -119,7 +119,7 @@ export const inValidasiSITB = async (sep: string): Promise<void> => {
         title: 'Error',
         description: 'Data SITB tidak valid',
         color: 'red',
-        icon: 'i-heroicons-information-circle'
+        icon: 'i-tabler-info-circle-filled'
       });
 
       sitbState.valid = false
@@ -129,7 +129,7 @@ export const inValidasiSITB = async (sep: string): Promise<void> => {
       title: 'Error',
       description: error.message,
       color: 'red',
-      icon: 'i-heroicons-information-circle'
+      icon: 'i-tabler-info-circle-filled'
     });
 
     sitbState.validasiStatus = 'error';

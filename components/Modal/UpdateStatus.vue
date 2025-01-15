@@ -9,7 +9,7 @@
               <UIcon name="i-tabler-edit" class="w-6 h-6" />
               Update Status Klaim {{ sep }} - {{ noRawat }}
             </h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="localIsOpen = false" />
+            <UButton color="gray" variant="ghost" icon="i-tabler-x" class="-my-1" @click="localIsOpen = false" />
           </div>
         </template>
 
