@@ -8,9 +8,9 @@ const links = [
       "icon": "i-tabler-layout-dashboard",
       "to": "/"
     },
-    { "label": "Rawat Inap", "icon": "i-healthicons-inpatient", "to": "/ranap" },
-    { "label": "Rawat Jalan", "icon": "i-healthicons-outpatient", "to": "/ralan" },
-    { "label": "Grade III", "icon": "i-healthicons-outpatient", "to": "/ralan" }
+    { "label": "Rawat Inap", "icon": "i-tabler-bed", "to": "/ranap" },
+    { "label": "Rawat Jalan", "icon": "i-tabler-walk", "to": "/ralan" },
+    { "label": "Grade III", "icon": "i-tabler-alert-triangle", "to": "/grade-3" }
   ],
   [
     { "label": "Logout", "icon": "i-tabler-logout", "to": "/auth/logout" },
