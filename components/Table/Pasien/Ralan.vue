@@ -42,6 +42,29 @@ watch(() => props.costStatus, () => {
   (localCostStatus as any).value = props.costStatus
 })
 
+const doDeleteBerkas = async () => {
+  const confirmDelete = confirm('Apakah anda yakin ingin menghapus pengajuan ini?')
+
+  if (!confirmDelete) {
+    openModalLoading.value = false
+    return
+  }
+
+  try {
+    await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/delete`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${tokenStore.accessToken}`
+      }
+    })
+  } catch (error) {
+    console.error('Failed to Hapus Berkas', error)
+  } finally {
+    openModalLoading.value = false
+    props.refresh()
+  }
+}
+
 const doExportBerkas = async () => {
   try {
     await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/export`, {
@@ -54,6 +77,7 @@ const doExportBerkas = async () => {
     console.error('Failed to Kirim Berkas', error)
   } finally {
     openModalLoading.value = false
+    props.refresh()
   }
 }
 
@@ -119,7 +143,7 @@ const openNewTab = (url: string) => {
           [{
             label: 'Status & Note',
             icon: 'i-tabler-note',
-            disabled: !row.no_sep,
+            disabled: !row?.no_sep,
             click: () => {
               setSepRawat(row)
               openModalKlaimFeedback = true
@@ -133,7 +157,16 @@ const openNewTab = (url: string) => {
               openModalLoading = true
               doExportBerkas()
             }
-          }]
+          }, {
+              label: 'Hapus Pengajuan',
+              icon: 'i-tabler-trash',
+              disabled: !row?.no_sep,
+              click: () => {
+                setSepRawat(row)
+                openModalLoading = true
+                doDeleteBerkas()
+              }
+            }]
         ]">
           <UButton size="xs" :disable="false" :variant="!row?.no_sep ? 'solid' : 'soft'"
             :color="!row?.no_sep ? 'gray' : 'sky'" trailing-icon="i-tabler-chevron-down" />

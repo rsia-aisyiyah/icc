@@ -137,23 +137,27 @@
                 </p>
               </UBadge>
             </div>
-            <UBadge :color="row.sep_simple?.no_sep ? 'primary' : 'primary'" variant="soft">
-              <div class="flex gap-2 items-center justify-between w-full pl-1">
-                {{ row.sep_simple?.no_sep ?? "-" }}
-                <template v-if="row.sep_simple?.no_sep && isSupported">
-                  <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.sep_simple?.no_sep)" />
-                </template>
-              </div>
-            </UBadge>
+            
+            <div class="flex gap-1">
+              <UBadge size="xs" :color="row.sep_simple?.no_sep ? 'primary' : 'primary'" variant="soft">
+                <div class="flex gap-2 items-center justify-between w-full pl-1">
+                  {{ row.sep_simple?.no_sep ?? "-" }}
+                  <template v-if="row.sep_simple?.no_sep && isSupported">
+                    <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.sep_simple?.no_sep)" />
+                  </template>
+                </div>
+              </UBadge>
+  
+              <UBadge size="xs" color="sky" variant="soft">
+                <div class="flex gap-2 items-center justify-between w-full pl-1">
+                  {{ row.no_rawat ?? "-" }}
+                  <template v-if="row.no_rawat && isSupported">
+                    <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
+                  </template>
+                </div>
+              </UBadge>
+            </div>
 
-            <UBadge color="sky" variant="soft">
-              <div class="flex gap-2 items-center justify-between w-full pl-1">
-                {{ row.no_rawat ?? "-" }}
-                <template v-if="row.no_rawat && isSupported">
-                  <UButton icon="i-tabler-copy" color="sky" variant="soft" size="2xs" @click="copy(row.no_rawat)" />
-                </template>
-              </div>
-            </UBadge>
           </div>
         </div>
       </template>
@@ -359,6 +363,15 @@
                 openModalLoading = true
                 doExportBerkas()
               }
+            }, {
+              label: 'Hapus Pengajuan',
+              icon: 'i-tabler-trash',
+              disabled: !row.sep_simple?.no_sep,
+              click: () => {
+                setSepRawat(row)
+                openModalLoading = true
+                doDeleteBerkas()
+              }
             }]
           ]">
             <UButton 
@@ -478,6 +491,29 @@ const doExportBerkas = async () => {
     })
   } catch (error) {
     console.error('Failed to Kirim Berkas', error)
+  } finally {
+    openModalLoading.value = false
+    refresh()
+  }
+}
+
+const doDeleteBerkas = async () => {
+  const confirmDelete = confirm('Apakah anda yakin ingin menghapus pengajuan ini?')
+
+  if (!confirmDelete) {
+    openModalLoading.value = false
+    return
+  }
+
+  try {
+    await fetch(`${config.public.API_V2_URL}/sep/${sep.value}/delete`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${tokenStore.accessToken}`
+      }
+    })
+  } catch (error) {
+    console.error('Failed to Hapus Berkas', error)
   } finally {
     openModalLoading.value = false
     refresh()
