@@ -158,6 +158,7 @@ const rowMenu = (row: any) => {
       label: 'Hapus Pengajuan',
       icon: 'i-tabler-trash',
       disabled: !row?.no_sep,
+      slot: 'delete-action',
       click: () => {
         setSepRawat(row)
         openModalLoading.value = true

@@ -325,16 +325,19 @@
           </UButton>
 
           <UDropdown :items="rowMenu(row)" :disabled="!row.sep_simple?.no_sep">
-            <UButton size="xs" :disable="false" :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'"
-              :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" trailing-icon="i-tabler-chevron-down" />
+            <template #delete-action="{ item }">
+              <UIcon :name="item.icon" class="h-5 w-5 text-red-500 dark:text-red-600" />
+              <span class="text-red-500 dark:text-red-600 font-semibold">{{ item.label }}</span>
+            </template>
+
+            <UButton size="xs" :disable="false" :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" trailing-icon="i-tabler-chevron-down" />
           </UDropdown>
         </div>
       </template>
 
       <!-- Header -->
       <template #patient_cost-header="{ column }">
-        <span
-          class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+        <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
@@ -378,13 +381,25 @@
         <template v-for="(menu, indexA) of rowMenu(contextMenuRow)" :key="indexA">
           <div class="flex flex-col gap-1">
             <template v-for="(menuItem, index) of menu" :key="index">
-              <UButton :disabled="menuItem.disabled" :icon="menuItem.icon" size="xs" @click="menuItem.click()" color="gray" variant="ghost">
-                {{ menuItem.label }}
-              </UButton>
+              
+              <template v-if="menuItem.slot == 'delete-action'">
+                <UButton :disabled="menuItem.disabled" :icon="menuItem.icon" size="xs" @click="menuItem.click()" color="red" variant="soft" class="font-semibold">
+                  {{ menuItem.label }}
+                </UButton>
+              </template>
+
+              <template v-else>
+                <UButton :disabled="menuItem.disabled" :icon="menuItem.icon" size="xs" @click="menuItem.click()" color="gray" variant="ghost">
+                  {{ menuItem.label }}
+                </UButton>
+              </template>
+
             </template>
           </div>
 
-          <UDivider class="my-2" />
+          <template v-if="indexA < rowMenu(contextMenuRow).length - 1">
+            <UDivider class="my-2" />
+          </template>
         </template>
 
       </div>
@@ -793,6 +808,7 @@ const rowMenu = (row: any) => {
       label: 'Hapus Pengajuan',
       icon: 'i-tabler-trash',
       disabled: !row.sep_simple?.no_sep,
+      slot: 'delete-action',
       click: () => {
         setSepRawat(row)
         openModalLoading.value = true
