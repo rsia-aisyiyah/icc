@@ -8,7 +8,7 @@ const token = useAccessTokenStore()
 const config = useRuntimeConfig()
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
 const dateType = [
-  { value: 'reg_periksa.tgl_registrasi', label: 'Masuk' },
+  // { value: 'reg_periksa.tgl_registrasi', label: 'Masuk' },
   { value: 'kamar_inap.tgl_keluar', label: 'Keluar' },
   { value: 'tglsep', label: 'SEP' }
 ]
