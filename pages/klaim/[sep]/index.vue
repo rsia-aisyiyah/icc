@@ -267,8 +267,6 @@ if (error.value) {
 }
 
 const formatRupiah = (value: number): string => {
-  console.log('formatRupiah', value);
-  
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
