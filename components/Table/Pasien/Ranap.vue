@@ -29,7 +29,8 @@
 
           <!-- Pulang / Belum Pulang -->
           <div class="flex gap-0.5 flex-col">
-            <UTooltip text="Terkait dengan tanggal registrasi disamping" :popper="{ placement: 'top' }" :ui="{ background: 'bg-amber-200 dark:bg-amber-700' }">
+            <UTooltip text="Terkait dengan tanggal registrasi disamping" :popper="{ placement: 'top' }"
+              :ui="{ background: 'bg-amber-200 dark:bg-amber-700' }">
               <div class="flex gap-2 items-center justify-start">
                 <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Filter Status</div>
                 <UIcon name="i-tabler-info-circle" class="text-blue-500 dark:text-blue-400 h-4 w-4 animate-pulse" />
@@ -51,7 +52,8 @@
           <div class="flex gap-0.5 flex-col">
             <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Tanggal Registrasi</div>
             <UPopover :popper="{ placement: 'bottom-start' }">
-              <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'" :color="masukKeluar == '-' ? 'gray' : 'primary'">
+              <UButton icon="i-tabler-calendar-event" :disabled="masukKeluar == '-'"
+                :color="masukKeluar == '-' ? 'gray' : 'primary'">
                 <span v-if="!date">Tgl Masuk - Tgl Keluar</span>
                 <span v-else-if="typeof date === 'object'">
                   {{ format(date.start, 'd MMM, yyy') }} - {{ format(date.end, 'd MMM, yyy') }}
@@ -60,17 +62,18 @@
                   {{ format(date, 'd MMM, yyy') }}
                 </span>
               </UButton>
-  
+
               <template #panel="{ close }">
                 <DatePicker v-model="date" @close="close" isRange />
               </template>
             </UPopover>
           </div>
-  
+
           <!-- Status Klaim -->
           <div class="flex gap-0.5 flex-col xl:w-[250px]">
             <div class="text-sm text-cool-500 dark:text-cool-400 font-medium">Status Klaim</div>
-            <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event" class="w-full" :searchable="true">
+            <USelectMenu v-model="selectedStatus" :options="setStatus" @change="selectedStatus = $event" class="w-full"
+              :searchable="true">
               <template #leading>
                 <UIcon v-if="selectedStatus.icon" :name="(selectedStatus.icon as string)" class="w-5 h-5" />
               </template>
@@ -87,13 +90,15 @@
     </ClientOnly>
 
     <!-- Table -->
-    <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="status == 'pending'">
+    <UTable :rows="pasienRanap?.data" :columns="pasienRanapColumns" :loading="status == 'pending'"
+      @contextmenu.stop="contextmenu">
       <!-- Data -->
       <template #sep.no_sep-data="{ row }">
         <div class="flex flex-col gap-4 w-[310px]">
           <div>
             <div class="flex gap-2 items-center">
-              <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
+              <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ??
+                "-" }}</p>
               <template v-if="row.sep_simple?.terkirim_online">
                 <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }"
                   :ui="{ background: 'bg-blue-200 dark:bg-blue-900' }">
@@ -137,17 +142,18 @@
                 </p>
               </UBadge>
             </div>
-            
+
             <div class="flex gap-1">
               <UBadge size="xs" :color="row.sep_simple?.no_sep ? 'primary' : 'primary'" variant="soft">
                 <div class="flex gap-2 items-center justify-between w-full pl-1">
                   {{ row.sep_simple?.no_sep ?? "-" }}
                   <template v-if="row.sep_simple?.no_sep && isSupported">
-                    <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs" @click="copy(row.sep_simple?.no_sep)" />
+                    <UButton icon="i-tabler-copy" color="primary" variant="soft" size="2xs"
+                      @click="copy(row.sep_simple?.no_sep)" />
                   </template>
                 </div>
               </UBadge>
-  
+
               <UBadge size="xs" color="sky" variant="soft">
                 <div class="flex gap-2 items-center justify-between w-full pl-1">
                   {{ row.no_rawat ?? "-" }}
@@ -196,7 +202,7 @@
         <div class="font-semibold">{{ new Date(row.reg_periksa_simple?.tgl_registrasi).toLocaleDateString('id-ID', {
           weekday: 'short', year: 'numeric',
           month: 'short', day: 'numeric'
-        }) }}</div>
+          }) }}</div>
         <div>{{ row.reg_periksa_simple?.jam_reg }}</div>
       </template>
 
@@ -205,7 +211,7 @@
           <div class="font-semibold">{{ new Date(row.tgl_keluar).toLocaleDateString('id-ID', {
             weekday: 'short', year: 'numeric', month: 'short',
             day: 'numeric'
-          }) }}</div>
+            }) }}</div>
           <div>{{ row.jam_keluar }}</div>
         </template>
 
@@ -218,7 +224,8 @@
         <USkeleton class="h-4 w-[100px]" v-if="pendingFetchCost" />
         <template v-if="!pendingFetchCost">
           <div class="flex flex-row gap-4 items-center justify-start">
-            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) >= 100">
+            <template
+              v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) >= 100">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
                 <template #panel>
@@ -231,21 +238,23 @@
                     <div class="flex flex-row gap-1 items-center justify-start mt-2">
                       <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
                       <p class="font-semibold text-red-400">
-                      {{
-                          new Intl.NumberFormat('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0
-                          }).format((gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0) - (rc?.[row.no_rawat]?.total ?? 0))
+                        {{
+                        new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                        }).format((gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0) -
+                        (rc?.[row.no_rawat]?.total ?? 0))
                         }}
                       </p>
-                  </div>
+                    </div>
                   </div>
                 </template>
               </UPopover>
             </template>
 
-            <template v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) >= 80 && getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0)  < 100">
+            <template
+              v-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) >= 80 && getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0)  < 100">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-triangle" class="text-amber-400 h-5 w-5" />
                 <template #panel>
@@ -259,7 +268,8 @@
               </UPopover>
             </template>
 
-            <template v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) <= 80">
+            <template
+              v-else-if="getPercentage(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0, rc?.[row.no_rawat]?.total ?? 0) <= 80">
               <UPopover mode="hover">
                 <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
                 <template #panel>
@@ -276,26 +286,28 @@
             </template>
 
             <div class="flex flex-col gap-2">
-              <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-teal-200 dark:bg-teal-900',}">
+              <UTooltip text="Real Cost" :popper="{ placement: 'right' }"
+                :ui="{background: 'bg-teal-200 dark:bg-teal-900',}">
                 <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
                   style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-                }).format(rc?.[row.no_rawat]?.total ?? 0) }}</p>
+                  }).format(rc?.[row.no_rawat]?.total ?? 0) }}</p>
               </UTooltip>
-              
+
               <div class="font-semibold leading-none text-violet-400">
-                <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
+                <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }"
+                  :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
                   <p v-if="row.sep_simple">
                     {{
-                      gc?.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif
-                        ? new Intl.NumberFormat('id-ID', {
-                          style: 'currency',
-                          currency: 'IDR',
-                          maximumFractionDigits: 0
-                        }).format(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0)
-                        : '-'
+                    gc?.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif
+                    ? new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                    }).format(gc.find((item: any) => item.no_sep === row.sep_simple?.no_sep)?.tarif ?? 0)
+                    : '-'
                     }}
                   </p>
-        
+
                   <p v-else>-</p>
                 </UTooltip>
               </div>
@@ -306,88 +318,23 @@
 
       <template #action-data="{ row }">
         <div class="flex gap-1">
-          <UButton 
-            :disabled="!row.sep_simple?.no_sep" 
-            :to="`/klaim/${row.sep_simple?.no_sep}`"
-            :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" 
-            :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" 
-            icon="i-tabler-external-link"
-            target="_blank" 
-            size="xs"
-          >
+          <UButton :disabled="!row.sep_simple?.no_sep" :to="`/klaim/${row.sep_simple?.no_sep}`"
+            :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'"
+            icon="i-tabler-external-link" target="_blank" size="xs">
             Form Klaim
           </UButton>
 
-          <UDropdown :items="[
-            [{
-              label: 'Riawayat Klaim',
-              icon: 'i-tabler-pig-money',
-              disabled: !row?.pasien?.no_rkm_medis,
-              click: () => {
-                openNewTab(buildUrl(row.pasien?.no_rkm_medis));
-              }
-            }, {
-              // berkas
-              label: 'Berkas Klaim',
-              icon: 'i-tabler-file-text',
-              disabled: !row.sep_simple?.no_sep,
-              click: () => {
-                pdfReady = false;
-                openDokumen = true;
-                sep = row.sep_simple?.no_sep
-              }
-            }],
-            [{
-              label: 'CPPT',
-              icon: 'i-tabler-file-text',
-              disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
-              click: () => {
-                setSepRawat(row)
-                openModalCPPT = true
-              }
-            }],
-            [{
-              icon: 'i-tabler-note',
-              label: 'Status & Note',
-              disabled: !row.sep_simple?.no_sep,
-              click: () => {
-                setSepRawat(row)
-                openModalKlaimFeedback = true
-              }
-            }], [{
-              label: 'Kirim Berkas',
-              icon: 'i-tabler-file-export',
-              disabled: !row.sep_simple?.no_sep,
-              click: () => {
-                setSepRawat(row)
-                openModalLoading = true
-                doExportBerkas()
-              }
-            }, {
-              label: 'Hapus Pengajuan',
-              icon: 'i-tabler-trash',
-              disabled: !row.sep_simple?.no_sep,
-              click: () => {
-                setSepRawat(row)
-                openModalLoading = true
-                doDeleteBerkas()
-              }
-            }]
-          ]">
-            <UButton 
-              size="xs" 
-              :disable="false" 
-              :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'" 
-              :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" 
-              trailing-icon="i-tabler-chevron-down"
-            />
+          <UDropdown :items="rowMenu(row)" :disabled="!row.sep_simple?.no_sep">
+            <UButton size="xs" :disable="false" :variant="!row.sep_simple?.no_sep ? 'solid' : 'soft'"
+              :color="!row.sep_simple?.no_sep ? 'gray' : 'primary'" trailing-icon="i-tabler-chevron-down" />
           </UDropdown>
         </div>
       </template>
 
       <!-- Header -->
       <template #patient_cost-header="{ column }">
-        <span class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
+        <span
+          class="text-teal-500 bg-teal-100/70 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500 dark:border whitespace-nowrap rounded-md px-2 py-1">
           {{ column.label }}
         </span>
       </template>
@@ -399,6 +346,50 @@
       </template>
     </UTable>
 
+    <!-- Table Context Menu -->
+    <UContextMenu 
+      :virtual-element="virtualElement" 
+      :model-value="!!contextMenuRow"
+      @update:model-value="contextMenuRow = null"
+      :ui="{ background: 'bg-white dark:bg-cool-900', border: 'border-cool-200 dark:border-cool-700' }"
+    >
+      <div class="p-4">
+        <!-- title label -->
+        <div class="flex flex-col gap-1">
+          <p class="leading-none font-semibold text-md  ">Menu</p>
+          <p class="leading-none text-sm text-gray-500 dark:text-gray-400">Pilih aksi yang ingin dilakukan</p>
+        </div>
+
+        <UDivider class="my-2 mb-1" />
+
+        <!-- sort detail pasien, like nama, no rkm medis, no rawat no sep -->
+        <div class="flex flex-col gap-1">
+          <p class="font-bold">{{ contextMenuRow?.pasien?.nm_pasien ?? '-' }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ contextMenuRow?.pasien?.no_rkm_medis ?? '-' }}</p>
+          <div class="mt-2">
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ contextMenuRow?.no_rawat ?? '-' }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ contextMenuRow?.sep_simple?.no_sep ?? '-' }}</p>
+          </div>
+        </div>
+
+        <!-- Loop menu data menu is rowMenu with parameter row : row is contextMenuRow -->
+        <UDivider class="my-2" />
+
+        <template v-for="(menu, indexA) of rowMenu(contextMenuRow)" :key="indexA">
+          <div class="flex flex-col gap-1">
+            <template v-for="(menuItem, index) of menu" :key="index">
+              <UButton :disabled="menuItem.disabled" :icon="menuItem.icon" size="xs" @click="menuItem.click()" color="gray" variant="ghost">
+                {{ menuItem.label }}
+              </UButton>
+            </template>
+          </div>
+
+          <UDivider class="my-2" />
+        </template>
+
+      </div>
+    </UContextMenu>
+
     <!-- pagination -->
     <div v-if="pasienRanap && pasienRanap?.meta">
       <div class="mt-5 flex flex-col md:flex-row items-center justify-between">
@@ -407,19 +398,16 @@
           to {{ (pasienRanap?.meta as any)?.to }}
           of {{ (pasienRanap?.meta as any)?.total }} entries
         </p>
-        <UPagination 
-          v-model="currentPage" 
-          :total="(pasienRanap?.meta as any)?.total" 
-          :page-count="(pasienRanap?.meta as any)?.per_page"
-        />
+        <UPagination v-model="currentPage" :total="(pasienRanap?.meta as any)?.total"
+          :page-count="(pasienRanap?.meta as any)?.per_page" />
       </div>
     </div>
   </UCard>
 
   <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
     <div class="p-4 flex-1">
-      <UButton color="gray" variant="ghost" size="sm" icon="i-tabler-x"
-        class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
+      <UButton color="gray" variant="ghost" size="sm" icon="i-tabler-x" class="flex sm:hidden absolute end-5 top-5 z-10"
+        square padded @click="openDokumen = false" />
       <div v-if="!pdfReady"
         class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
         <div class="loader">Loading...</div>
@@ -470,6 +458,9 @@ const openModalLoading = ref(false);
 const openModalKlaimFeedback = ref(false);
 const selectedStatus = ref(setStatus[0])
 
+const virtualElement = ref({ getBoundingClientRect: () => ({}) })
+const contextMenuRow = ref()
+
 const props = defineProps<{
   query: any
 }>()
@@ -480,6 +471,20 @@ watch(sep, (val) => {
     pdfUrl.value = `${config.public.API_V2_URL}/sep/${val}/print?token=${tokenStore.accessToken}`
   }
 })
+
+function contextmenu(event: MouseEvent, row: any) {
+  // Prevent the default context menu
+  event.preventDefault()
+
+  virtualElement.value.getBoundingClientRect = () => ({
+    width: 0,
+    height: 0,
+    top: event.clientY,
+    left: event.clientX
+  })
+
+  contextMenuRow.value = row
+}
 
 const doExportBerkas = async () => {
   try {
@@ -697,6 +702,7 @@ async function fetchData() {
   pendingFetchCost.value = false
 }
 
+
 onMounted(updateShowedData)
 
 watch(pasienRanap, updateShowedData)
@@ -736,4 +742,63 @@ watch(copied, (val) => {
     })
   }
 })
+
+const rowMenu = (row: any) => {
+  return [
+    [{
+      label: 'Riawayat Klaim',
+      icon: 'i-tabler-pig-money',
+      disabled: !row?.pasien?.no_rkm_medis,
+      click: () => {
+        openNewTab(buildUrl(row.pasien?.no_rkm_medis));
+      }
+    }, {
+      // berkas
+      label: 'Berkas Klaim',
+      icon: 'i-tabler-file-text',
+      disabled: !row.sep_simple?.no_sep,
+      click: () => {
+        pdfReady.value = false;
+        openDokumen.value = true;
+        sep.value = row.sep_simple?.no_sep
+      }
+    }],
+    [{
+      label: 'CPPT',
+      icon: 'i-tabler-file-text',
+      disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
+      click: () => {
+        setSepRawat(row)
+        openModalCPPT.value = true
+      }
+    }],
+    [{
+      icon: 'i-tabler-note',
+      label: 'Status & Note',
+      disabled: !row.sep_simple?.no_sep,
+      click: () => {
+        setSepRawat(row)
+        openModalKlaimFeedback.value = true
+      }
+    }], [{
+      label: 'Kirim Berkas',
+      icon: 'i-tabler-file-export',
+      disabled: !row.sep_simple?.no_sep,
+      click: () => {
+        setSepRawat(row)
+        openModalLoading.value = true
+        doExportBerkas()
+      }
+    }, {
+      label: 'Hapus Pengajuan',
+      icon: 'i-tabler-trash',
+      disabled: !row.sep_simple?.no_sep,
+      click: () => {
+        setSepRawat(row)
+        openModalLoading.value = true
+        doDeleteBerkas()
+      }
+    }]
+  ];
+}
 </script>

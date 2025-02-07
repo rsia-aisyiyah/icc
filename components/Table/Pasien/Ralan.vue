@@ -21,6 +21,9 @@ const openModalKlaimFeedback = ref(false)
 const buildUrl = (noRawat: string) => `/sep/${btoa(noRawat)}`
 const { text, copy, copied, isSupported } = useClipboard({ source: ref('') })
 
+const virtualElement = ref({ getBoundingClientRect: () => ({}) })
+const contextMenuRow = ref()
+
 const setSepRawat = (row: any) => {
   sep.value = row?.no_sep
   noRekamMedis.value = row?.pasien?.no_rkm_medis
@@ -61,7 +64,7 @@ const doDeleteBerkas = async () => {
     console.error('Failed to Hapus Berkas', error)
   } finally {
     openModalLoading.value = false
-    props.refresh()
+    props.refresh && props.refresh()
   }
 }
 
@@ -77,7 +80,7 @@ const doExportBerkas = async () => {
     console.error('Failed to Kirim Berkas', error)
   } finally {
     openModalLoading.value = false
-    props.refresh()
+    props.refresh && props.refresh()
   }
 }
 
@@ -90,11 +93,84 @@ watch(sep, (val) => {
 const openNewTab = (url: string) => {
   window.open(url, '_blank')
 }
+
+function contextmenu(event: MouseEvent, row: any) {
+  // Prevent the default context menu
+  event.preventDefault()
+
+  virtualElement.value.getBoundingClientRect = () => ({
+    width: 0,
+    height: 0,
+    top: event.clientY,
+    left: event.clientX
+  })
+
+  contextMenuRow.value = row
+}
+
+const rowMenu = (row: any) => {
+  return [
+    [{
+      label: 'Riawayat Klaim',
+      icon: 'i-tabler-pig-money',
+      disabled: !row?.pasien?.no_rkm_medis,
+      click: () => {
+        openNewTab(buildUrl(row.pasien?.no_rkm_medis));
+      }
+    }, {
+      // berkas
+      label: 'Berkas Klaim',
+      icon: 'i-tabler-file-text',
+      disabled: !row.no_sep,
+      click: () => {
+        openDokumen.value = true;
+        pdfReady.value = false;
+        sep.value = row.no_sep
+      }
+    }],
+    [{
+      label: 'CPPT',
+      icon: 'i-tabler-file-text',
+      disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
+      click: () => {
+        setSepRawat(row)
+        openModalCPPT.value = true
+      }
+    }],
+    [{
+      label: 'Status & Note',
+      icon: 'i-tabler-note',
+      disabled: !row?.no_sep,
+      click: () => {
+        setSepRawat(row)
+        openModalKlaimFeedback.value = true
+      }
+    }], [{
+      label: 'Kirim Berkas',
+      icon: 'i-tabler-file-export',
+      disabled: !row?.no_sep,
+      click: () => {
+        setSepRawat(row)
+        openModalLoading.value = true
+        doExportBerkas()
+      }
+    }, {
+      label: 'Hapus Pengajuan',
+      icon: 'i-tabler-trash',
+      disabled: !row?.no_sep,
+      click: () => {
+        setSepRawat(row)
+        openModalLoading.value = true
+        doDeleteBerkas()
+      }
+    }]
+  ];
+}
 </script>
 
 <template>
 
-  <UTable :rows="(data as any)?.data" :loading="props.status == 'pending'" :columns="[
+  <UTable :rows="(data as any)?.data" :loading="props.status == 'pending'" @contextmenu.stop="contextmenu" :columns="[
     { label: 'No. SEP', key: 'no_sep' },
     // { label: 'Pasien', key: 'pasien?.nm_pasien' },
     { label: 'Status', key: 'status_klaim' },
@@ -112,62 +188,7 @@ const openNewTab = (url: string) => {
           Form Klaim
         </UButton>
 
-        <UDropdown :items="[
-          [{
-            label: 'Riawayat Klaim',
-            icon: 'i-tabler-pig-money',
-            disabled: !row?.pasien?.no_rkm_medis,
-            click: () => {
-              openNewTab(buildUrl(row.pasien?.no_rkm_medis));
-            }
-          }, {
-            // berkas
-            label: 'Berkas Klaim',
-            icon: 'i-tabler-file-text',
-            disabled: !row.no_sep,
-            click: () => {
-              openDokumen = true;
-              pdfReady = false;
-              sep = row.no_sep
-            }
-          }],
-          [{
-            label: 'CPPT',
-            icon: 'i-tabler-file-text',
-            disabled: !row.no_rawat || !row.pasien?.no_rkm_medis,
-            click: () => {
-              setSepRawat(row)
-              openModalCPPT = true
-            }
-          }],
-          [{
-            label: 'Status & Note',
-            icon: 'i-tabler-note',
-            disabled: !row?.no_sep,
-            click: () => {
-              setSepRawat(row)
-              openModalKlaimFeedback = true
-            }
-          }], [{
-            label: 'Kirim Berkas',
-            icon: 'i-tabler-file-export',
-            disabled: !row?.no_sep,
-            click: () => {
-              setSepRawat(row)
-              openModalLoading = true
-              doExportBerkas()
-            }
-          }, {
-              label: 'Hapus Pengajuan',
-              icon: 'i-tabler-trash',
-              disabled: !row?.no_sep,
-              click: () => {
-                setSepRawat(row)
-                openModalLoading = true
-                doDeleteBerkas()
-              }
-            }]
-        ]">
+        <UDropdown :items="rowMenu(row)" :disabled="!row?.no_sep">
           <UButton size="xs" :disable="false" :variant="!row?.no_sep ? 'solid' : 'soft'"
             :color="!row?.no_sep ? 'gray' : 'sky'" trailing-icon="i-tabler-chevron-down" />
         </UDropdown>
@@ -186,7 +207,8 @@ const openNewTab = (url: string) => {
     <template #patient_cost-data="{ row }">
       <template v-if="props.costStatus == 'success'">
         <div class="flex flex-row gap-4 items-center justify-start">
-          <template v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 100">
+          <template
+            v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 100">
             <UPopover mode="hover">
               <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
               <template #panel>
@@ -199,21 +221,23 @@ const openNewTab = (url: string) => {
                   <div class="flex flex-row gap-1 items-center justify-start mt-2">
                     <UIcon name="i-tabler-arrow-big-up-line" class="text-red-400 h-5 w-5" />
                     <p class="font-semibold text-red-400">
-                     {{
-                        new Intl.NumberFormat('id-ID', {
-                          style: 'currency',
-                          currency: 'IDR',
-                          minimumFractionDigits: 0
-                        }).format((props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0) - (props.realCostData?.[row.no_rawat]?.total ?? 0))
+                      {{
+                      new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                      minimumFractionDigits: 0
+                      }).format((props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0) -
+                      (props.realCostData?.[row.no_rawat]?.total ?? 0))
                       }}
                     </p>
-                </div>
+                  </div>
                 </div>
               </template>
             </UPopover>
           </template>
 
-          <template v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 80 && getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0)  < 100">
+          <template
+            v-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) >= 80 && getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0)  < 100">
             <UPopover mode="hover">
               <UIcon name="i-tabler-triangle" class="text-amber-400 h-5 w-5" />
               <template #panel>
@@ -227,7 +251,8 @@ const openNewTab = (url: string) => {
             </UPopover>
           </template>
 
-          <template v-else-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) <= 80">
+          <template
+            v-else-if="getPercentage(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0, props.realCostData?.[row.no_rawat]?.total ?? 0) <= 80">
             <UPopover mode="hover">
               <UIcon name="i-tabler-circle" class="text-emerald-400 h-5 w-5" />
               <template #panel>
@@ -244,18 +269,20 @@ const openNewTab = (url: string) => {
           </template>
 
           <div class="flex flex-col gap-2">
-            <UTooltip text="Real Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-teal-200 dark:bg-teal-900',}">
+            <UTooltip text="Real Cost" :popper="{ placement: 'right' }"
+              :ui="{background: 'bg-teal-200 dark:bg-teal-900',}">
               <p class="font-semibold text-teal-500 leading-none">{{ new Intl.NumberFormat('id-ID', {
                 style: 'currency', currency: 'IDR', minimumFractionDigits: 0
-              }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</p>
+                }).format(props.realCostData?.[row.no_rawat]?.total ?? 0) }}</p>
             </UTooltip>
 
-            <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }" :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
+            <UTooltip text="Groupping Cost" :popper="{ placement: 'right' }"
+              :ui="{background: 'bg-violet-200 dark:bg-violet-900',}">
               <p class="font-semibold text-violet-500 leading-none">{{
                 new Intl.NumberFormat('id-ID', {
-                  style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+                style: 'currency', currency: 'IDR', minimumFractionDigits: 0
                 }).format(props.grouppingCostData?.find((item: any) => item.no_sep === row.no_sep)?.tarif ?? 0)
-              }}</p>
+                }}</p>
             </UTooltip>
           </div>
         </div>
@@ -294,14 +321,17 @@ const openNewTab = (url: string) => {
       <div class="flex flex-col gap-4 w-[310px]">
         <div>
           <div class="flex gap-2 items-center">
-            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ?? "-" }}</p>
+            <p class="font-bold truncate text-ellipsis whitespace-nowrap overflow-hidden">{{ row.pasien?.nm_pasien ??
+              "-" }}</p>
             <template v-if="row?.terkirim_online">
-              <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-blue-200 dark:bg-blue-900' }">
+              <UTooltip text="Terkirim Online" :popper="{ placement: 'top' }"
+                :ui="{ background: 'bg-blue-200 dark:bg-blue-900' }">
                 <UIcon name="i-tabler-discount-check-filled" class="text-blue-400 h-5 w-5" />
               </UTooltip>
             </template>
             <template v-else>
-              <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }" :ui="{ background: 'bg-rose-200 dark:bg-rose-900' }">
+              <UTooltip text="Belum Terkirim Online" :popper="{ placement: 'top' }"
+                :ui="{ background: 'bg-rose-200 dark:bg-rose-900' }">
                 <UIcon name="i-tabler-circle-dashed-x" class="text-rose-400 h-5 w-5" />
               </UTooltip>
             </template>
@@ -310,7 +340,8 @@ const openNewTab = (url: string) => {
             <UBadge size="xs" color="gray">{{ row.pasien?.no_rkm_medis ?? "-" }}</UBadge>
             <template v-if="row?.berkas_perawatan">
               <span class="text-gray-500 font-semibold text-sm px-1">|</span>
-              <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }" :ui="{ background: 'bg-fuchsia-200 dark:bg-fuchsia-900' }">
+              <UTooltip text="Berkas Terkirim" :popper="{ placement: 'top' }"
+                :ui="{ background: 'bg-fuchsia-200 dark:bg-fuchsia-900' }">
                 <UBadge size="xs" color="fuchsia" variant="subtle" class="flex items-center gap-1">
                   <UIcon name="i-tabler-checks" class="text-fuchsia-400 h-4.5 w-4.5" />
                   Terkirim
@@ -359,8 +390,10 @@ const openNewTab = (url: string) => {
 
         <UTooltip>
           <div class="flex gap-1">
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar }}</span>
-            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.umurdaftar
+              }}</span>
+            <span class="dark:text-gray-400/80 text-gray-500 font-semibold text-sm">{{ row.reg_periksa?.sttsumur
+              }}</span>
           </div>
 
           <template #text>
@@ -379,16 +412,57 @@ const openNewTab = (url: string) => {
       <div class="font-semibold">{{ new Date(row.reg_periksa?.tgl_registrasi).toLocaleDateString('id-ID', {
         weekday: 'short', year: 'numeric',
         month: 'short', day: 'numeric'
-      }) }}</div>
+        }) }}</div>
       <div>{{ row.reg_periksa?.jam_reg }}</div>
     </template>
   </UTable>
 
+  <!-- Table Context Menu -->
+  <UContextMenu :virtual-element="virtualElement" :model-value="!!contextMenuRow"
+    @update:model-value="contextMenuRow = null"
+    :ui="{ background: 'bg-white dark:bg-cool-900', border: 'border-cool-200 dark:border-cool-700' }">
+    <div class="p-4">
+      <!-- title label -->
+      <div class="flex flex-col gap-1">
+        <p class="leading-none font-semibold text-md  ">Menu</p>
+        <p class="leading-none text-sm text-gray-500 dark:text-gray-400">Pilih aksi yang ingin dilakukan</p>
+      </div>
+
+      <UDivider class="my-2 mb-1" />
+
+      <!-- sort detail pasien, like nama, no rkm medis, no rawat no sep -->
+      <div class="flex flex-col gap-1">
+        <p class="font-bold">{{ contextMenuRow?.pasien?.nm_pasien ?? '-' }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ contextMenuRow?.pasien?.no_rkm_medis ?? '-' }}</p>
+        <div class="mt-2">
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ contextMenuRow?.no_rawat ?? '-' }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ contextMenuRow?.sep_simple?.no_sep ?? '-' }}</p>
+        </div>
+      </div>
+
+      <!-- Loop menu data menu is rowMenu with parameter row : row is contextMenuRow -->
+      <UDivider class="my-2" />
+
+      <template v-for="(menu, indexA) of rowMenu(contextMenuRow)" :key="indexA">
+        <div class="flex flex-col gap-1">
+          <template v-for="(menuItem, index) of menu" :key="index">
+            <UButton :disabled="menuItem.disabled" :icon="menuItem.icon" size="xs" @click="menuItem.click()"
+              color="gray" variant="ghost">
+              {{ menuItem.label }}
+            </UButton>
+          </template>
+        </div>
+
+        <UDivider class="my-2" />
+      </template>
+
+    </div>
+  </UContextMenu>
 
   <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
     <div class="p-4 flex-1">
-      <UButton color="gray" variant="ghost" size="sm" icon="i-tabler-x"
-        class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="openDokumen = false" />
+      <UButton color="gray" variant="ghost" size="sm" icon="i-tabler-x" class="flex sm:hidden absolute end-5 top-5 z-10"
+        square padded @click="openDokumen = false" />
       <div v-if="!pdfReady"
         class="absolute inset-0 flex justify-center items-center bg-gray-100 z-10 bg-gray-200/50 dark:bg-gray-800/50">
         <div class="loader">Loading...</div>
