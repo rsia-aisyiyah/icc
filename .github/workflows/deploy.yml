@@ -10,17 +10,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: Setup SSH and Cloudflare Tunnel
+    - name: Install cloudflared
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+        sudo dpkg -i cloudflared-linux-amd64.deb
+
+    - name: Set up SSH
+      run: |
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         echo "Host sssh.rsiap.my.id" >> ~/.ssh/config
         echo "  ProxyCommand cloudflared access ssh --hostname sssh.rsiap.my.id" >> ~/.ssh/config
 
-    - name: SSH to server and run build script
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@sssh.rsiap.my.id "bash /var/www/html/JsApp/icc/build.sh"
+    - name: Deploy application
+      run: ssh -o StrictHostKeyChecking=no $SSH_USER@sssh.rsiap.my.id "bash /var/www/html/JsApp/icc/build.sh"
