@@ -37,4 +37,5 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
-        SSH_USER: ${{ secrets.SSH_USER }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
