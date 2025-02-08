@@ -32,7 +32,8 @@ jobs:
 
     - name: Deploy application
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@sssh.rsiap.my.id "bash /var/www/html/JsApp/icc/build.sh"
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@sssh.rsiap.my.id \
+          "echo '${{ secrets.SUDO_PASSWORD }}' | sudo -S bash /var/www/html/JsApp/icc/build.sh"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
