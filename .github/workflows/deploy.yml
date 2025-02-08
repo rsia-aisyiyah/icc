@@ -1,0 +1,26 @@
+name: Deploy Nuxt App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Setup SSH and Cloudflare Tunnel
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        echo "Host sssh.rsiap.my.id" >> ~/.ssh/config
+        echo "  ProxyCommand cloudflared access ssh --hostname sssh.rsiap.my.id" >> ~/.ssh/config
+
+    - name: SSH to server and run build script
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@sssh.rsiap.my.id "bash /path/to/build.sh"
