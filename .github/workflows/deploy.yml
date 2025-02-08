@@ -23,4 +23,4 @@ jobs:
 
     - name: SSH to server and run build script
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@sssh.rsiap.my.id "bash //var/www/html/JsApp/icc/build.sh"
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@sssh.rsiap.my.id "bash /var/www/html/JsApp/icc/build.sh"
