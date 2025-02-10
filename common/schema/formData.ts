@@ -11,7 +11,7 @@ export const FormDataSchema = z.object({
   upgrade_class_ind: z.boolean().optional().nullable(),
   icu_indikator: z.boolean().optional().nullable(),
   executive_class_ind: z.boolean().optional().nullable(),
-  tariff_class: z.number().int().refine(value => [1, 2, 3].includes(value), { message: 'Kelas hak tidak valid' }).optional().nullable(),
+  kelas_rawat: z.number().int().refine(value => [1, 2, 3].includes(value), { message: 'Kelas rawat tidak valid' }).optional().nullable(),
   tgl_masuk: z.date().optional().nullable(),
   tgl_pulang: z.date().optional().nullable(),
   age: z.number().int().min(0).optional().nullable(),
