@@ -18,7 +18,10 @@ export const FormDataSchema = z.object({
   cara_masuk: z.string().min(1).optional().nullable(),
   los: z.number().int().min(0).optional().nullable(),
   los_in_hour: z.string().optional().nullable(),
-  birth_weight: z.number().int().min(0).optional().nullable(),
+  birth_weight: z.union([
+    z.string().regex(/^\d+$/, "Hanya angka yang diperbolehkan"),
+    z.number().min(0, "Angka harus minimal 0"),
+  ]).optional().nullable(),
   birth_weight_unit: z.string().optional().nullable(),
   adl_sub_acute: z.number().int().min(12).max(60).optional().nullable(),
   adl_chronic: z.number().int().min(12).max(60).optional().nullable(),
