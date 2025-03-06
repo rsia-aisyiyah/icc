@@ -33,4 +33,4 @@ jobs:
     - name: Build
       run: |
         ssh -i ~/.ssh/id_rsa -o ProxyCommand="cloudflared access ssh --hostname ${{ secrets.HOST_NAME }}" ${{ secrets.HOST_USER }}@${{ secrets.HOST_NAME }} "
-        cd /var/www/html/JsApp/icc && git pull origin main && ./build.sh"  
+        cd /var/www/html/JsApp/icc && git pull origin main && chmod +x build.sh && ./build.sh"
