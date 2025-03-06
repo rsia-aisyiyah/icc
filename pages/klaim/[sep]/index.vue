@@ -3,6 +3,9 @@
     <div class="flex justify-between items-center mb-5">
       <h1 class="text-2xl font-semibold text-indigo-500">Form Klaim</h1>
       <div class="flex items-center space-x-2">
+        <template v-if="bridgingSep?.data?.klsnaik">
+          <UButton icon="i-heroicons-pencil-square" size="sm" color="yellow" variant="ghost" label="Edit Detail Naik Kelas" @click="openUpdateNaikKelas = true" :trailing="false"/>
+        </template>
         <UButton color="indigo" variant="soft" size="sm" icon="i-tabler-file-text"
           @click="openDokumen = true; pdfReady = false">
           Berkas Klaim
@@ -51,7 +54,13 @@
     <template v-if="klaimData?.data">
       <UCard class="mb-5">
         <template #header>
-          <h2 class="text-lg font-semibold text-indigo-500">Hasil Klaim Terakhir</h2>
+          <div class="w-full flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-indigo-500">Hasil Klaim Terakhir</h2>
+
+            <template v-if="bridgingSep?.data?.klsnaik">
+              <UButton icon="i-heroicons-pencil-square" size="sm" color="yellow" variant="ghost" label="Edit Detail Naik Kelas" @click="openUpdateNaikKelas = true" :trailing="false"/>
+            </template>
+          </div>
         </template>
 
         <!-- show 3 information, code cbg, deskripsi dan tarif -->
@@ -95,7 +104,6 @@
       </UCard>
     </template>
 
-
   </UContainer>
 
   <USlideover v-model="openDokumen" :ui="{ width: 'w-screen max-w-[50%]' }">
@@ -110,6 +118,8 @@
       <iframe :src="pdfUrl" frameborder="0" width="100%" height="100%" @load="pdfReady = true"></iframe>
     </div>
   </USlideover>
+
+  <ModalUpdateNaikKelas v-model:isOpen="openUpdateNaikKelas" :sep="no_sep" />
 </template>
 
 <script lang="ts" setup>
@@ -117,12 +127,13 @@ import type { ResponseSepData, ResponseTensi, ResponseRegPeriksa, KamarInapRespo
 
 const toast = useToast();
 const route = useRoute();
-const totalTarifRs = ref(0);
 const isVip = ref(false);
+const totalTarifRs = ref(0);
 const pdfReady = ref(false);
 const openDokumen = ref(false);
 const config = useRuntimeConfig();
 const no_sep = ref(route.params.sep);
+const openUpdateNaikKelas = ref(false);
 const tokenStore = useAccessTokenStore();
 const pdfUrl = `${config.public.API_V2_URL}/sep/${no_sep.value}/print?token=${tokenStore.accessToken}`;
 
