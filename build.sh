@@ -37,26 +37,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Meminta konfirmasi untuk melakukan push ke Docker Hub
-echo "${YELLOW}[?] Do you want to push the Docker image to Docker Hub? (yes/no) ${NC}\c"
-read confirmPush
+# Menampilkan pesan sukses
+echo "${GREEN}[+] Docker image built successfully.${NC}"
 
-# Menggunakan kondisional untuk memproses pilihan pengguna
-if [ "$confirmPush" = "yes" ] || [ "$confirmPush" = "y" ]; then
-  # Mengunggah image ke Docker Hub
-  echo "${YELLOW}[+] Pushing Docker image to Docker Hub...${NC}"
-  docker push $dockerRepository:$tag
-  docker push $dockerRepository:latest
+# Menjalankan docker compose
+echo "${YELLOW}[+] Running Docker compose...${NC}"
+docker compose up -d
 
-  # Menampilkan pesan sukses
-  echo "${GREEN}[+] Docker image pushed to Docker Hub successfully.${NC}"
-  echo "${GREEN}[+] Docker image pushed with tag: $tag${NC}"
-  echo "${GREEN}[+] Docker image also pushed as: latest${NC}"
-else
-  echo "${YELLOW}[+] Push to Docker Hub aborted by user.${NC}"
-fi
-
-# Instruksi untuk menjalankan docker compose
-echo "${YELLOW}[+] To start the application, run the following command:${NC}"
-echo "${GREEN}[+] For local environment: docker-compose --env-file .env.local up -d${NC}"
-echo "${GREEN}[+] For production environment: docker-compose --env-file .env.public up -d${NC}"
+# Menampilkan pesan sukses
+echo "${GREEN}[+] Docker compose ran successfully.${NC}"

@@ -4,37 +4,33 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
     - name: Install cloudflared
       run: |
         wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
         sudo dpkg -i cloudflared-linux-amd64.deb
+        cloudflared --version
 
-    - name: Set up SSH and SSH Agent
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        echo "Host sssh.rsiap.my.id" >> ~/.ssh/config
-        echo "  ProxyCommand cloudflared access ssh --hostname %h" >> ~/.ssh/config
-        
-        # Start the SSH agent and add the key with passphrase
-        eval $(ssh-agent -s)
-        echo "${{ secrets.SSH_KEY_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        name: id_rsa
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        if_key_exists: fail
 
-    - name: Deploy application
+    - name: Build
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@sssh.rsiap.my.id "echo '${{ secrets.SUDO_PASSWORD }}' | sudo -S bash /var/www/html/JsApp/icc/build.sh"
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
-        SERVER_USER: ${{ secrets.SERVER_USER }}
-        SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
+        ssh -i ~/.ssh/id_rsa -o ProxyCommand="cloudflared access ssh --hostname ${{ secrets.HOST_NAME }}" ${{ secrets.HOST_USER }}@${{ secrets.HOST_NAME }} "
+        cd /var/www/html/JsApp/icc && git pull origin main && ./build.sh"  
