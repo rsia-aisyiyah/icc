@@ -83,26 +83,16 @@
 
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import { logEvent } from '~/utils/firebase'
 import { useDebounceFn } from '@vueuse/core'
 
 const magickToken = useAccessTokenStore()
 const magickConfig = useRuntimeConfig()
 const magickModalOpen = ref(false)
-const magickRouter = useRouter()
 const magickCurrentPage = ref(1)
 const magickKeywords = ref('')
 
 // get url
 const url = useRoute()
-
-// Log page views
-magickRouter.afterEach((to, from) => {
-  logEvent('page_view', {
-    page_path: to.fullPath,
-    page_title: document.title,
-  })
-})
 
 // Trigger the API request only when `keywords` is not empty
 const { data: magick, error: magickError, refresh: magickRefresh, status: magickStatus } = await useAsyncData(

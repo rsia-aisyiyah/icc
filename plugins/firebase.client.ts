@@ -1,31 +1,50 @@
-import { defineNuxtPlugin } from '#app'
-import { getAnalytics } from 'firebase/analytics'
-import { initializeApp } from 'firebase/app'
+import { defineNuxtPlugin, useRuntimeConfig } from '#app'
+import { initializeApp, getApps } from 'firebase/app'
+import { getAnalytics, isSupported } from 'firebase/analytics'
 
-export default defineNuxtPlugin((nuxtApp) => {
+interface PublicFirebaseConfig {
+  apiKey: string
+  authDomain: string
+  projectId: string
+  storageBucket: string
+  messagingSenderId: string
+  appId: string
+  measurementId: string
+}
+
+export default defineNuxtPlugin(async (nuxtApp) => {
   const config = useRuntimeConfig()
+  const firebaseConfig = config.public.firebase as PublicFirebaseConfig
 
-  const firebaseApp = initializeApp({
-    apiKey: config.public.firebase.apiKey,
-    authDomain: config.public.firebase.authDomain,
-    projectId: config.public.firebase.projectId,
-    storageBucket: config.public.firebase.storageBucket,
-    messagingSenderId: config.public.firebase.messagingSenderId,
-    appId: config.public.firebase.appId,
-    measurementId: config.public.firebase.measurementId,
-  })
+  const globalKey = '__FIREBASE_CLIENT_APP__'
 
-  const analytics = getAnalytics(firebaseApp)
+  let firebaseApp
+
+  if (!getApps().length) {
+    if (!globalThis[globalKey]) {
+      globalThis[globalKey] = initializeApp({
+        apiKey: firebaseConfig.apiKey,
+        authDomain: firebaseConfig.authDomain,
+        projectId: firebaseConfig.projectId,
+        storageBucket: firebaseConfig.storageBucket,
+        messagingSenderId: firebaseConfig.messagingSenderId,
+        appId: firebaseConfig.appId,
+        measurementId: firebaseConfig.measurementId,
+      })
+    }
+    firebaseApp = globalThis[globalKey]
+  } else {
+    firebaseApp = getApps()[0]
+  }
+
+  let analytics = null
+
+  if (await isSupported()) {
+    analytics = getAnalytics(firebaseApp)
+  }
 
   nuxtApp.provide('firebase', {
     firebaseApp,
     analytics,
   })
-
-  // return {
-  //   provide: {
-  //     firebaseApp,
-  //     analytics,
-  //   },
-  // }
 })

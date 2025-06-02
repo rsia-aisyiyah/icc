@@ -11,6 +11,8 @@ export default defineNuxtConfig({
   ],
 
   plugins: [
+    '~/plugins/router-analytics.client.ts',
+    '~/plugins/firebase.client.ts',
     '~/plugins/v-maska.ts',
   ],
 
